@@ -4,64 +4,27 @@ extern crate gl;
 extern crate failure;
 
 // Mods
-pub mod render_gl;
+mod renderer;
 
 // Use
 use failure::Error;
 use std::ffi::{CString};
 
+use renderer::shaders::shader_program::*;
+
 fn main() -> Result<(),Error>{
 
-    // Initialise sdl to allow for window spawning.
-    let sdl = sdl2::init().unwrap();
-
-    // Creates the video subsystem which internally contains a clone of sdl.
-    let video_subsystem = sdl.video().unwrap();
-
-    // Specify which version of OpenGL we'll be using.
-    let gl_attr = video_subsystem.gl_attr();
-
-    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-    gl_attr.set_context_version(4, 1);
-
-    // Initialises a new window and allows the input of arguments and parameters into the window.
-    let window = video_subsystem.
-        window("Game", 900, 700)
-        .opengl()
-        .resizable()
-        .build()
-        .unwrap();
+    let renderer = renderer::render_application::initialise()?;
 
     // Create gl context AFTER window is created.
-    let _gl_context = window.gl_create_context().unwrap();
+    let _gl_context = renderer.window.gl_create_context().unwrap();
 
     // Initialise gl.
-    let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as * const std::os::raw::c_void);
+    let _gl = gl::load_with(|s| renderer.video.gl_get_proc_address(s) as * const std::os::raw::c_void);
 
-    let shader_program = render_gl::Program::from_shaders(
-        &[render_gl::Shader::from_vert_source( // Vert Shader source
-            &CString::new(
-                include_str!("triangle.vert")).unwrap()).unwrap(),
-            render_gl::Shader::from_frag_source(&CString::new( // Frag shader source
-                include_str!("triangle.frag")).unwrap()).unwrap()]).unwrap();
+    let shader_program = renderer::renderer_tests::basic_program()?;
 
-    shader_program.set_used();
-
-    // Specify an array of vertices (positioned as x, y, z coordinates)
-    // This array forms a triangle.
-    let vertices: Vec<f32> = vec![
-        // positions        // Colors
-         0.5,  0.5, 0.0,    1.0, 0.0, 0.0, // bottom right
-         0.5, -0.5, 0.0,    0.0, 1.0, 0.0, // bottom left
-        -0.5, -0.5, 0.0,    0.0, 0.0, 1.0,  // top
-        -0.5,  0.5, 0.0,    0.5, 0.2, 0.0
-    ];
-
-    // The drawing order of indices within the vertex array.
-    let indices : Vec<gl::types::GLuint> = vec![
-        0, 1, 3,
-        1, 2, 3
-    ];
+    let shape = renderer::renderer_tests::create_triangle_quad()?;
 
     // Creates a vertex buffer in the GPU. the uint is an unique id which allows quick access to the
     // buffer.
@@ -69,11 +32,8 @@ fn main() -> Result<(),Error>{
 
     let mut element_buffer_object : gl::types::GLuint = 0;
 
-    unsafe {
-        // Creates a n buffers and binds them to the vertex buffer's id (set above).
-        gl::GenBuffers(1, &mut vertex_buffer);
-        gl::GenBuffers(1, &mut element_buffer_object);
-    }
+    renderer::render_application::generate_n_buffers(
+        1, vec![&mut vertex_buffer, &mut element_buffer_object]);
 
     let mut vertex_array_object: gl::types::GLuint = 0;
 
@@ -93,8 +53,8 @@ fn main() -> Result<(),Error>{
         // specified before INTO the buffer we created:
         gl::BufferData(
             gl::ARRAY_BUFFER, // target
-            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
+            (shape.vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+            shape.vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
             gl::STATIC_DRAW, // Specifies the object does not change. If it did change,
             // the call would be DYNAMIC_DRAW or STREAM_DRAW, which would
             // place the data in an easy to access location
@@ -103,8 +63,8 @@ fn main() -> Result<(),Error>{
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, element_buffer_object);
         gl::BufferData (
             gl::ELEMENT_ARRAY_BUFFER,
-            (indices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
-            indices.as_ptr() as *const gl::types::GLvoid,
+            (shape.indices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr,
+            shape.indices.as_ptr() as *const gl::types::GLvoid,
             gl::STATIC_DRAW,
         );
 
@@ -144,7 +104,7 @@ fn main() -> Result<(),Error>{
     }
 
     // Event pump which stores all events and allows them to be processed.
-    let mut event_pump = sdl.event_pump().unwrap();
+    let mut event_pump = renderer.sdl.event_pump().unwrap();
 
     // The main event loop which keeps the window open.
     'main: loop {
@@ -176,9 +136,8 @@ fn main() -> Result<(),Error>{
                     std::ptr::null()
                 );
             }
-
             // Updates the window.
-            window.gl_swap_window();
+            renderer.window.gl_swap_window();
         }
     }
     Ok(())
