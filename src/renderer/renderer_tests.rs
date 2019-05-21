@@ -28,8 +28,8 @@ pub fn create_triangle_quad() -> Result<VertexInformation, Error>{
         // positions        // Colors
         0.5,  0.5, 0.0,    1.0, 0.0, 0.0, // bottom right
         0.5, -0.5, 0.0,    0.0, 1.0, 0.0, // bottom left
-        -0.5, -0.5, 0.0,    0.0, 0.0, 1.0, // top
-        -0.5,  0.5, 0.0,    0.5, 0.2, 0.0
+        -0.5, -0.5, 0.0,   0.0, 0.0, 1.0, // top
+        -0.5,  0.5, 0.0,   0.5, 0.2, 0.0
     ];
 
     // The drawing order of indices within the vertex array.

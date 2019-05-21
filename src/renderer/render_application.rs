@@ -10,27 +10,24 @@ use sdl2::Sdl;
 use sdl2::video;
 
 pub struct RendererInformation {
-
-    pub sdl : Sdl,
-    pub window : Window,
-    pub video : sdl2::VideoSubsystem
+    pub sdl: Sdl,
+    pub window: Window,
+    pub video: sdl2::VideoSubsystem,
 }
 
 impl RendererInformation {
-
-    fn from(sdl : Sdl, window : Window, video : sdl2::VideoSubsystem) -> Result<RendererInformation, Error> {
-
+    fn from(sdl: Sdl, window: Window, video: sdl2::VideoSubsystem) -> Result<RendererInformation, Error> {
         let renderer = RendererInformation {
             sdl,
             window,
-            video
+            video,
         };
 
         Ok(renderer)
     }
 }
 
-pub fn initialise() -> Result<RendererInformation, Error>{
+pub fn initialise() -> Result<RendererInformation, Error> {
 
     // Section for creating a window:
     //_________________________________________________________________
@@ -49,7 +46,7 @@ pub fn initialise() -> Result<RendererInformation, Error>{
 
     // Initialises a new window and allows the input of arguments and parameters into the window.
     let window = video_subsystem.
-        window("Game", 900, 700)
+        window("Game", 900, 900)
         .opengl()
         .resizable()
         .build()
@@ -61,11 +58,29 @@ pub fn initialise() -> Result<RendererInformation, Error>{
     Ok(RendererInformation::from(sdl, window, video_subsystem)?)
 }
 
-pub fn generate_n_buffers(amount : i32, buffers : Vec<&mut u32>) {
-
+pub fn generate_n_buffers(amount: i32, buffers: Vec<&mut u32>) {
     unsafe {
-        for mut buffer in buffers {
+        for buffer in buffers {
             gl::GenBuffers(amount, buffer);
         }
+    }
+}
+
+pub fn generate_buffer_data<T>(buffer_type: gl::types::GLenum, buffer : &u32, vertices : &Vec<T>) {
+
+    unsafe {
+
+        gl::BindBuffer(buffer_type, *buffer);
+
+        // Now that we've bound ARRAY_BUFFER to our vertex_buffer, we need to copy the vertices we
+        // specified before INTO the buffer we created:
+        gl::BufferData(
+            buffer_type, // target
+            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
+            gl::STATIC_DRAW, // Specifies the object does not change. If it did change,
+            // the call would be DYNAMIC_DRAW or STREAM_DRAW,
+            // which would place the data in an easy to access location
+        );
     }
 }
