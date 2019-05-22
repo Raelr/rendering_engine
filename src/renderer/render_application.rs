@@ -7,20 +7,21 @@ extern crate failure;
 use failure::Error;
 use sdl2::video::Window;
 use sdl2::Sdl;
-use sdl2::video;
 
 pub struct RendererInformation {
     pub sdl: Sdl,
     pub window: Window,
     pub video: sdl2::VideoSubsystem,
+    pub context : sdl2::video::GLContext
 }
 
 impl RendererInformation {
-    fn from(sdl: Sdl, window: Window, video: sdl2::VideoSubsystem) -> Result<RendererInformation, Error> {
+    fn from(sdl: Sdl, window: Window, video: sdl2::VideoSubsystem, context : sdl2::video::GLContext ) -> Result<RendererInformation, Error> {
         let renderer = RendererInformation {
             sdl,
             window,
             video,
+            context
         };
 
         Ok(renderer)
@@ -28,9 +29,6 @@ impl RendererInformation {
 }
 
 pub fn initialise() -> Result<RendererInformation, Error> {
-
-    // Section for creating a window:
-    //_________________________________________________________________
 
     // Initialise sdl to allow for window spawning.
     let sdl = sdl2::init().unwrap();
@@ -52,10 +50,13 @@ pub fn initialise() -> Result<RendererInformation, Error> {
         .build()
         .unwrap();
 
-    // -------------------------------------------------------------------------------------------
-    // End of Window creation
+    // Create gl context AFTER window is created.
+    let gl_context = window.gl_create_context().unwrap();
 
-    Ok(RendererInformation::from(sdl, window, video_subsystem)?)
+    // Initialise gl.
+    let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as * const std::os::raw::c_void);
+
+    Ok(RendererInformation::from(sdl, window, video_subsystem, gl_context)?)
 }
 
 pub fn generate_n_buffers(amount: i32, buffers: Vec<&mut u32>) {
@@ -82,5 +83,29 @@ pub fn generate_buffer_data<T>(buffer_type: gl::types::GLenum, buffer : &u32, ve
             // the call would be DYNAMIC_DRAW or STREAM_DRAW,
             // which would place the data in an easy to access location
         );
+    }
+}
+
+pub fn generate_vertex_array(location : u32, components : i32,
+                             stride : usize, offset : usize) {
+    unsafe {
+
+        let offset = if offset == 0 {
+            std::ptr::null()
+        } else {
+            (offset * std::mem::size_of::<f32>()) as *const gl::types::GLvoid
+        };
+
+        // Specifies how data stored in the vertex buffer is to be interpreted.
+        gl::VertexAttribPointer(
+            location, // index of the generic vertex attribute ("layout (location = 0)")
+            components, // the number of components per generic vertex attribute. since its a vec3 the size is 3
+            gl::FLOAT, // data type
+            gl::FALSE, // normalized (int-to-float conversion)
+            (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)
+            offset // offset of the first component
+        );
+
+        gl::EnableVertexAttribArray(location); // this is "layout (location = 0)" in vertex shader
     }
 }
