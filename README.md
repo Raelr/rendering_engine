@@ -2,7 +2,7 @@
 
 This is a small rendering engine which i've decided to build out of pure curiosity. This is part of a process which I hope will lead to me learning to create a game engine from scratch. 
 
-The project is following the great OpenGL tutorial by <b><i>Joey DeVries</i></b> (https://learnopengl.com/Getting-started/Hello-Triangle), and attempts to follow his tutorials (add extend them) to best suit a game engine. This is largely experimental, and is a rugh interpretation of how I would think rendering would be tied into an engine. 
+The project is following the great OpenGL tutorial by <b><i>Joey DeVries</i></b> (https://learnopengl.com/Introduction), and attempts to follow his tutorials (add extend them) to best suit a game engine. This is largely experimental, and is a rugh interpretation of how I would think rendering would be tied into an engine. 
 
 <h2>Components</h2>
 
