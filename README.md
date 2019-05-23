@@ -25,3 +25,27 @@ So far, the engine is incredibly rough. Its most significant classes are listed 
 * <b>shader_program: </b>combines multiple shaders into a single object which can be used to determine how an object is rendered.
 
 * <b>shader: </b>takes in a vertex or fragment shader and creates a new shader object containing that shader.
+
+<h2>File Structure</h2>
+
+```
+[src]
+     |-main.rs
+     |-application.rs
+     |
+     |-[Render]
+     |     |-render_application.rs
+     |     |-render_tests.rs
+     |     |-triangle.vert
+     |     |-triangle.frag
+     |     |
+     |     |-[shader]
+     |     |      |-shader.rs
+     |     |      |-shader_program.rs
+     |     |      |-shader_utilities.rs
+     |     |-[practice]
+     |     |      |-square.rs
+     |     |      |-square_render.rs
+     |     |      |-two_triangles_2.rs
+     |     |      |-two_triangles_single_vertex.rs     
+```
