@@ -85,9 +85,7 @@ fn shader_from_source(source: &CStr, kind: gl::types::GLenum) -> Result<gl::type
                 error.as_ptr() as *mut gl::types::GLchar,
             );
         }
-
         return Err(error.to_string_lossy().into_owned());
     }
-
     Ok(id)
 }

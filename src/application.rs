@@ -20,10 +20,14 @@ impl Application {
         Ok(application)
     }
 
-    pub fn run(&self, vertex_array_object : u32, shader_program : ShaderProgram) {
+    pub fn run(&self, vertex_array_objects : Vec<u32>, shader_program : ShaderProgram, stride: i32, is_element : bool) {
 
         // Event pump which stores all events and allows them to be processed.
         let mut event_pump = self.renderer.sdl.event_pump().unwrap();
+
+        unsafe {
+            //gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+        }
 
         // The main event loop which keeps the window open.
         'main: loop {
@@ -42,40 +46,46 @@ impl Application {
 
                 shader_program.set_used();
 
-                unsafe {
+                render_application::draw(&vertex_array_objects, stride, is_element);
 
-                    // Binds the vertex array
-                    gl::BindVertexArray(vertex_array_object);
-
-                    //gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-
-                    // Draws count vertices in the vertex buffer or VAO.
-                    gl::DrawElements(gl::TRIANGLES, // mode
-                                     6,             // starting index in the enabled arrays
-                                     gl::UNSIGNED_INT,
-                                     std::ptr::null()
-                    );
-
-                    gl::DrawArrays(
-                        gl::TRIANGLES,
-                        0,
-                        6
-                    )
-                }
                 // Updates the window.
                 self.renderer.window.gl_swap_window();
             }
         }
     }
 
-    pub fn test_render(&self) -> Result<(), Error>{
+    pub fn test_render(&self, test_type : renderer_tests::TestType) -> Result<(), Error>{
 
         // creates a shader project which combines a vertex and fragment shader.
         let shader_program = renderer_tests::basic_program()?;
 
-        let vertex_array_object = renderer_tests::render_from_vertex_array(&self.renderer)?;
+        let vertex_array_objects = match test_type {
+            renderer_tests::TestType::RectangleElement => renderer_tests::render_basic_square_with_elements()?,
+            renderer_tests::TestType::TwoTrianglesSingleVertex => renderer_tests::render_from_vertex_array()?,
+            renderer_tests::TestType::TwoTrianglesTwoVertices => renderer_tests::render_from_separate_arrays()?,
+            renderer_tests::TestType::UpperCaseA => renderer_tests::draw_uppercase_a()?,
+        };
 
-        self.run(vertex_array_object, shader_program);
+        let stride = match test_type {
+            renderer_tests::TestType::RectangleElement => 6,
+            renderer_tests::TestType::TwoTrianglesSingleVertex => 6,
+            renderer_tests::TestType::TwoTrianglesTwoVertices => 3,
+            renderer_tests::TestType::UpperCaseA => 21,
+        };
+
+        let is_element : bool = match test_type {
+            renderer_tests::TestType::RectangleElement | renderer_tests::TestType::UpperCaseA => true,
+            _ => false
+        };
+
+        unsafe {
+            // Set the viewport for the image.
+            gl::Viewport(0, 0, 900, 900); // Set viewport.
+            // Set the color of the window.
+            gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
+        }
+
+        self.run(vertex_array_objects, shader_program, stride, is_element);
 
         Ok(())
     }
