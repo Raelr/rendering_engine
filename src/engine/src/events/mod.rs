@@ -1,2 +1,2 @@
-mod event;
+pub mod event;
 pub mod key_event;
