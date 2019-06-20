@@ -7,7 +7,6 @@ extern crate failure;
 use failure::Error;
 use sdl2::video::Window;
 use sdl2::Sdl;
-use crate::renderer::shaders::shader_program::ShaderProgram;
 
 pub struct RendererInformation {
     pub sdl: Sdl,

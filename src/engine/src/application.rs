@@ -25,9 +25,9 @@ impl Application {
         // Event pump which stores all events and allows them to be processed.
         let mut event_pump = self.renderer.sdl.event_pump().unwrap();
 
-        unsafe {
-            //gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-        }
+//        unsafe {
+//            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+//        }
 
         // The main event loop which keeps the window open.
         'main: loop {
