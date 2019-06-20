@@ -300,14 +300,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rendering_engine"
-version = "0.1.0"
-dependencies = [
- "engine 0.1.0",
- "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "rustc-demangle"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -316,6 +308,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "ryu"
 version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "scrapyard_engine"
+version = "0.1.0"
+dependencies = [
+ "engine 0.1.0",
+ "failure 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "sdl2"

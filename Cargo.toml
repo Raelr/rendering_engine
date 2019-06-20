@@ -1,5 +1,5 @@
 [package]
-name = "rendering_engine"
+name = "scrapyard_engine"
 version = "0.1.0"
 authors = ["Aryeh <aryehzinn@hotmail.com>"]
 edition = "2018"
