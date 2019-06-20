@@ -1,6 +1,4 @@
 use failure::*;
-use strum::AsStaticRef;
-use sdl2::event::Event;
 
 #[derive(Display, Debug)]
 pub enum EventType {

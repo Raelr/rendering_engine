@@ -7,7 +7,6 @@ use std::ffi::{CString};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use crate::renderer::render_application;
-use crate::renderer::render_application::RendererInformation;
 use crate::renderer::practice::*;
 
 pub enum TestType {

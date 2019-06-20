@@ -1,9 +1,6 @@
 use crate::events::*;
 
-use event::*;
-use event::EventHandler;
 use failure::*;
-use crate::events::event::EventType::*;
 
 pub struct KeyEvent {
 
@@ -28,7 +25,7 @@ impl event::EventHandler for KeyEvent{
 
     fn get_name(&self) -> Result<String, Error> {
 
-       Ok((self.event_type.to_string()))
+       Ok(self.event_type.to_string())
    }
 
     fn get_category_flags(&self) -> Result<event::EventCategory, Error> {
