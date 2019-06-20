@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate failure;
 extern crate engine;
 
 use engine::events::event::EventHandler;
@@ -12,9 +10,11 @@ fn main() -> Result<(),Error>{
 
     let event = engine::events::key_event::KeyEvent::from_key_pressed(1, Some(1))?;
 
+    let in_category = event.is_in_category(engine::events::event::EventCategory::EVENT_CATEGORY_KEYBOARD )?;
+
     let name = event.to_string()?;
 
-    println!("{}", name);
+    println!("{} {}", name, in_category);
 
     let event = engine::events::key_event::KeyEvent::from_key_released(1)?;
 

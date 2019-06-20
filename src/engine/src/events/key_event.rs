@@ -10,21 +10,29 @@ pub struct KeyEvent {
     key_code : i32,
     repeat_count : Option<i32>,
     event_type : event::EventType,
-    flags : Vec<event::EventCategory>
+    flags : event::EventCategory
 }
 
 trait KeyEventTrait : event::EventHandler {
 
     fn get_key_code(&self) ->  i32;
     fn get_repeat_count(&self) -> i32;
-
 }
 
 impl event::EventHandler for KeyEvent{
 
-     fn get_name(&self) -> Result<String, Error> {
+    fn get_event_type(&self) -> Result<&event::EventType, Error> {
+        let value = &self.event_type;
+        Ok(value)
+    }
 
-        Ok((self.event_type.to_string()))
+    fn get_name(&self) -> Result<String, Error> {
+
+       Ok((self.event_type.to_string()))
+   }
+
+    fn get_category_flags(&self) -> Result<event::EventCategory, Error> {
+        Ok(self.flags)
     }
 
     fn to_string(&self) -> Result<String, Error> {
@@ -36,6 +44,11 @@ impl event::EventHandler for KeyEvent{
         };
 
         Ok (debug)
+    }
+
+    fn is_in_category(&self, category : event::EventCategory) -> Result<bool, Error> {
+
+        Ok((category & self.get_category_flags()?) != event::EventCategory::NONE)
     }
 }
 
@@ -51,7 +64,7 @@ impl KeyEvent {
 
     fn new(key_code : i32, repeat_count : Option<i32>, event_type : event::EventType) -> Result<KeyEvent, Error> {
 
-        let flags = vec![event::EventCategory::EventCategoryKeyboard, event::EventCategory::EventCategoryInput];
+        let flags = event::EventCategory::EVENT_CATEGORY_KEYBOARD  | event::EventCategory::EVENT_CATEGORY_INPUT;
 
         let event = KeyEvent {
             key_code,
