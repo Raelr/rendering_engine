@@ -21,22 +21,49 @@ bitflags! {
     }
 }
 
-//pub enum EventCategory {
-//    None = 0,
-//    EventCategoryApplication    = bit!(1),
-//    EventCategoryInput          = bit!(2),
-//    EventCategoryKeyboard       = bit!(3),
-//    EventCategoryMouse          = bit!(4),
-//    EventCategoryMouseButton    = bit!(5)
-//}
-
 #[allow(unused_variables)]
-pub trait EventHandler {
+pub trait EventTrait {
 
     // Needs event dispatcher;
     fn get_event_type(&self) -> Result<&EventType, Error> { Ok(&EventType::NONE)}
     fn get_name(&self) -> Result<String, Error> { Ok(String::new()) }
-    fn get_category_flags(&self) -> Result<EventCategory, Error>;
+    fn get_category_flags(&self) -> Result<&EventCategory, Error>;
     fn to_string(&self) -> Result<String, Error>;
-    fn is_in_category(&self, category : EventCategory) -> Result<bool, Error> { Ok(false)}
+    fn is_in_category(&self, category : &EventCategory) -> Result<bool, Error> { Ok(false)}
 }
+
+pub struct Event {
+
+    event_type : EventType,
+    flags : EventCategory
+}
+
+impl Event {
+
+    pub fn new(event_type : EventType, flags: EventCategory) -> Result<Event, Error> {
+        Ok(Event {event_type, flags})
+    }
+
+    pub fn get_category_flags(&self) -> Result<&EventCategory, Error> {
+        Ok(&self.flags)
+    }
+
+    pub fn get_name(&self) -> Result<String, Error> {
+
+        Ok(self.event_type.to_string())
+    }
+
+    pub fn get_event_type(&self) -> Result<&EventType, Error> {
+        let value = &self.event_type;
+        Ok(value)
+    }
+
+    pub fn is_in_category(&self, category : &EventCategory) -> Result<bool, Error> {
+
+        Ok((category.to_owned() & self.get_category_flags()?.to_owned()) != EventCategory::NONE)
+    }
+}
+
+
+
+
