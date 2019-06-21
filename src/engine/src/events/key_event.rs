@@ -39,8 +39,8 @@ impl event::EventTrait for KeyEvent {
         self.event.get_event_type()
     }
 
-    fn get_category_flags(&self) -> Result<&event::EventCategory, Error> {
-        Ok(self.event.get_category_flags()?)
+    fn get_category_flags(&self) -> &event::EventCategory {
+        self.event.get_category_flags()
     }
 
     // Only print repeat count if a keypressed event is generated

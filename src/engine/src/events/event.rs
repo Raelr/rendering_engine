@@ -37,7 +37,7 @@ pub trait EventTrait {
 
     fn get_event_type(&self) -> &EventType { &EventType::NONE}
     fn get_name(&self) -> Result<String, Error> { Ok(String::new()) }
-    fn get_category_flags(&self) -> Result<&EventCategory, Error>;
+    fn get_category_flags(&self) -> &EventCategory;
     fn to_string(&self) -> String;
     fn is_in_category(&self, category : &EventCategory) -> bool { false}
 }
@@ -59,8 +59,8 @@ impl Event {
     }
 
     // Get the bits of the category flags.
-    pub fn get_category_flags(&self) -> Result<&EventCategory, Error> {
-        Ok(&self.flags)
+    pub fn get_category_flags(&self) -> &EventCategory {
+        &self.flags
     }
 
     // Get the name of the struct (taken from the type)
@@ -77,7 +77,7 @@ impl Event {
     // Performs a bitwise operator to check if an enum falls into the correct category.
     pub fn is_in_category(&self, category : &EventCategory) -> bool {
 
-        (category.to_owned() & self.get_category_flags().unwrap().to_owned()) != EventCategory::NONE
+        (category.to_owned() & self.get_category_flags().to_owned()) != EventCategory::NONE
     }
 }
 
