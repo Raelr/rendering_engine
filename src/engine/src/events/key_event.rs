@@ -1,25 +1,36 @@
 use crate::events::*;
 use crate::events::event::Event;
-use event::EventType;
+use EventType;
 use failure::*;
-use crate::events::event::EventType::KeyPressed;
+use EventType::KeyPressed;
 use failure::Error;
 use std::process;
+use crate::events::EventType::{KeyReleased, KeyTyped};
 
 #[macro_export]
-// Macro for creating a key event. Returns an event regardless of what happens, but quits the process if there is an error.
-macro_rules! key_event {
-    ($key_code:expr, $repeat_count:expr, $e_type:expr) => {{
-        let pressed = key_event::KeyEvent::new($key_code, $repeat_count, $e_type);
+// Macro for creating a key pressed event.
+macro_rules! key_pressed {
+    ($key_code:expr, $repeat_count:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, $repeat_count, 0);
+        pressed?
+    }};
+}
 
-        let is_ok = match &pressed {
-            Result::Ok(v) => pressed?,
-            Result::Err(e) => { eprintln!("Error: {}", e);
-                                std::process::exit(1);
-                                pressed? }
-        };
+#[macro_export]
+// Macro for creating a key released event.
+macro_rules! key_released {
+    ($key_code:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, -1, 1);
+        pressed?
+    }};
+}
 
-        is_ok
+#[macro_export]
+// Macro for creating a key typed event.
+macro_rules! key_typed {
+    ($key_code:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, -1, 2);
+        pressed?
     }};
 }
 
@@ -74,10 +85,17 @@ impl KeyEvent {
     }
 
     // Creates a new generic instance of the class. Makes sure that you cant generate a KeyPressed event without passing a KeyPressed enum in first.
-    pub fn new(key_code : i32, repeat_count : i32, event_type : event::EventType) -> Result<KeyEvent, Error> {
+    // Events are taken by matching enums. The current enums for this class are:
+    // 0 = KeyPressed
+    // 1 = KeyReleased
+    // _ = KeyTyped
+
+    pub fn new(key_code : i32, repeat_count : i32, event_type : u8) -> Result<KeyEvent, Error> {
+
+        let e_type = get_type_from_int(event_type);
 
         // Check for KeyPressed
-        let is_pressed = match event_type {
+        let is_pressed = match e_type {
             KeyPressed => true,
             _ => false
         };
@@ -94,12 +112,24 @@ impl KeyEvent {
         let key_event = KeyEvent {
             key_code,
             repeat_count,
-            event : event!(event_type, flags)
+            event : event!(e_type, flags)
         };
 
         // return event.
         Ok(key_event)
     }
+}
+
+// Gets event types by comparing an unsigned int.
+fn get_type_from_int(code : u8) -> EventType {
+
+    let e_type = match code {
+        0 => KeyPressed,
+        1 => KeyReleased,
+        _ => KeyTyped
+    };
+
+    e_type
 }
 
 

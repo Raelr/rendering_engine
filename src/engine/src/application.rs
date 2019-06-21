@@ -90,9 +90,9 @@ impl Application {
             gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
         }
 
-//        let event : KeyEvent = key_event!(1, 0, event::EventType::KeyPressed);
-//
-//        println!("{}", event.to_string());
+        let event : KeyEvent = key_typed!(1);
+
+        println!("{}", event.to_string());
 
         self.run(vertex_array_objects, shader_program, stride, is_element);
 

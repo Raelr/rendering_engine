@@ -1,4 +1,6 @@
+use crate::events;
 use failure::*;
+use events::EventType;
 
 // Macro for creating base event
 #[macro_export]
@@ -7,16 +9,6 @@ macro_rules! event {
         let e = event::Event::new($event_type, $event_category);
         e
     }};
-}
-
-// Enums for determining an event type.
-#[derive(Display, Debug)]
-pub enum EventType {
-    NONE = 0,
-    WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
-    Apptick, AppUpdate, AppRender,
-    KeyPressed, KeyReleased, KeyTyped,
-    MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
 }
 
 // bitflags for checking when an event falls into a category.
@@ -36,9 +28,9 @@ bitflags! {
 pub trait EventTrait {
 
     fn get_event_type(&self) -> &EventType { &EventType::NONE}
-    fn get_name(&self) -> Result<String, Error> { Ok(String::new()) }
+    fn get_name(&self) -> String { String::new() }
     fn get_category_flags(&self) -> &EventCategory;
-    fn to_string(&self) -> String;
+    fn to_string(&self) -> String {String::new()}
     fn is_in_category(&self, category : &EventCategory) -> bool { false}
 }
 
@@ -50,32 +42,33 @@ pub struct Event {
     flags : EventCategory
 }
 
-// Base event for all event classes.
 impl Event {
-
     // Instntiates a new event.
     pub fn new(event_type : EventType, flags: EventCategory) -> Event{
         Event {event_type, flags}
     }
+}
 
-    // Get the bits of the category flags.
-    pub fn get_category_flags(&self) -> &EventCategory {
-        &self.flags
+// Base event for all event classes.
+impl EventTrait for Event {
+    // Returns the event type in its enum form.
+    fn get_event_type(&self) -> &EventType{
+        &self.event_type
     }
 
     // Get the name of the struct (taken from the type)
-    pub fn get_name(&self) -> String {
+    fn get_name(&self) -> String {
 
         self.event_type.to_string()
     }
 
-    // Returns the event type in its enum form.
-    pub fn get_event_type(&self) -> &EventType{
-        &self.event_type
+    // Get the bits of the category flags.
+    fn get_category_flags(&self) -> &EventCategory {
+        &self.flags
     }
 
     // Performs a bitwise operator to check if an enum falls into the correct category.
-    pub fn is_in_category(&self, category : &EventCategory) -> bool {
+    fn is_in_category(&self, category : &EventCategory) -> bool {
 
         (category.to_owned() & self.get_category_flags().to_owned()) != EventCategory::NONE
     }
