@@ -3,9 +3,11 @@ use crate::renderer::render_application;
 use crate::renderer::renderer_tests;
 use failure::Error;
 use crate::renderer::shaders::shader_program::ShaderProgram;
-use crate::events;
 use crate::events::event::EventTrait;
 use crate::events::event::EventCategory;
+use crate::events::event;
+use crate::events::key_event;
+use crate::events::key_event::KeyEvent;
 
 pub struct Application {
 
@@ -88,36 +90,13 @@ impl Application {
             gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
         }
 
-        test_events()?;
+//        let event : KeyEvent = key_event!(1, 0, event::EventType::KeyPressed);
+//
+//        println!("{}", event.to_string());
 
         self.run(vertex_array_objects, shader_program, stride, is_element);
 
         Ok(())
     }
-}
-
-fn test_events() -> Result<(), Error> {
-
-    let event = events::key_event::KeyEvent::from_key_pressed(1, Some(1))?;
-
-    let in_category = event.is_in_category(&EventCategory::EVENT_CATEGORY_KEYBOARD)?;
-
-    let name = event.to_string()?;
-
-    println!("{} {}", name, in_category);
-
-    let event = events::key_event::KeyEvent::from_key_released(1)?;
-
-    let name = event.to_string()?;
-
-    println!("{}", name);
-
-    let event = events::key_event::KeyEvent::from_key_typed(2)?;
-
-    let name = event.to_string()?;
-
-    println!("{}", name);
-
-    Ok(())
 }
 

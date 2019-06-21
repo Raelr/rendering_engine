@@ -1,5 +1,15 @@
 use failure::*;
 
+// Macro for creating base event
+#[macro_export]
+macro_rules! event {
+    ($event_type:expr, $event_category:expr) => {{
+        let e = event::Event::new($event_type, $event_category);
+        e
+    }};
+}
+
+// Enums for determining an event type.
 #[derive(Display, Debug)]
 pub enum EventType {
     NONE = 0,
@@ -9,8 +19,8 @@ pub enum EventType {
     MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
 }
 
+// bitflags for checking when an event falls into a category.
 bitflags! {
-
     pub struct EventCategory : i32 {
         const NONE = 0;
         const EVENT_CATEGORY_APPLICATION    = bit!(1);
@@ -21,46 +31,53 @@ bitflags! {
     }
 }
 
+// Set of methods to be used for every event.
 #[allow(unused_variables)]
 pub trait EventTrait {
 
-    // Needs event dispatcher;
-    fn get_event_type(&self) -> Result<&EventType, Error> { Ok(&EventType::NONE)}
+    fn get_event_type(&self) -> &EventType { &EventType::NONE}
     fn get_name(&self) -> Result<String, Error> { Ok(String::new()) }
     fn get_category_flags(&self) -> Result<&EventCategory, Error>;
-    fn to_string(&self) -> Result<String, Error>;
-    fn is_in_category(&self, category : &EventCategory) -> Result<bool, Error> { Ok(false)}
+    fn to_string(&self) -> String;
+    fn is_in_category(&self, category : &EventCategory) -> bool { false}
 }
 
+// Base event struct. To be included in ALL event modules.
 pub struct Event {
 
+    // Needs event dispatcher;
     event_type : EventType,
     flags : EventCategory
 }
 
+// Base event for all event classes.
 impl Event {
 
-    pub fn new(event_type : EventType, flags: EventCategory) -> Result<Event, Error> {
-        Ok(Event {event_type, flags})
+    // Instntiates a new event.
+    pub fn new(event_type : EventType, flags: EventCategory) -> Event{
+        Event {event_type, flags}
     }
 
+    // Get the bits of the category flags.
     pub fn get_category_flags(&self) -> Result<&EventCategory, Error> {
         Ok(&self.flags)
     }
 
-    pub fn get_name(&self) -> Result<String, Error> {
+    // Get the name of the struct (taken from the type)
+    pub fn get_name(&self) -> String {
 
-        Ok(self.event_type.to_string())
+        self.event_type.to_string()
     }
 
-    pub fn get_event_type(&self) -> Result<&EventType, Error> {
-        let value = &self.event_type;
-        Ok(value)
+    // Returns the event type in its enum form.
+    pub fn get_event_type(&self) -> &EventType{
+        &self.event_type
     }
 
-    pub fn is_in_category(&self, category : &EventCategory) -> Result<bool, Error> {
+    // Performs a bitwise operator to check if an enum falls into the correct category.
+    pub fn is_in_category(&self, category : &EventCategory) -> bool {
 
-        Ok((category.to_owned() & self.get_category_flags()?.to_owned()) != EventCategory::NONE)
+        (category.to_owned() & self.get_category_flags().unwrap().to_owned()) != EventCategory::NONE
     }
 }
 
