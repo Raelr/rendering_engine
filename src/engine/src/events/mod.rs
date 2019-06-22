@@ -1,4 +1,4 @@
-use crate::events::EventType::{KeyPressed, KeyReleased, KeyTyped, MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased, NONE};
+use crate::events::EventType::{KeyPressed, KeyReleased, KeyTyped, MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased, NONE, WindowClose, Apptick, AppUpdate, AppRender};
 
 // Enums for determining an event type.
 #[derive(Display, Debug)]
@@ -21,6 +21,10 @@ fn get_type_from_int(code : u8) -> EventType {
         4 => MouseScrolled,
         5 => MouseButtonPressed,
         6 => MouseButtonReleased,
+        7 => WindowClose,
+        8 => Apptick,
+        9 => AppUpdate,
+        10 => AppRender,
         _ => NONE
     };
 
@@ -31,6 +35,7 @@ fn get_type_from_int(code : u8) -> EventType {
 #[macro_use] pub mod key_event;
 #[macro_use] pub mod mouse_changed;
 #[macro_use] pub mod mouse_button_event;
+#[macro_use] pub mod application_events;
 
 
 

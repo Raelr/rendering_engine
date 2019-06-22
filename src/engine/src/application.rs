@@ -6,6 +6,7 @@ use crate::renderer::shaders::shader_program::ShaderProgram;
 use crate::events::mouse_changed::MouseChangedEvent;
 use crate::events::event::EventTrait;
 use crate::events::mouse_button_event::MouseButtonEvent;
+use crate::events::application_events::{WindowResizeEvent, BaseWindowEvent};
 
 pub struct Application {
 
@@ -88,9 +89,9 @@ impl Application {
             gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
         }
 
-        let event : MouseButtonEvent = m_button_released!(1);
-
-        println!("{}", event.to_string());
+//        let event : BaseWindowEvent = app_render!();
+//
+//        println!("{}", event.to_string());
 
         self.run(vertex_array_objects, shader_program, stride, is_element);
 
