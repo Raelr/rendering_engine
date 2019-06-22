@@ -65,11 +65,11 @@ impl MouseChangedEvent {
     }
 
     // Return x value
-    fn get_x(&self) -> &f64 {
+    #[inline] fn get_x(&self) -> &f64 {
         &self.m_mouse_x
     }
     // Return y value
-    fn get_y(&self) -> &f64 {
+    #[inline] fn get_y(&self) -> &f64 {
         &self.m_mouse_y
     }
 }
@@ -101,7 +101,7 @@ impl event::EventTrait for MouseChangedEvent {
     }
 
     // Checks if the event fits in a specific category.
-    fn is_in_category(&self, category: &event::EventCategory) -> bool {
+    #[inline] fn is_in_category(&self, category: &event::EventCategory) -> bool {
         self.event.is_in_category(category)
     }
 }

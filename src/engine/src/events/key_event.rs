@@ -73,7 +73,7 @@ impl event::EventTrait for KeyEvent {
     }
 
     // Calls the is_in_category method in the base event struct.
-    fn is_in_category(&self, category : &event::EventCategory) -> bool {
+    #[inline] fn is_in_category(&self, category : &event::EventCategory) -> bool {
         self.event.is_in_category(category)
     }
 }
@@ -81,12 +81,12 @@ impl event::EventTrait for KeyEvent {
 impl KeyEvent {
 
     // Get the key code of the input
-    fn get_key_code(&self) -> &i32 {
+    #[inline] fn get_key_code(&self) -> &i32 {
         &self.key_code
     }
 
     // Get the repeat count variable.
-    fn get_repeat_count(&self) -> &i32 {
+    #[inline] fn get_repeat_count(&self) -> &i32 {
         &self.repeat_count
     }
 

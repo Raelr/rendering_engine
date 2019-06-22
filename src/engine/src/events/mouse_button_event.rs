@@ -97,7 +97,7 @@ impl EventTrait for MouseButtonEvent {
     }
 
     // Checks if the event falls into a specific category.
-    fn is_in_category(&self, category: &EventCategory) -> bool {
+    #[inline] fn is_in_category(&self, category: &EventCategory) -> bool {
         self.event.is_in_category(category)
     }
 }

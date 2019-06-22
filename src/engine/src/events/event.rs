@@ -38,7 +38,7 @@ pub trait EventTrait {
     fn get_name(&self) -> String { String::new() }
     fn get_category_flags(&self) -> &EventCategory;
     fn to_string(&self) -> String {String::new()}
-    fn is_in_category(&self, category : &EventCategory) -> bool { false}
+    #[inline] fn is_in_category(&self, category : &EventCategory) -> bool { false}
 }
 
 // Base event struct. To be included in ALL event modules.
@@ -75,7 +75,7 @@ impl EventTrait for Event {
     }
 
     // Performs a bitwise operator to check if an enum falls into the correct category.
-    fn is_in_category(&self, category : &EventCategory) -> bool {
+    #[inline] fn is_in_category(&self, category : &EventCategory) -> bool {
 
         (category.to_owned() & self.get_category_flags().to_owned()) != EventCategory::NONE
     }
