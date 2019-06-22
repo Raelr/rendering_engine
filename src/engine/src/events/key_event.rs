@@ -1,27 +1,44 @@
 use crate::events::*;
 use crate::events::event::Event;
-use event::EventType;
+use EventType;
 use failure::*;
-use crate::events::event::EventType::KeyPressed;
 use failure::Error;
-use std::process;
+use crate::events::EventType::{KeyPressed};
+
+////////////////////////////////////
+//           M A C R O S          //
+////////////////////////////////////
 
 #[macro_export]
-// Macro for creating a key event. Returns an event regardless of what happens, but quits the process if there is an error.
-macro_rules! key_event {
-    ($key_code:expr, $repeat_count:expr, $e_type:expr) => {{
-        let pressed = key_event::KeyEvent::new($key_code, $repeat_count, $e_type);
-
-        let is_ok = match &pressed {
-            Result::Ok(v) => pressed?,
-            Result::Err(e) => { eprintln!("Error: {}", e);
-                                std::process::exit(1);
-                                pressed? }
-        };
-
-        is_ok
+// Macro for creating a key pressed event.
+macro_rules! key_pressed {
+    ($key_code:expr, $repeat_count:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, $repeat_count, 0);
+        pressed?
     }};
 }
+
+#[macro_export]
+// Macro for creating a key released event.
+macro_rules! key_released {
+    ($key_code:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, -1, 1);
+        pressed?
+    }};
+}
+
+#[macro_export]
+// Macro for creating a key typed event.
+macro_rules! key_typed {
+    ($key_code:expr) => {{
+        let pressed = key_event::KeyEvent::new($key_code, -1, 2);
+        pressed?
+    }};
+}
+
+////////////////////////////////////
+//         M E T H O D S          //
+////////////////////////////////////
 
 // A general event type for key inputs.
 pub struct KeyEvent {
@@ -48,7 +65,7 @@ impl event::EventTrait for KeyEvent {
 
         let debug = match self.get_event_type() {
 
-            EventType::KeyPressed => format!("{}: {} ({} repeats)", self.event.get_name(), self.key_code, self.repeat_count),
+            EventType::KeyPressed => format!("{}: {} ({} repeats)", self.event.get_name(), self.get_key_code(), self.get_repeat_count()),
             _ => format!("{}: {}", self.event.get_name(), self.key_code),
         };
 
@@ -56,7 +73,7 @@ impl event::EventTrait for KeyEvent {
     }
 
     // Calls the is_in_category method in the base event struct.
-    fn is_in_category(&self, category : &event::EventCategory) -> bool {
+    #[inline] fn is_in_category(&self, category : &event::EventCategory) -> bool {
         self.event.is_in_category(category)
     }
 }
@@ -64,20 +81,27 @@ impl event::EventTrait for KeyEvent {
 impl KeyEvent {
 
     // Get the key code of the input
-    fn get_key_code(&self) -> &i32 {
+    #[inline] fn get_key_code(&self) -> &i32 {
         &self.key_code
     }
 
     // Get the repeat count variable.
-    fn get_repeat_count(&self) -> &i32 {
+    #[inline] fn get_repeat_count(&self) -> &i32 {
         &self.repeat_count
     }
 
     // Creates a new generic instance of the class. Makes sure that you cant generate a KeyPressed event without passing a KeyPressed enum in first.
-    pub fn new(key_code : i32, repeat_count : i32, event_type : event::EventType) -> Result<KeyEvent, Error> {
+    // Events are taken by matching enums. The current enums for this class are:
+    // 0 = KeyPressed
+    // 1 = KeyReleased
+    // _ = KeyTyped
+
+    pub fn new(key_code : i32, repeat_count : i32, event_type : u8) -> Result<KeyEvent, Error> {
+
+        let e_type = get_type_from_int(event_type);
 
         // Check for KeyPressed
-        let is_pressed = match event_type {
+        let is_pressed = match e_type {
             KeyPressed => true,
             _ => false
         };
@@ -94,7 +118,7 @@ impl KeyEvent {
         let key_event = KeyEvent {
             key_code,
             repeat_count,
-            event : event!(event_type, flags)
+            event : event!(e_type, flags)
         };
 
         // return event.
