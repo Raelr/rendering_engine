@@ -3,11 +3,8 @@ use crate::renderer::render_application;
 use crate::renderer::renderer_tests;
 use failure::Error;
 use crate::renderer::shaders::shader_program::ShaderProgram;
+use crate::events::mouse_event::MouseChangedEvent;
 use crate::events::event::EventTrait;
-use crate::events::event::EventCategory;
-use crate::events::event;
-use crate::events::key_event;
-use crate::events::key_event::KeyEvent;
 
 pub struct Application {
 
@@ -90,9 +87,9 @@ impl Application {
             gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
         }
 
-        let event : KeyEvent = key_typed!(1);
-
-        println!("{}", event.to_string());
+//        let event : MouseChangedEvent = mouse_scrolled!(1.0, 1.0);
+//
+//        println!("{}", event.to_string());
 
         self.run(vertex_array_objects, shader_program, stride, is_element);
 

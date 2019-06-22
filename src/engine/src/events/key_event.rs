@@ -2,10 +2,12 @@ use crate::events::*;
 use crate::events::event::Event;
 use EventType;
 use failure::*;
-use EventType::KeyPressed;
 use failure::Error;
-use std::process;
-use crate::events::EventType::{KeyReleased, KeyTyped};
+use crate::events::EventType::{KeyPressed};
+
+////////////////////////////////////
+//           M A C R O S          //
+////////////////////////////////////
 
 #[macro_export]
 // Macro for creating a key pressed event.
@@ -34,6 +36,10 @@ macro_rules! key_typed {
     }};
 }
 
+////////////////////////////////////
+//         M E T H O D S          //
+////////////////////////////////////
+
 // A general event type for key inputs.
 pub struct KeyEvent {
 
@@ -59,7 +65,7 @@ impl event::EventTrait for KeyEvent {
 
         let debug = match self.get_event_type() {
 
-            EventType::KeyPressed => format!("{}: {} ({} repeats)", self.event.get_name(), self.key_code, self.repeat_count),
+            EventType::KeyPressed => format!("{}: {} ({} repeats)", self.event.get_name(), self.get_key_code(), self.get_repeat_count()),
             _ => format!("{}: {}", self.event.get_name(), self.key_code),
         };
 
@@ -118,18 +124,6 @@ impl KeyEvent {
         // return event.
         Ok(key_event)
     }
-}
-
-// Gets event types by comparing an unsigned int.
-fn get_type_from_int(code : u8) -> EventType {
-
-    let e_type = match code {
-        0 => KeyPressed,
-        1 => KeyReleased,
-        _ => KeyTyped
-    };
-
-    e_type
 }
 
 

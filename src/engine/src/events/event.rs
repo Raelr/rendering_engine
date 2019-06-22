@@ -1,6 +1,9 @@
 use crate::events;
-use failure::*;
 use events::EventType;
+
+////////////////////////////////////
+//           M A C R O S          //
+////////////////////////////////////
 
 // Macro for creating base event
 #[macro_export]
@@ -10,6 +13,10 @@ macro_rules! event {
         e
     }};
 }
+
+////////////////////////////////////
+//         M E T H O D S          //
+////////////////////////////////////
 
 // bitflags for checking when an event falls into a category.
 bitflags! {
