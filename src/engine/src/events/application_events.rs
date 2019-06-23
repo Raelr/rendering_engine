@@ -124,6 +124,10 @@ impl EventTrait for WindowResizeEvent {
     #[inline] fn is_in_category(&self, category: &event::EventCategory) -> bool {
         self.event.is_in_category(category)
     }
+
+    #[inline] fn set_is_handled(&mut self, value : bool) {
+        self.event.set_is_handled(value)
+    }
 }
 
 // Base class for any other window classes which we may need to implement. For now, this is empty,
@@ -184,5 +188,9 @@ impl EventTrait for BaseWindowEvent {
     // Checks if the event fits in a specific category.
     #[inline] fn is_in_category(&self, category: &event::EventCategory) -> bool {
         self.event.is_in_category(category)
+    }
+
+    #[inline] fn set_is_handled(&mut self, value : bool) {
+        self.event.set_is_handled(value)
     }
 }

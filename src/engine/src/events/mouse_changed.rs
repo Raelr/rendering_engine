@@ -104,4 +104,8 @@ impl event::EventTrait for MouseChangedEvent {
     #[inline] fn is_in_category(&self, category: &event::EventCategory) -> bool {
         self.event.is_in_category(category)
     }
+
+    #[inline] fn set_is_handled(&mut self, value : bool) {
+        self.event.set_is_handled(value)
+    }
 }

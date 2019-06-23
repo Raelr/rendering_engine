@@ -1,7 +1,7 @@
 use crate::events::EventType::{KeyPressed, KeyReleased, KeyTyped, MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased, NONE, WindowClose, Apptick, AppUpdate, AppRender};
 
 // Enums for determining an event type.
-#[derive(Display, Debug)]
+#[derive(Display, Debug, PartialEq)]
 pub enum EventType {
     NONE = 0,
     WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
