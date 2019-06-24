@@ -14,6 +14,7 @@ macro_rules! bit {
 
 #[macro_use]
 pub mod events;
+pub mod window;
 pub mod application;
 pub mod renderer;
 
