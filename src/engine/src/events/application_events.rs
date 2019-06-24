@@ -128,6 +128,10 @@ impl EventTrait for WindowResizeEvent {
     #[inline] fn set_is_handled(&mut self, value : bool) {
         self.event.set_is_handled(value)
     }
+
+    #[inline] fn get_is_handled(&self) -> &bool {
+        self.event.get_is_handled()
+    }
 }
 
 // Base class for any other window classes which we may need to implement. For now, this is empty,
@@ -192,5 +196,9 @@ impl EventTrait for BaseWindowEvent {
 
     #[inline] fn set_is_handled(&mut self, value : bool) {
         self.event.set_is_handled(value)
+    }
+
+    #[inline] fn get_is_handled(&self) -> &bool {
+        self.event.get_is_handled()
     }
 }

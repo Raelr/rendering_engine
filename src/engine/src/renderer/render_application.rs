@@ -16,6 +16,7 @@ pub struct RendererInformation {
 }
 
 impl RendererInformation {
+
     fn from(sdl: Sdl, window: Window, video: sdl2::VideoSubsystem, context : sdl2::video::GLContext ) -> Result<RendererInformation, Error> {
         let renderer = RendererInformation {
             sdl,

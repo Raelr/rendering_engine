@@ -104,4 +104,8 @@ impl EventTrait for MouseButtonEvent {
     #[inline] fn set_is_handled(&mut self, value : bool) {
         self.event.set_is_handled(value)
     }
+
+    #[inline] fn get_is_handled(&self) -> &bool {
+        self.event.get_is_handled()
+    }
 }

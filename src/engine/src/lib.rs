@@ -12,9 +12,10 @@ macro_rules! bit {
     ($value:expr) => {1 << $value};
 }
 
-#[macro_use]
-pub mod events;
-pub mod window;
+
+#[macro_use] pub mod events;
+#[macro_use] pub mod window;
+pub mod platform;
 pub mod application;
 pub mod renderer;
 

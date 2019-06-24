@@ -4,7 +4,9 @@ use failure::Error;
 
 fn main() -> Result<(),Error>{
 
-    let application = engine::application::Application::initialise_with_renderer()?;
+    let mut application = engine::application::Application::new()?;
 
-    Ok(application.test_render(engine::renderer::renderer_tests::TestType::RectangleElement)?)
+    application.run();
+
+    Ok(())
 }

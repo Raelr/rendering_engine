@@ -1,5 +1,6 @@
 use failure::Error;
 use crate::events::event::EventTrait;
+use sdl2::Sdl;
 
 ////////////////////////////////////
 //           M A C R O S          //
@@ -20,9 +21,9 @@ macro_rules! window_base {
 
 pub struct WindowProperties {
 
-    title : String,
-    width : u32,
-    height : u32
+    pub title : String,
+    pub width : u32,
+    pub height : u32
 }
 
 impl WindowProperties {
@@ -42,13 +43,13 @@ impl WindowProperties {
 pub trait WindowTrait {
 
     fn drop(&mut self) {}
-    fn on_update() {}
+    fn on_update(&mut self) {}
     fn get_width(&self) -> u32 {0}
     fn get_height(&self) -> u32 {0}
-    fn set_event_callback<E : EventTrait>(call_back : fn(&E)) {}
-    fn set_vsync(&self, enabled : bool) {}
+    fn set_event_callback(&self, call_back : fn(&Box<dyn WindowTrait>));
+    fn set_vsync(&mut self, enabled : bool) {}
     fn is_vsync(&self) -> &bool {&false}
     fn get_native_window(&self) {}
-    fn create(properties : &WindowProperties) {}
+    fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized;
 }
 

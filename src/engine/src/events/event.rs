@@ -51,6 +51,7 @@ pub trait EventTrait {
     fn to_string(&self) -> String {String::new()}
     #[inline] fn is_in_category(&self, category : &EventCategory) -> bool { false}
     #[inline] fn set_is_handled(&mut self, value: bool) { }
+    #[inline] fn get_is_handled(&self) -> &bool { &false}
 }
 
 // Base event struct. To be included in ALL event modules.
@@ -96,19 +97,25 @@ impl EventTrait for Event {
     #[inline] fn set_is_handled(&mut self, value : bool) {
         self.is_handled = value
     }
+
+    #[inline] fn get_is_handled(&self) -> &bool {
+        &self.is_handled
+    }
 }
 
 // Event dispatcher class.
 pub struct EventDispatcher {
     // This acts as a means to compare whether incoming events suit this specific type.
-    event: EventType
+    event: Box<dyn EventTrait>
 }
 
 // struct for the event dispatcher. Mainly handles the dispatching of appropriate functions as callbacks.
 impl EventDispatcher {
 
     // Creates a new instance of the event dispatcher.
-    pub fn new(event : EventType) -> Result<EventDispatcher, Error> {
+    pub fn new<E : EventTrait + 'static>(event : E) -> Result<EventDispatcher, Error> {
+
+        let event = Box::new(event);
 
         let dispatcher = EventDispatcher { event };
 
@@ -116,13 +123,12 @@ impl EventDispatcher {
     }
 
     // Takes in an event, as well as a function to use that event.
-    pub fn dispatch<E: EventTrait + 'static>(&mut self, event : &mut E, func : fn(&E) -> bool)  -> bool {
+    pub fn dispatch(&mut self, func : fn(&Box<dyn EventTrait>) -> bool)  -> bool {
 
-        if event.get_event_type() == &self.event {
-            event.set_is_handled(func(&(&event as &E)));
-            return true
-        }
-        false
+        self.event.set_is_handled(func(&self.event));
+
+        self.event.get_is_handled().to_owned()
+
     }
 }
 
