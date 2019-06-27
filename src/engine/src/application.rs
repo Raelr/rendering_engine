@@ -15,62 +15,43 @@ use crate::window::{WindowTrait, WindowProperties};
 use crate::platform::windows::windows_window::WindowsWindow;
 use crate::events::EventType::WindowClose;
 
-static mut SDL_INITIALISED : bool = false;
+pub struct GameState {
 
-pub struct Application {
-
-    window : Box<WindowTrait>,
-    sdl : Sdl,
-    running : bool
+    pub windows_windows : Vec<Option<WindowsWindow>>,
 }
 
-impl Application {
+impl GameState {
 
-    pub fn new() -> Result<Application, Error> {
-
-        let sdl = unsafe { check_for_sdl() }.unwrap();
-
-        let props : WindowProperties = window_base!();
-        let mut window = WindowsWindow::create(props, &sdl)?;
-
-        let mut application = Application {
-            window,
-            sdl,
-            running : true
+    pub fn create_initial_state() -> GameState {
+        let state = GameState {
+            windows_windows : Vec::new()
         };
 
-        Ok(application)
+        state
     }
 }
+
+
 
 pub fn run() -> Result<(),Error>{
 
-    let mut app = Application::new()?;
+    let sdl = sdl2::init().unwrap();
+
+    let mut game_state = GameState::create_initial_state();
+
+    let mut window = windows_window::create_new(window_base!(), &sdl);
+
+    game_state.windows_windows.push(Some(window));
 
     let mut running = true;
 
-    let mut window = app.window;
-
-    let mut window_data = window.get_data();
-
     while running {
 
-        window.on_update();
-
+        windows_window::update(&mut game_state);
     }
+
 
     Ok(())
-}
-
-unsafe fn check_for_sdl() -> Option<Sdl> {
-
-    if !SDL_INITIALISED {
-        let success = sdl2::init().unwrap();
-        SDL_INITIALISED = true;
-        return Some(success)
-    }
-
-    None
 }
 
 

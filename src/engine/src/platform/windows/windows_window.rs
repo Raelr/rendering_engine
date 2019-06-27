@@ -12,6 +12,7 @@ use self::sdl2::video::SwapInterval::{VSync, Immediate};
 use crate::renderer::render_application::initialise;
 use crate::events::event::{EventTrait, Event};
 use std::convert::TryInto;
+use crate::application::GameState;
 
 pub struct WindowsWindow {
 
@@ -20,6 +21,11 @@ pub struct WindowsWindow {
     video : sdl2::VideoSubsystem,
     context : sdl2::video::GLContext,
     pub data : WindowData
+}
+
+pub fn create_new(properties : WindowProperties, sdl: &Sdl) -> WindowsWindow  {
+
+    WindowsWindow::new(properties, &sdl)
 }
 
 impl WindowTrait for  WindowsWindow {
@@ -35,19 +41,23 @@ impl WindowTrait for  WindowsWindow {
         for event in self.events.poll_iter() {
             match event {
                 sdl2::event::Event::Quit{timestamp} => (println!("{} {}", "Quit event detected at time: ", timestamp)),
-                sdl2::event::Event::Window{timestamp, window_id, win_event} => { match win_event {
-                                                                                                            sdl2::event::WindowEvent::Close => println!("{}", "Window Closed"),
-                                                                                                            sdl2::event::WindowEvent::Resized(1270, 720) => println!("{}", "Window resized"),
-                                                                                                            sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
-                                                                                                            sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
-                                                                                                            sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
-                                                                                                            sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
-                                                                                                            sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
-                                                                                                            sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
-                                                                                                            _ => ()
-                                                                                                            }},
+                sdl2::event::Event::Window{timestamp, window_id, win_event}
+                => { match win_event { sdl2::event::WindowEvent::Close => println!("{}", "Window Closed"),
+                    sdl2::event::WindowEvent::Resized(1270, 720) => println!("{}", "Window resized"),
+                    sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
+                    sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
+                    sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
+                    sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
+                    sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
+                    sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
+                    _ => ()
+                }},
                 sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
                             => println!("Mouse Clicked at position: {},{}", x, y),
+                sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
+                    => println!("Mouse Moved at position: {},{}", x, y),
+                sdl2::event::Event::KeyDown {timestamp, window_id, keycode, scancode, keymod, repeat}
+                    => println!("Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
                 _ => ()
             }
         }
@@ -73,16 +83,11 @@ impl WindowTrait for  WindowsWindow {
     fn get_data(&mut self) -> &mut WindowData {
         &mut self.data
     }
-
-    fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized {
-
-        Ok(Box::new(WindowsWindow::new(properties, &sdl)?))
-    }
 }
 
 impl WindowsWindow {
 
-    fn new(properties : WindowProperties, sdl : &Sdl) -> Result<WindowsWindow, Error> {
+    fn new(properties : WindowProperties, sdl : &Sdl) -> WindowsWindow {
 
         let video_subsystem = sdl.video().unwrap();
 
@@ -121,7 +126,7 @@ impl WindowsWindow {
             data
         };
 
-        Ok(window)
+        window
 
         // NOW we need to set all the callbacks.
     }
@@ -139,6 +144,20 @@ pub struct WindowData {
 impl WindowData {
 
     pub fn set_event_callback<CB : 'static + FnMut(Box<EventTrait>)> (&self, call_back : CB) {
+
+    }
+}
+
+pub fn update(state : &mut GameState) {
+
+    let mut windows = &mut state.windows_windows;
+
+    for window in windows {
+
+        match window {
+            Some(T) => T.on_update(),
+            _ => ()
+        }
 
     }
 }

@@ -51,6 +51,6 @@ pub trait WindowTrait {
     fn is_vsync(&self) -> &bool {&false}
     fn get_native_window(&self) {}
     fn get_data(&mut self) -> &mut WindowData;
-    fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized;
+    //fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized { }
 }
 

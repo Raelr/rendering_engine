@@ -4,7 +4,6 @@ use failure::Error;
 
 fn main() -> Result<(),Error>{
 
-
     engine::application::run();
 
     Ok(())
