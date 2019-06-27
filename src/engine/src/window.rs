@@ -12,7 +12,7 @@ use crate::platform::windows::windows_window::WindowData;
 macro_rules! window_base {
     () => {{
         let window = WindowProperties::new("Scrapyard Engine", 1280, 720);
-        window?
+        window
     }};
 }
 
@@ -29,7 +29,7 @@ pub struct WindowProperties {
 
 impl WindowProperties {
 
-    pub fn new(title : &str, width : u32, height : u32) -> Result<WindowProperties, Error> {
+    pub fn new(title : &str, width : u32, height : u32) -> WindowProperties {
 
         let window = WindowProperties {
             title : String::from(title),
@@ -37,7 +37,7 @@ impl WindowProperties {
             height
         };
 
-        Ok(window)
+        window
     }
 }
 

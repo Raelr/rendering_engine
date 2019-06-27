@@ -12,12 +12,12 @@ use self::sdl2::video::SwapInterval::{VSync, Immediate};
 use crate::renderer::render_application::initialise;
 use crate::events::event::{EventTrait, Event};
 use std::convert::TryInto;
-use crate::application::GameState;
+use crate::application::{GameState, ScrapYardApplication};
+use std::process;
 
 pub struct WindowsWindow {
 
     window : Window,
-    events : sdl2::EventPump,
     video : sdl2::VideoSubsystem,
     context : sdl2::video::GLContext,
     pub data : WindowData
@@ -38,30 +38,6 @@ impl WindowTrait for  WindowsWindow {
             gl::Clear(gl::COLOR_BUFFER_BIT);
         }
 
-        for event in self.events.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit{timestamp} => (println!("{} {}", "Quit event detected at time: ", timestamp)),
-                sdl2::event::Event::Window{timestamp, window_id, win_event}
-                => { match win_event { sdl2::event::WindowEvent::Close => println!("{}", "Window Closed"),
-                    sdl2::event::WindowEvent::Resized(1270, 720) => println!("{}", "Window resized"),
-                    sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
-                    sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
-                    sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
-                    sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
-                    sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
-                    sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
-                    _ => ()
-                }},
-                sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
-                            => println!("Mouse Clicked at position: {},{}", x, y),
-                sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
-                    => println!("Mouse Moved at position: {},{}", x, y),
-                sdl2::event::Event::KeyDown {timestamp, window_id, keycode, scancode, keymod, repeat}
-                    => println!("Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
-                _ => ()
-            }
-        }
-
         self.window.gl_swap_window();
     }
 
@@ -76,7 +52,9 @@ impl WindowTrait for  WindowsWindow {
         self.data.vsync = enabled;
     }
 
-    fn is_vsync(&self) -> &bool {&false}
+    fn is_vsync(&self) -> &bool {
+        &self.data.vsync
+    }
 
     fn get_native_window(&self) {}
 
@@ -116,11 +94,8 @@ impl WindowsWindow {
             callback : None
         };
 
-        let event_pump = sdl.event_pump().unwrap();
-
         let window = WindowsWindow {
             window,
-            events : event_pump,
             video : video_subsystem,
             context: gl_context,
             data
@@ -141,23 +116,28 @@ pub struct WindowData {
     pub callback : Option<fn(Box<FnMut(Box<EventTrait>)>)>
 }
 
-impl WindowData {
+pub fn update(window : &mut WindowsWindow) {
 
-    pub fn set_event_callback<CB : 'static + FnMut(Box<EventTrait>)> (&self, call_back : CB) {
+    window.on_update();
+}
 
+pub fn process_event(window_event : &sdl2::event::WindowEvent, app : &ScrapYardApplication) {
+
+    match window_event {
+        sdl2::event::WindowEvent::Close => { on_window_close() },
+        sdl2::event::WindowEvent::Resized(x, y) => println!("{} {} {}", "Window resized:", x, y),
+        sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
+        sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
+        sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
+        sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
+        sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
+        sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
+        _ => ()
     }
 }
 
-pub fn update(state : &mut GameState) {
+pub fn on_window_close () {
 
-    let mut windows = &mut state.windows_windows;
-
-    for window in windows {
-
-        match window {
-            Some(T) => T.on_update(),
-            _ => ()
-        }
-
-    }
+    println!("Exiting Scrapyard.");
+    process::exit(1)
 }

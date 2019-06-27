@@ -2,8 +2,6 @@ use crate::events;
 use events::EventType;
 use failure::Error;
 
-type Callback = FnMut();
-
 ////////////////////////////////////
 //           M A C R O S          //
 ////////////////////////////////////
