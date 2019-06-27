@@ -1,4 +1,5 @@
 use crate::events::EventType::{KeyPressed, KeyReleased, KeyTyped, MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased, NONE, WindowClose, Apptick, AppUpdate, AppRender};
+use sdl2::event::Event;
 
 // Enums for determining an event type.
 #[derive(Display, Debug, PartialEq)]

@@ -1,6 +1,7 @@
 use failure::Error;
-use crate::events::event::EventTrait;
 use sdl2::Sdl;
+use crate::events::event::EventTrait;
+use crate::platform::windows::windows_window::WindowData;
 
 ////////////////////////////////////
 //           M A C R O S          //
@@ -46,10 +47,10 @@ pub trait WindowTrait {
     fn on_update(&mut self) {}
     fn get_width(&self) -> u32 {0}
     fn get_height(&self) -> u32 {0}
-    fn set_event_callback(&self, call_back : fn(&Box<dyn WindowTrait>));
     fn set_vsync(&mut self, enabled : bool) {}
     fn is_vsync(&self) -> &bool {&false}
     fn get_native_window(&self) {}
+    fn get_data(&mut self) -> &mut WindowData;
     fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized;
 }
 

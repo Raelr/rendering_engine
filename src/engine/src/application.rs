@@ -5,25 +5,21 @@ extern crate failure;
 
 // Use
 use failure::Error;
-use sdl2::video::Window;
 use sdl2::Sdl;
 use crate::platform::windows::windows_window;
-use crate::renderer::render_application::RendererInformation;
 use crate::renderer::render_application;
-use crate::renderer::renderer_tests;
 use crate::renderer::shaders::shader_program::ShaderProgram;
-use crate::events::mouse_changed::MouseChangedEvent;
-use crate::events::event::EventTrait;
-use crate::events::mouse_button_event::MouseButtonEvent;
+use crate::events::event::{EventTrait, EventDispatcher, Event};
 use crate::events::application_events::{WindowResizeEvent, BaseWindowEvent};
 use crate::window::{WindowTrait, WindowProperties};
 use crate::platform::windows::windows_window::WindowsWindow;
+use crate::events::EventType::WindowClose;
 
 static mut SDL_INITIALISED : bool = false;
 
 pub struct Application {
 
-    window : Box<dyn WindowTrait>,
+    window : Box<WindowTrait>,
     sdl : Sdl,
     running : bool
 }
@@ -35,25 +31,36 @@ impl Application {
         let sdl = unsafe { check_for_sdl() }.unwrap();
 
         let props : WindowProperties = window_base!();
-        let window = WindowsWindow::create(props, &sdl)?;
+        let mut window = WindowsWindow::create(props, &sdl)?;
 
-        let application = Application {
+        let mut application = Application {
             window,
             sdl,
-            running: true
+            running : true
         };
 
         Ok(application)
     }
-
-    pub fn run(&mut self) {
-
-        while self.running {
-            self.window.on_update();
-        }
-    }
 }
 
+pub fn run() -> Result<(),Error>{
+
+    let mut app = Application::new()?;
+
+    let mut running = true;
+
+    let mut window = app.window;
+
+    let mut window_data = window.get_data();
+
+    while running {
+
+        window.on_update();
+
+    }
+
+    Ok(())
+}
 
 unsafe fn check_for_sdl() -> Option<Sdl> {
 
@@ -65,4 +72,8 @@ unsafe fn check_for_sdl() -> Option<Sdl> {
 
     None
 }
+
+
+
+
 

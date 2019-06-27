@@ -4,15 +4,14 @@ extern crate gl;
 extern crate failure;
 
 use crate::window::{WindowProperties, WindowTrait};
-use crate::events::event::{EventTrait, Event};
 // Use
 use failure::Error;
 use sdl2::video::Window;
 use sdl2::Sdl;
-use std::option;
 use self::sdl2::video::SwapInterval::{VSync, Immediate};
 use crate::renderer::render_application::initialise;
-use std::slice::Windows;
+use crate::events::event::{EventTrait, Event};
+use std::convert::TryInto;
 
 pub struct WindowsWindow {
 
@@ -20,7 +19,7 @@ pub struct WindowsWindow {
     events : sdl2::EventPump,
     video : sdl2::VideoSubsystem,
     context : sdl2::video::GLContext,
-    data : WindowData
+    pub data : WindowData
 }
 
 impl WindowTrait for  WindowsWindow {
@@ -35,14 +34,26 @@ impl WindowTrait for  WindowsWindow {
 
         for event in self.events.poll_iter() {
             match event {
+                sdl2::event::Event::Quit{timestamp} => (println!("{} {}", "Quit event detected at time: ", timestamp)),
+                sdl2::event::Event::Window{timestamp, window_id, win_event} => { match win_event {
+                                                                                                            sdl2::event::WindowEvent::Close => println!("{}", "Window Closed"),
+                                                                                                            sdl2::event::WindowEvent::Resized(1270, 720) => println!("{}", "Window resized"),
+                                                                                                            sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
+                                                                                                            sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
+                                                                                                            sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
+                                                                                                            sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
+                                                                                                            sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
+                                                                                                            sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
+                                                                                                            _ => ()
+                                                                                                            }},
+                sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
+                            => println!("Mouse Clicked at position: {},{}", x, y),
                 _ => ()
             }
         }
 
         self.window.gl_swap_window();
     }
-
-    fn set_event_callback(&self, call_back : fn(&Box<dyn WindowTrait>)) {}
 
     fn set_vsync(&mut self, enabled : bool) {
 
@@ -58,6 +69,10 @@ impl WindowTrait for  WindowsWindow {
     fn is_vsync(&self) -> &bool {&false}
 
     fn get_native_window(&self) {}
+
+    fn get_data(&mut self) -> &mut WindowData {
+        &mut self.data
+    }
 
     fn create(properties : WindowProperties, sdl: &Sdl) -> Result<Box<dyn WindowTrait>, Error> where Self : Sized {
 
@@ -118,5 +133,12 @@ pub struct WindowData {
     width : u32,
     height : u32,
     pub vsync : bool,
-    pub callback : Option<fn(Box<dyn EventTrait>)>
+    pub callback : Option<fn(Box<FnMut(Box<EventTrait>)>)>
+}
+
+impl WindowData {
+
+    pub fn set_event_callback<CB : 'static + FnMut(Box<EventTrait>)> (&self, call_back : CB) {
+
+    }
 }

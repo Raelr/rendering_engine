@@ -1,7 +1,8 @@
 use crate::events;
 use events::EventType;
 use failure::Error;
-use crate::events::EventType::WindowClose;
+
+type Callback = FnMut();
 
 ////////////////////////////////////
 //           M A C R O S          //
@@ -21,7 +22,7 @@ macro_rules! event {
 macro_rules! dispatcher {
     ($event_type:expr) => {{
         let dispatcher = EventDispatcher::new($event_type);
-        dispatcher?
+        dispatcher
     }};
 }
 
@@ -106,29 +107,28 @@ impl EventTrait for Event {
 // Event dispatcher class.
 pub struct EventDispatcher {
     // This acts as a means to compare whether incoming events suit this specific type.
-    event: Box<dyn EventTrait>
+    event: Box<EventTrait>
 }
 
 // struct for the event dispatcher. Mainly handles the dispatching of appropriate functions as callbacks.
 impl EventDispatcher {
 
     // Creates a new instance of the event dispatcher.
-    pub fn new<E : EventTrait + 'static>(event : E) -> Result<EventDispatcher, Error> {
-
-        let event = Box::new(event);
+    pub fn new(event : Box<EventTrait>) -> EventDispatcher {
 
         let dispatcher = EventDispatcher { event };
 
-        Ok(dispatcher)
+        dispatcher
     }
 
     // Takes in an event, as well as a function to use that event.
-    pub fn dispatch(&mut self, func : fn(&Box<dyn EventTrait>) -> bool)  -> bool {
+    pub fn dispatch<CB: 'static + FnMut(&Box<EventTrait>) -> bool>(&mut self, mut func : CB) -> bool {
 
-        self.event.set_is_handled(func(&self.event));
+        let value : bool = func(&self.event);
 
-        self.event.get_is_handled().to_owned()
+        self.event.set_is_handled(value);
 
+        return self.event.get_is_handled().to_owned()
     }
 }
 
