@@ -1,7 +1,5 @@
 extern crate strum;
 extern crate failure;
-#[macro_use]extern crate strum_macros;
-#[macro_use]extern crate bitflags;
 
 ////////////////////////////////////
 //           M A C R O S          //

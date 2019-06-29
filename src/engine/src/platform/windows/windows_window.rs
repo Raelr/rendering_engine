@@ -5,14 +5,10 @@ extern crate failure;
 
 use crate::window::{WindowProperties, WindowTrait};
 // Use
-use failure::Error;
 use sdl2::video::Window;
 use sdl2::Sdl;
 use self::sdl2::video::SwapInterval::{VSync, Immediate};
-use crate::renderer::render_application::initialise;
-use crate::events::event::{EventTrait, Event};
-use std::convert::TryInto;
-use crate::application::{GameState, ScrapYardApplication};
+use crate::application::{ScrapYardApplication};
 use std::process;
 
 pub struct WindowsWindow {
@@ -44,9 +40,9 @@ impl WindowTrait for  WindowsWindow {
     fn set_vsync(&mut self, enabled : bool) {
 
         if enabled {
-            self.video.gl_set_swap_interval(VSync);
+            self.video.gl_set_swap_interval(VSync).unwrap();
         } else {
-            self.video.gl_set_swap_interval(Immediate);
+            self.video.gl_set_swap_interval(Immediate).unwrap();
         }
 
         self.data.vsync = enabled;
@@ -91,15 +87,16 @@ impl WindowsWindow {
             width : properties.width.clone(),
             height : properties. height.clone(),
             vsync : true,
-            callback : None
         };
 
-        let window = WindowsWindow {
+        let mut window = WindowsWindow {
             window,
             video : video_subsystem,
             context: gl_context,
             data
         };
+
+        window.set_vsync(true);
 
         window
 
@@ -113,7 +110,6 @@ pub struct WindowData {
     width : u32,
     height : u32,
     pub vsync : bool,
-    pub callback : Option<fn(Box<FnMut(Box<EventTrait>)>)>
 }
 
 pub fn update(window : &mut WindowsWindow) {
@@ -121,12 +117,12 @@ pub fn update(window : &mut WindowsWindow) {
     window.on_update();
 }
 
-pub fn process_event(window_event : &sdl2::event::WindowEvent, app : &ScrapYardApplication) {
+pub fn process_event(window_event : &sdl2::event::WindowEvent, app : &mut ScrapYardApplication) {
 
     match window_event {
-        sdl2::event::WindowEvent::Close => { on_window_close() },
+        // When the window is closed, the application should close down.
+        sdl2::event::WindowEvent::Close => { app.register_one_time_event(Box::new(on_window_close))},
         sdl2::event::WindowEvent::Resized(x, y) => println!("{} {} {}", "Window resized:", x, y),
-        sdl2::event::WindowEvent::HitTest => println!("{}", "Hit test"),
         sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
         sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
         sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
@@ -136,8 +132,8 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, app : &ScrapYardA
     }
 }
 
-pub fn on_window_close () {
+#[inline] pub fn on_window_close () {
 
-    println!("Exiting Scrapyard.");
+    println!("Window: closed. Exiting Scrapyard.");
     process::exit(1)
 }

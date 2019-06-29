@@ -1,6 +1,3 @@
-use failure::Error;
-use sdl2::Sdl;
-use crate::events::event::EventTrait;
 use crate::platform::windows::windows_window::WindowData;
 
 ////////////////////////////////////

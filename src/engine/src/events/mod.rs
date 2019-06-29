@@ -1,8 +1,6 @@
 use crate::events::EventType::{KeyPressed, KeyReleased, KeyTyped, MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased, NONE, WindowClose, Apptick, AppUpdate, AppRender};
-use sdl2::event::Event;
 
 // Enums for determining an event type.
-#[derive(Display, Debug, PartialEq)]
 pub enum EventType {
     NONE = 0,
     WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
@@ -31,12 +29,6 @@ fn get_type_from_int(code : u8) -> EventType {
 
     e_type
 }
-
-#[macro_use] pub mod event;
-#[macro_use] pub mod key_event;
-#[macro_use] pub mod mouse_changed;
-#[macro_use] pub mod mouse_button_event;
-#[macro_use] pub mod application_events;
 
 
 
