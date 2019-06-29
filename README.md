@@ -1,4 +1,4 @@
-# rendering_engine
+# Scrapyard Engine
 
 This is a small rendering engine which i've decided to build out of pure curiosity. This is part of a process which I hope will lead to me learning to create a game engine from scratch. 
 
