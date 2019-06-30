@@ -10,6 +10,7 @@ use sdl2::Sdl;
 use self::sdl2::video::SwapInterval::{VSync, Immediate};
 use crate::application::{ScrapYardApplication};
 use std::process;
+use std::collections::VecDeque;
 
 pub struct WindowsWindow {
 
@@ -112,16 +113,11 @@ pub struct WindowData {
     pub vsync : bool,
 }
 
-pub fn update(window : &mut WindowsWindow) {
-
-    window.on_update();
-}
-
-pub fn process_event(window_event : &sdl2::event::WindowEvent, app : &mut ScrapYardApplication) {
+pub fn process_event(window_event : &sdl2::event::WindowEvent, event_queue : &mut VecDeque<Box<FnMut()>>) {
 
     match window_event {
         // When the window is closed, the application should close down.
-        sdl2::event::WindowEvent::Close => { app.register_one_time_event(Box::new(on_window_close))},
+        sdl2::event::WindowEvent::Close => { event_queue.push_back(Box::new(on_window_close))},
         sdl2::event::WindowEvent::Resized(x, y) => println!("{} {} {}", "Window resized:", x, y),
         sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
         sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
