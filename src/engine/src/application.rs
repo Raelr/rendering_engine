@@ -85,7 +85,9 @@ pub fn run() -> Result<(),Error>{
     let mut pump = sdl.event_pump().unwrap();
 
     // Initialise the one time event queue.
-    let mut one_time_events = VecDeque::new();
+    let mut one_time_events : VecDeque<Box<dyn FnMut()>> = VecDeque::new();
+
+    let mut one_time_window_events : VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
     loop {
 
@@ -98,16 +100,20 @@ pub fn run() -> Result<(),Error>{
             match event {
                 // All window events are rerouted toward the active window.
                 sdl2::event::Event::Window{timestamp, window_id, win_event}
-                => windows_window::process_event(&win_event, &mut WindowEvent { window : &mut window, events: &mut one_time_events}),
+                => windows_window::process_event(&win_event, &mut WindowEvent { window : &mut window, events: &mut one_time_window_events}),
+
                 //
                 sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
                 => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
+
                 //
                 sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
                 => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
+
                 //
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
                 => println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
+
                 //
                 _ => ()
             }
@@ -116,8 +122,14 @@ pub fn run() -> Result<(),Error>{
         while let Some(mut e ) = one_time_events.pop_front() {
             e();
         }
+
+        while let Some(mut e ) = one_time_window_events.pop_front() {
+            e(&mut window);
+        }
+
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
-    ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+
 
     Ok(())
 }

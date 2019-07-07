@@ -5,5 +5,5 @@ use crate::platform::windows::windows_window::WindowsWindow;
 pub struct WindowEvent<'a> {
 
     pub window : &'a mut windows_window::WindowsWindow,
-    pub events : &'a mut VecDeque<Box<FnMut()>>
+    pub events : &'a mut VecDeque<Box<FnMut(&mut WindowsWindow)>>
 }

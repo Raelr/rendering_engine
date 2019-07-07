@@ -120,10 +120,16 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut Wind
     match window_event {
         // When the window is closed, the application should close down.
         sdl2::event::WindowEvent::Close => { event.events.push_back(Box::new(on_window_close))},
-        //
-        sdl2::event::WindowEvent::Resized(x, y) => { event.window.data.width = *x as u32;
-                                                                  event.window.data.height = *y as u32;
-                                                                  println!("{} {} {}", "WINDOW: Resized:", x, y)}
+
+        // When the screen is resized it should update the current window and log the information to the console.
+        sdl2::event::WindowEvent::Resized(x, y)
+        => {
+             // Set the width and height appropriately
+             event.window.data.width = *x as u32;
+             event.window.data.height = *y as u32;
+             // Push the event which logs the information into the appropriate queue.
+             event.events.push_back(Box::new(on_window_resized))
+           }
         //
         sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
         //
@@ -139,8 +145,13 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut Wind
     }
 }
 
-#[inline] pub fn on_window_close () {
+#[inline] pub fn on_window_close<'a>(event : &mut WindowsWindow) {
 
-    println!("WINDOW: Window closed, Exiting Scrapyard.");
+    println!("WINDOW: Window closed, Exiting {}.", event.data.title);
     process::exit(1)
+}
+
+#[inline] pub fn on_window_resized(event : &mut WindowsWindow) {
+
+    println!("{} {} {}", "WINDOW: Resized:", event.data.width, event.data.height);
 }
