@@ -87,8 +87,10 @@ pub fn run() -> Result<(),Error>{
     // Initialise the one time event queue.
     let mut one_time_events : VecDeque<Box<dyn FnMut()>> = VecDeque::new();
 
+    // Initialise event queue for the game window.
     let mut one_time_window_events : VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
+    // Main loop of the game engine.
     loop {
 
         // Update our window.
@@ -123,6 +125,7 @@ pub fn run() -> Result<(),Error>{
             e();
         }
 
+        // Same as above, but processes window events specifically.
         while let Some(mut e ) = one_time_window_events.pop_front() {
             e(&mut window);
         }
