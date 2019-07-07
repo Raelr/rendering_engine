@@ -2,20 +2,26 @@
 extern crate sdl2;
 extern crate gl;
 extern crate failure;
-
 // Use
 use failure::Error;
 use sdl2::Sdl;
 use crate::platform::windows::windows_window;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use crate::window::{WindowProperties, WindowTrait};
-use crate::platform::windows::windows_window::{WindowsWindow, update, process_event};
+use crate::platform::windows::windows_window::{WindowsWindow, process_event};
 use std::collections::VecDeque;
 use crate::generational_index::generational_index::*;
 use std::time::Duration;
+use crate::events::window_event::WindowEvent;
+
+/// GameState object stores all entities and components within itself. If handles the streaming of
+/// components into different systems.
 
 pub struct GameState {
+
 }
+
+///
 
 impl GameState {
 
@@ -28,16 +34,19 @@ impl GameState {
     }
 }
 
+///
+
 pub struct ScrapYardApplication {
 
     pub game_state : GameState,
     pub update_void_events : Vec<Box<FnMut(&mut GameState)>>,
 }
 
+///
+
 impl ScrapYardApplication {
 
     pub fn new() -> ScrapYardApplication {
-
 
         let mut app = ScrapYardApplication {
             game_state: GameState::create_initial_state(),
@@ -62,9 +71,6 @@ impl ScrapYardApplication {
 /// correct module.
 
 pub fn run() -> Result<(),Error>{
-
-    // For future use.
-    // let allocator = GenerationalIndexAllocator::new();
 
     // Initialise sdl
     let sdl = sdl2::init().unwrap();
@@ -92,27 +98,25 @@ pub fn run() -> Result<(),Error>{
             match event {
                 // All window events are rerouted toward the active window.
                 sdl2::event::Event::Window{timestamp, window_id, win_event}
-                => windows_window::process_event(&win_event, &mut one_time_events),
-
+                => windows_window::process_event(&win_event, &mut WindowEvent { window : &mut window, events: &mut one_time_events}),
+                //
                 sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
-                => println!("Mouse Clicked at position: {},{}, {}", x, y, window_id),
-
+                => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
+                //
                 sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
-                => println!("Mouse Moved at position: {},{}", x, y),
-
+                => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
+                //
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => println!("Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
-
+                => println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
+                //
                 _ => ()
             }
         }
-
         // Cycles through all events stored in this queue and executes them.
         while let Some(mut e ) = one_time_events.pop_front() {
             e();
         }
     }
-
     ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
 
     Ok(())

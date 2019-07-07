@@ -4,6 +4,7 @@ extern crate gl;
 extern crate failure;
 
 use crate::window::{WindowProperties, WindowTrait};
+use crate::events::window_event;
 // Use
 use sdl2::video::Window;
 use sdl2::Sdl;
@@ -11,6 +12,7 @@ use self::sdl2::video::SwapInterval::{VSync, Immediate};
 use crate::application::{ScrapYardApplication};
 use std::process;
 use std::collections::VecDeque;
+use crate::events::window_event::WindowEvent;
 
 pub struct WindowsWindow {
 
@@ -113,23 +115,32 @@ pub struct WindowData {
     pub vsync : bool,
 }
 
-pub fn process_event(window_event : &sdl2::event::WindowEvent, event_queue : &mut VecDeque<Box<FnMut()>>) {
+pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut WindowEvent) {
 
     match window_event {
         // When the window is closed, the application should close down.
-        sdl2::event::WindowEvent::Close => { event_queue.push_back(Box::new(on_window_close))},
-        sdl2::event::WindowEvent::Resized(x, y) => println!("{} {} {}", "Window resized:", x, y),
+        sdl2::event::WindowEvent::Close => { event.events.push_back(Box::new(on_window_close))},
+        //
+        sdl2::event::WindowEvent::Resized(x, y) => { event.window.data.width = *x as u32;
+                                                                  event.window.data.height = *y as u32;
+                                                                  println!("{} {} {}", "WINDOW: Resized:", x, y)}
+        //
         sdl2::event::WindowEvent::Minimized => println!("{}", "minimized"),
+        //
         sdl2::event::WindowEvent::Exposed => println!("{}", "exposed"),
+        //
         sdl2::event::WindowEvent::FocusGained => println!("{}", "focus gained"),
+        //
         sdl2::event::WindowEvent::Enter => println!("{}", "Mouse entered"),
+        //
         sdl2::event::WindowEvent::TakeFocus => println!("{}", "Taking focus"),
+        //
         _ => ()
     }
 }
 
 #[inline] pub fn on_window_close () {
 
-    println!("Window: closed. Exiting Scrapyard.");
+    println!("WINDOW: Window closed, Exiting Scrapyard.");
     process::exit(1)
 }
