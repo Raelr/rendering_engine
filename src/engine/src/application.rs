@@ -13,6 +13,9 @@ use std::collections::VecDeque;
 use crate::generational_index::generational_index::*;
 use std::time::Duration;
 use crate::events::window_event::WindowEvent;
+use crate::renderer::render_application;
+use crate::renderer::renderer_tests::basic_program;
+
 
 /// GameState object stores all entities and components within itself. If handles the streaming of
 /// components into different systems.
@@ -21,7 +24,8 @@ pub struct GameState {
 
 }
 
-///
+/// should store all components and entity IDs when actual gameobjects and players are added to the game.
+/// TODO: populate GameState with relevant variables.
 
 impl GameState {
 
@@ -34,7 +38,7 @@ impl GameState {
     }
 }
 
-///
+/// The base application struct for the engine.
 
 pub struct ScrapYardApplication {
 
@@ -42,7 +46,7 @@ pub struct ScrapYardApplication {
     pub update_void_events : Vec<Box<FnMut(&mut GameState)>>,
 }
 
-///
+/// Constructor and registration methods. Might need to remove the update events (since they don't seem to do anything right now)
 
 impl ScrapYardApplication {
 
@@ -90,11 +94,55 @@ pub fn run() -> Result<(),Error>{
     // Initialise event queue for the game window.
     let mut one_time_window_events : VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
+    /// Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
+    /// TODO: Move the rendering code to a different struct (probably a renderer component).
+
+    let vertices : Vec<f32> = vec! [
+
+        // positions     // colors
+        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
+        0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+        0.0,  0.5, 0.0, 0.0, 0.0, 1.0
+    ];
+
+    let shader_program = basic_program()?;
+
+    let mut vertex_buffer_object : gl::types::GLuint = 0;
+
+    let mut vertex_array_object : gl::types::GLuint = 0;
+
+    render_application::generate_n_buffers(1, vec![&mut vertex_buffer_object]);
+
+    unsafe {
+
+        gl::GenVertexArrays(1, &mut vertex_array_object);
+
+        // Binds a VAO  to the GPU. From now on, and changes to VBO's or vertices will be stored in
+        // the VAO
+        gl::BindVertexArray(vertex_array_object);
+
+        // Binds the created buffer to a specific type (in this case we specify that this is an
+        // array buffer)
+        render_application::generate_buffer_data(gl::ARRAY_BUFFER,
+                                                 &vertex_buffer_object, &vertices);
+
+        // Creates a vertex attribute pointer and enables it on the GPU
+        render_application::generate_vertex_array(0, 3, 6, 0);
+
+        render_application::generate_vertex_array(1, 3, 6, 3);
+
+        gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
+        // Test to see if the color changes.
+        gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+
+        // Resets the bindings on the GPU
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+
+        gl::BindVertexArray(0);
+    }
+
     // Main loop of the game engine.
     loop {
-
-        // Update our window.
-        window.on_update();
 
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
         for event in  pump.poll_iter() {
@@ -104,19 +152,19 @@ pub fn run() -> Result<(),Error>{
                 sdl2::event::Event::Window{timestamp, window_id, win_event}
                 => windows_window::process_event(&win_event, &mut WindowEvent { window : &mut window, events: &mut one_time_window_events}),
 
-                //
+                // TODO
                 sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
                 => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
 
-                //
+                // TODO
                 sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
                 => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
 
-                //
+                // TODO
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
                 => println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
 
-                //
+                // TODO
                 _ => ()
             }
         }
@@ -130,10 +178,23 @@ pub fn run() -> Result<(),Error>{
             e(&mut window);
         }
 
+        unsafe {
+
+            gl::BindVertexArray(vertex_array_object);
+
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            shader_program.set_used();
+
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+            gl::BindVertexArray(0);
+        }
+
+        window.on_update();
+
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
-
-
     Ok(())
 }
 

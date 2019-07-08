@@ -8,6 +8,7 @@ use crate::window::{WindowProperties, WindowTrait};
 use crate::events::window_event;
 use crate::application::{ScrapYardApplication};
 use crate::events::window_event::WindowEvent;
+use crate::platform::open_gl::OpenGLContext;
 
 // Use
 use sdl2::video::Window;
@@ -23,7 +24,7 @@ pub struct WindowsWindow {
 
     window : Window,
     video : sdl2::VideoSubsystem,
-    context : sdl2::video::GLContext,
+    context : OpenGLContext,
     pub data : WindowData
 }
 
@@ -40,13 +41,7 @@ impl WindowTrait for  WindowsWindow {
 
     fn on_update(&mut self) {
 
-        unsafe {
-            // Test to see if the color changes.
-            gl::ClearColor(0.3, 0.3, 0.5, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
-
-        self.window.gl_swap_window();
+        self.context.swap_buffers(&mut self.window)
     }
 
     fn set_vsync(&mut self, enabled : bool) {
@@ -78,24 +73,20 @@ impl WindowsWindow {
 
     fn new(properties : WindowProperties, sdl : &Sdl) -> WindowsWindow {
 
-        let video_subsystem = sdl.video().unwrap();
+        let mut video_subsystem = sdl.video().unwrap();
 
         let gl_attr = video_subsystem.gl_attr();
 
         gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attr.set_context_version(4, 1);
 
-        let window = video_subsystem.window( &properties.title, properties.width, properties.height)
+        let mut window = video_subsystem.window( &properties.title, properties.width, properties.height)
             .opengl()
             .resizable()
             .build()
             .unwrap();
 
-        // Create gl context AFTER window is created.
-        let gl_context = window.gl_create_context().unwrap();
-
-        // Initialise gl.
-        let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as * const std::os::raw::c_void);
+        let mut context = OpenGLContext::new(&mut window, &mut video_subsystem);
 
         let data = WindowData {
             title : properties.title.clone(),
@@ -107,7 +98,7 @@ impl WindowsWindow {
         let mut window = WindowsWindow {
             window,
             video : video_subsystem,
-            context: gl_context,
+            context,
             data
         };
 
@@ -123,8 +114,8 @@ impl WindowsWindow {
 pub struct WindowData {
 
     title : String,
-    width : u32,
-    height : u32,
+    pub width : u32,
+    pub height : u32,
     pub vsync : bool,
 }
 

@@ -8,58 +8,6 @@ use failure::Error;
 use sdl2::video::Window;
 use sdl2::Sdl;
 
-pub struct RendererInformation {
-    pub sdl: Sdl,
-    pub window: Window,
-    pub video: sdl2::VideoSubsystem,
-    pub context : sdl2::video::GLContext
-}
-
-impl RendererInformation {
-
-    fn from(sdl: Sdl, window: Window, video: sdl2::VideoSubsystem, context : sdl2::video::GLContext ) -> Result<RendererInformation, Error> {
-        let renderer = RendererInformation {
-            sdl,
-            window,
-            video,
-            context
-        };
-
-        Ok(renderer)
-    }
-}
-
-pub fn initialise() -> Result<RendererInformation, Error> {
-
-    // Initialise sdl to allow for window spawning.
-    let sdl = sdl2::init().unwrap();
-
-    // Creates the video subsystem which internally contains a clone of sdl.
-    let video_subsystem = sdl.video().unwrap();
-
-    // Specify which version of OpenGL we'll be using.
-    let gl_attr = video_subsystem.gl_attr();
-
-    gl_attr.set_context_profile(sdl2::video::GLProfile::Core);
-    gl_attr.set_context_version(4, 1);
-
-    // Initialises a new window and allows the input of arguments and parameters into the window.
-    let window = video_subsystem.
-        window("Game", 900, 900)
-        .opengl()
-        .resizable()
-        .build()
-        .unwrap();
-
-    // Create gl context AFTER window is created.
-    let gl_context = window.gl_create_context().unwrap();
-
-    // Initialise gl.
-    let _gl = gl::load_with(|s| video_subsystem.gl_get_proc_address(s) as * const std::os::raw::c_void);
-
-    Ok(RendererInformation::from(sdl, window, video_subsystem, gl_context)?)
-}
-
 pub fn generate_n_buffers(amount: i32, buffers: Vec<&mut u32>) {
     unsafe {
         for buffer in buffers {
