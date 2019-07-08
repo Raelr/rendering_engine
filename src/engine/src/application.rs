@@ -1,100 +1,208 @@
-use crate::renderer::render_application::RendererInformation;
-use crate::renderer::render_application;
-use crate::renderer::renderer_tests;
+// Crates
+extern crate sdl2;
+extern crate gl;
+extern crate failure;
+// Use
 use failure::Error;
+use sdl2::Sdl;
+use crate::platform::windows::windows_window;
 use crate::renderer::shaders::shader_program::ShaderProgram;
-use crate::events::mouse_changed::MouseChangedEvent;
-use crate::events::event::EventTrait;
-use crate::events::mouse_button_event::MouseButtonEvent;
+use crate::window::{WindowProperties, WindowTrait};
+use crate::platform::windows::windows_window::{WindowsWindow, process_event};
+use std::collections::VecDeque;
+use crate::generational_index::generational_index::*;
+use std::time::Duration;
+use crate::events::window_event::WindowEvent;
+use crate::renderer::render_application;
+use crate::renderer::renderer_tests::basic_program;
 
-pub struct Application {
 
-    pub renderer : RendererInformation,
+/// GameState object stores all entities and components within itself. If handles the streaming of
+/// components into different systems.
+
+pub struct GameState {
+
 }
 
-impl Application {
+/// should store all components and entity IDs when actual gameobjects and players are added to the game.
+/// TODO: populate GameState with relevant variables.
 
-    pub fn initialise_with_renderer() -> Result<Application, Error> {
+impl GameState {
 
-        let application = Application {
-            renderer : render_application::initialise()?
+    pub fn create_initial_state() -> GameState {
+        let state = GameState {
+
         };
 
-        Ok(application)
+        state
+    }
+}
+
+/// The base application struct for the engine.
+
+pub struct ScrapYardApplication {
+
+    pub game_state : GameState,
+    pub update_void_events : Vec<Box<FnMut(&mut GameState)>>,
+}
+
+/// Constructor and registration methods. Might need to remove the update events (since they don't seem to do anything right now)
+
+impl ScrapYardApplication {
+
+    pub fn new() -> ScrapYardApplication {
+
+        let mut app = ScrapYardApplication {
+            game_state: GameState::create_initial_state(),
+            update_void_events : Vec::new(),
+        };
+
+        app
     }
 
-    pub fn run(&self, vertex_array_objects : Vec<u32>, shader_program : ShaderProgram, stride: i32, is_element : bool) {
+    pub fn register_game_update_event(&mut self, event : Box<dyn FnMut(&mut GameState)>) {
 
-        // Event pump which stores all events and allows them to be processed.
-        let mut event_pump = self.renderer.sdl.event_pump().unwrap();
+        &self.update_void_events.push(event);
+    }
+}
 
-//        unsafe {
-//            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-//        }
+/// This is the code for the current event loop.
+/// The event loop controls the basic data flow of the engine.
+/// Currently, it contains the window, a reference to the main application struct, and all the SDL details.
+/// There are a couple of details which i'm not sure about - specifically relating to how the data should be organised.
+/// Mainly, I'm unsure whether the window should handle all sdl related events or just events relating to it.
+/// Currently I have the event pump in the main loop, the match statement would, in theory, redirect the events toward the
+/// correct module.
 
-        // The main event loop which keeps the window open.
-        'main: loop {
+pub fn run() -> Result<(),Error>{
 
-            // Looks for events and acts according to which ones are recieved.
-            for event in event_pump.poll_iter() {
-                match event {
-                    // Quit event
-                    sdl2::event::Event::Quit { .. } => break 'main,
-                    _ => ()
-                }
+    // Initialise sdl
+    let sdl = sdl2::init().unwrap();
 
-                unsafe {
-                    gl::Clear(gl::COLOR_BUFFER_BIT);
-                }
+    // Create the base window for the application.
+    let mut window = windows_window::create_new(window_base!(), &sdl);
 
-                shader_program.set_used();
+    // Create the base application.
+    let mut app = ScrapYardApplication::new();
 
-                render_application::draw(&vertex_array_objects, stride, is_element);
+    // Get the event pump from sdl.
+    let mut pump = sdl.event_pump().unwrap();
 
-                // Updates the window.
-                self.renderer.window.gl_swap_window();
+    // Initialise the one time event queue.
+    let mut one_time_events : VecDeque<Box<dyn FnMut()>> = VecDeque::new();
+
+    // Initialise event queue for the game window.
+    let mut one_time_window_events : VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
+
+    /// Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
+    /// TODO: Move the rendering code to a different struct (probably a renderer component).
+
+    let vertices : Vec<f32> = vec! [
+
+        // positions     // colors
+        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
+        0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+        0.0,  0.5, 0.0, 0.0, 0.0, 1.0
+    ];
+
+    let shader_program = basic_program()?;
+
+    let mut vertex_buffer_object : gl::types::GLuint = 0;
+
+    let mut vertex_array_object : gl::types::GLuint = 0;
+
+    render_application::generate_n_buffers(1, vec![&mut vertex_buffer_object]);
+
+    unsafe {
+
+        gl::GenVertexArrays(1, &mut vertex_array_object);
+
+        // Binds a VAO  to the GPU. From now on, and changes to VBO's or vertices will be stored in
+        // the VAO
+        gl::BindVertexArray(vertex_array_object);
+
+        // Binds the created buffer to a specific type (in this case we specify that this is an
+        // array buffer)
+        render_application::generate_buffer_data(gl::ARRAY_BUFFER,
+                                                 &vertex_buffer_object, &vertices);
+
+        // Creates a vertex attribute pointer and enables it on the GPU
+        render_application::generate_vertex_array(0, 3, 6, 0);
+
+        render_application::generate_vertex_array(1, 3, 6, 3);
+
+        gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
+        // Test to see if the color changes.
+        gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+
+        // Resets the bindings on the GPU
+        gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+
+        gl::BindVertexArray(0);
+    }
+
+    // Main loop of the game engine.
+    loop {
+
+        // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
+        for event in  pump.poll_iter() {
+
+            match event {
+                // All window events are rerouted toward the active window.
+                sdl2::event::Event::Window{timestamp, window_id, win_event}
+                => windows_window::process_event(&win_event, &mut WindowEvent { window : &mut window, events: &mut one_time_window_events}),
+
+                // TODO
+                sdl2::event::Event::MouseButtonDown{timestamp, window_id, which, mouse_btn, clicks,x, y}
+                => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
+
+                // TODO
+                sdl2::event::Event::MouseMotion{timestamp, window_id, which,  mousestate, x, y, xrel, yrel}
+                => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
+
+                // TODO
+                sdl2::event::Event::KeyDown { keycode, repeat, .. }
+                => println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
+
+                // TODO
+                _ => ()
             }
         }
-    }
-
-    pub fn test_render(&self, test_type : renderer_tests::TestType) -> Result<(), Error>{
-
-        // creates a shader project which combines a vertex and fragment shader.
-        let shader_program = renderer_tests::basic_program()?;
-
-        let vertex_array_objects = match test_type {
-            renderer_tests::TestType::RectangleElement => renderer_tests::render_basic_square_with_elements()?,
-            renderer_tests::TestType::TwoTrianglesSingleVertex => renderer_tests::render_from_vertex_array()?,
-            renderer_tests::TestType::TwoTrianglesTwoVertices => renderer_tests::render_from_separate_arrays()?,
-            renderer_tests::TestType::UpperCaseA => renderer_tests::draw_uppercase_a()?,
-        };
-
-        let stride = match test_type {
-            renderer_tests::TestType::RectangleElement => 6,
-            renderer_tests::TestType::TwoTrianglesSingleVertex => 6,
-            renderer_tests::TestType::TwoTrianglesTwoVertices => 3,
-            renderer_tests::TestType::UpperCaseA => 21,
-        };
-
-        let is_element : bool = match test_type {
-            renderer_tests::TestType::RectangleElement | renderer_tests::TestType::UpperCaseA => true,
-            _ => false
-        };
-
-        unsafe {
-            // Set the viewport for the image.
-            gl::Viewport(0, 0, 900, 900); // Set viewport.
-            // Set the color of the window.
-            gl::ClearColor(0.3, 0.3, 0.5, 1.0); // Set window color.
+        // Cycles through all events stored in this queue and executes them.
+        while let Some(mut e ) = one_time_events.pop_front() {
+            e();
         }
 
-        let event : MouseButtonEvent = m_button_released!(1);
+        // Same as above, but processes window events specifically.
+        while let Some(mut e ) = one_time_window_events.pop_front() {
+            e(&mut window);
+        }
 
-        println!("{}", event.to_string());
+        unsafe {
 
-        self.run(vertex_array_objects, shader_program, stride, is_element);
+            gl::BindVertexArray(vertex_array_object);
 
-        Ok(())
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+
+            shader_program.set_used();
+
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+            gl::BindVertexArray(0);
+        }
+
+        window.on_update();
+
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
     }
+    Ok(())
 }
+
+
+
+
+
+
+
+
 

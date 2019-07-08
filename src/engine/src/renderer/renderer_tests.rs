@@ -210,6 +210,7 @@ pub fn draw_uppercase_a()-> Result<Vec<u32>, Error>{
         //gl::BindBuffer(gl::ARRAY_BUFFER, 0);
         //gl::BindVertexArray(0);
     }
+
     Ok(vec![vertex_array_object])
 }
 
