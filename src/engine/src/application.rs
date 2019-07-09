@@ -101,12 +101,12 @@ pub fn run() -> Result<(),Error>{
     let vertices : Vec<f32> = vec! [
 
         // positions     // colors
-        -0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
-        0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
-        0.0,  0.5, 0.0, 0.0, 0.0, 1.0
+        -0.5, -0.5, 0.0, //1.0, 0.0, 0.0,
+        0.5, -0.5, 0.0, //0.0, 1.0, 0.0,
+        0.0,  0.5, 0.0, //0.0, 0.0, 1.0
     ];
 
-    let mut shader_program = fade_program()?;
+    let mut shader_program = basic_program()?;
 
     let mut vertex_buffer_object : gl::types::GLuint = 0;
 
@@ -128,9 +128,9 @@ pub fn run() -> Result<(),Error>{
                                                  &vertex_buffer_object, &vertices);
 
         // Creates a vertex attribute pointer and enables it on the GPU
-        render_application::generate_vertex_array(0, 3, 6, 0);
+        render_application::generate_vertex_array(0, 3, 3, 0);
 
-        render_application::generate_vertex_array(1, 3, 6, 3);
+        //render_application::generate_vertex_array(1, 3, 6, 3);
 
         gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
         // Test to see if the color changes.
@@ -192,17 +192,17 @@ pub fn run() -> Result<(),Error>{
 
             let green_value = (f32::sin( now.elapsed().as_secs_f64() as f32) / 2.0 + 0.5);
 
-            let color_name = CString::new("ourColor")?;
+            //let color_name = CString::new("ourColor")?;
 
             let horizontal_offset = CString::new("HorizontalOffset")?;
 
-            let color_location = gl::GetUniformLocation(shader_program.id(), color_name.as_ptr());
+            //let color_location = gl::GetUniformLocation(shader_program.id(), color_name.as_ptr());
 
             let horizontal_location = gl::GetUniformLocation(shader_program.id(), horizontal_offset.as_ptr());
 
-            gl::Uniform4f(color_location, 0.0, green_value, 0.0, 1.0);
+            //gl::Uniform4f(color_location, 0.0, green_value, 0.0, 1.0);
 
-            gl::Uniform1f(horizontal_location, 0.47);
+            gl::Uniform1f(horizontal_location, 0.2);
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
