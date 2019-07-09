@@ -1,3 +1,4 @@
+#![feature(duration_float)]
 extern crate strum;
 extern crate failure;
 

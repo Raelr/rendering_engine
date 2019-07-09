@@ -11,11 +11,12 @@ use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow, process_event};
 use std::collections::VecDeque;
 use crate::generational_index::generational_index::*;
-use std::time::Duration;
 use crate::events::window_event::WindowEvent;
 use crate::renderer::render_application;
-use crate::renderer::renderer_tests::basic_program;
-
+use crate::renderer::renderer_tests::{basic_program, fade_program};
+use std::time::{Duration, Instant};
+use std::os::raw::c_float;
+use std::ffi::{CStr, CString};
 
 /// GameState object stores all entities and components within itself. If handles the streaming of
 /// components into different systems.
@@ -105,7 +106,7 @@ pub fn run() -> Result<(),Error>{
         0.0,  0.5, 0.0, 0.0, 0.0, 1.0
     ];
 
-    let shader_program = basic_program()?;
+    let mut shader_program = fade_program()?;
 
     let mut vertex_buffer_object : gl::types::GLuint = 0;
 
@@ -140,6 +141,8 @@ pub fn run() -> Result<(),Error>{
 
         gl::BindVertexArray(0);
     }
+
+    let now = Instant::now();
 
     // Main loop of the game engine.
     loop {
@@ -178,6 +181,7 @@ pub fn run() -> Result<(),Error>{
             e(&mut window);
         }
 
+        /// Continuation of rendering code.
         unsafe {
 
             gl::BindVertexArray(vertex_array_object);
@@ -186,10 +190,25 @@ pub fn run() -> Result<(),Error>{
 
             shader_program.set_used();
 
+            let green_value = (f32::sin( now.elapsed().as_secs_f64() as f32) / 2.0 + 0.5);
+
+            let color_name = CString::new("ourColor")?;
+
+            let horizontal_offset = CString::new("HorizontalOffset")?;
+
+            let color_location = gl::GetUniformLocation(shader_program.id(), color_name.as_ptr());
+
+            let horizontal_location = gl::GetUniformLocation(shader_program.id(), horizontal_offset.as_ptr());
+
+            gl::Uniform4f(color_location, 0.0, green_value, 0.0, 1.0);
+
+            gl::Uniform1f(horizontal_location, 0.47);
+
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             gl::BindVertexArray(0);
         }
+        /// End of rendering code.
 
         window.on_update();
 
