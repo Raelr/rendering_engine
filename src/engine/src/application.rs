@@ -196,8 +196,6 @@ pub fn run() -> Result<(), Error> {
 
             gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 1);
 
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 0);
-
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             // SECOND TRIANGLE
@@ -205,8 +203,6 @@ pub fn run() -> Result<(), Error> {
             triangle_objects[1].shader_program.set_used();
 
             gl::Uniform2f(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("Offset")?.as_ptr()), -0.5, 0.0);
-
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 0);
 
             gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 1);
 
@@ -217,12 +213,6 @@ pub fn run() -> Result<(), Error> {
             triangle_objects[2].shader_program.set_used();
 
             let color_location = gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("VertexColor")?.as_ptr());
-
-            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("Offset")?.as_ptr()), 0.0, 0.0);
-
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 0);
-
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 0);
 
             gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("ReverseShape")?.as_ptr()), 1);
 
