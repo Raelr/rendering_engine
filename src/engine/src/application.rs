@@ -96,7 +96,7 @@ pub fn run() -> Result<(), Error> {
 
     triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
 
-    triangle_objects.push(TriangleRenderComponent { shader_program: triangle_fade!() });
+    triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
 
     /// Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
     /// TODO: Move the rendering code to a different struct (probably a renderer component).
@@ -196,6 +196,8 @@ pub fn run() -> Result<(), Error> {
 
             gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 1);
 
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 0);
+
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             // SECOND TRIANGLE
@@ -206,15 +208,25 @@ pub fn run() -> Result<(), Error> {
 
             gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 0);
 
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 1);
+
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             // THIRD TRIANGLE
 
             triangle_objects[2].shader_program.set_used();
 
-            let color_location = gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("ourColor")?.as_ptr());
+            let color_location = gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("VertexColor")?.as_ptr());
 
-            gl::Uniform4f(color_location, 0.0, (f32::sin( now.elapsed().as_secs_f64() as f32) / 2.0 + 0.5), 0.0, 1.0);
+            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("Offset")?.as_ptr()), 0.0, 0.0);
+
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 0);
+
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 0);
+
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("ReverseShape")?.as_ptr()), 1);
+
+            gl::Uniform4f(color_location, 0.0, (f32::sin( now.elapsed().as_secs_f64() as f32) / 1.5 + 0.5), 0.0, 1.0);
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
