@@ -23,8 +23,3 @@ impl OpenGLContext {
     }
 }
 
-pub struct VertexArray {
-
-    pub vertex_array_id : gl::types::GLuint
-}
-

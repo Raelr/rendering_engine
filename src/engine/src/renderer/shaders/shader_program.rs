@@ -23,7 +23,7 @@ macro_rules! triangle_render {
 macro_rules! triangle_fade {
     () => {{
         let program = ShaderProgram::from_shaders(&[Shader::from_vert_source(
-        &CString::new(include_str!("renderer/triangle.vert"))
+        &CString::new(include_str!("renderer/fade_triangle.glsl"))
             .unwrap()).unwrap(),
         Shader::from_frag_source(&CString::new(
             include_str!("renderer/fade_triangle.frag"))
