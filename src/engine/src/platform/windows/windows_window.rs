@@ -41,6 +41,11 @@ impl WindowTrait for  WindowsWindow {
 
     fn on_update(&mut self) {
 
+        unsafe {
+            // Test to see if the color changes.
+            gl::ClearColor(0.1, 0.1, 0.1, 1.0);
+        }
+
         self.context.swap_buffers(&mut self.window)
     }
 

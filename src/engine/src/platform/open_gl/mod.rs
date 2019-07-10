@@ -22,3 +22,9 @@ impl OpenGLContext {
         window.gl_swap_window();
     }
 }
+
+pub struct VertexArray {
+
+    pub vertex_array_id : gl::types::GLuint
+}
+

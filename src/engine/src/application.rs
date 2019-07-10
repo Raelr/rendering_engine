@@ -14,6 +14,8 @@ use crate::generational_index::generational_index::*;
 use crate::events::window_event::WindowEvent;
 use crate::renderer::render_application;
 use crate::renderer::renderer_tests::{basic_program, fade_program};
+use crate::renderer::renderer_component::TriangleRenderComponent;
+use crate::renderer::shaders::shader::Shader;
 use std::time::{Duration, Instant};
 use std::os::raw::c_float;
 use std::ffi::{CStr, CString};
@@ -95,8 +97,16 @@ pub fn run() -> Result<(),Error>{
     // Initialise event queue for the game window.
     let mut one_time_window_events : VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
+    // Create a list of triangle render objects.
+    let mut triangle_objects : Vec<TriangleRenderComponent> = Vec::new();
+
+    triangle_objects.push(TriangleRenderComponent {shader_program : triangle_render!()});
+
+    triangle_objects.push(TriangleRenderComponent {shader_program : triangle_render!()});
+
     /// Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
     /// TODO: Move the rendering code to a different struct (probably a renderer component).
+
 
     let vertices : Vec<f32> = vec! [
 
@@ -118,7 +128,7 @@ pub fn run() -> Result<(),Error>{
 
         gl::GenVertexArrays(1, &mut vertex_array_object);
 
-        // Binds a VAO  to the GPU. From now on, and changes to VBO's or vertices will be stored in
+        // Binds a VAO  to the GPU. From now on, and changes to VBO's or vertices will be stored in,
         // the VAO
         gl::BindVertexArray(vertex_array_object);
 
@@ -133,8 +143,6 @@ pub fn run() -> Result<(),Error>{
         //render_application::generate_vertex_array(1, 3, 6, 3);
 
         gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
-        // Test to see if the color changes.
-        gl::ClearColor(0.1, 0.1, 0.1, 1.0);
 
         // Resets the bindings on the GPU
         gl::BindBuffer(gl::ARRAY_BUFFER, 0);
@@ -182,31 +190,60 @@ pub fn run() -> Result<(),Error>{
         }
 
         /// Continuation of rendering code.
+
         unsafe {
 
-            gl::BindVertexArray(vertex_array_object);
+            // FIRST TRIANGLE
 
-            gl::Clear(gl::COLOR_BUFFER_BIT);
+                gl::BindVertexArray(vertex_array_object);
 
-            shader_program.set_used();
+                gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            let green_value = (f32::sin( now.elapsed().as_secs_f64() as f32) / 2.0 + 0.5);
+                triangle_objects[0].shader_program.set_used();
 
-            //let color_name = CString::new("ourColor")?;
+                //let green_value = (f32::sin( now.elapsed().as_secs_f64() as f32) / 2.0 + 0.5);
 
-            let horizontal_offset = CString::new("HorizontalOffset")?;
+                //let color_name = CString::new("ourColor")?;
 
-            //let color_location = gl::GetUniformLocation(shader_program.id(), color_name.as_ptr());
+                let horizontal_offset = CString::new("HorizontalOffset")?;
 
-            let horizontal_location = gl::GetUniformLocation(shader_program.id(), horizontal_offset.as_ptr());
+                //let color_location = gl::GetUniformLocation(shader_program.id(), color_name.as_ptr());
 
-            //gl::Uniform4f(color_location, 0.0, green_value, 0.0, 1.0);
+                let horizontal_location = gl::GetUniformLocation(shader_program.id(), horizontal_offset.as_ptr());
 
-            gl::Uniform1f(horizontal_location, 0.2);
+                //gl::Uniform4f(color_location, 0.0, green_value, 0.0, 1.0);
 
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+                gl::Uniform1f(horizontal_location, 0.48);
 
-            gl::BindVertexArray(0);
+                gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+                gl::BindVertexArray(0);
+
+                // Resets the bindings on the GPU
+                gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+
+            // SECOND TRIANGLE
+
+                // Resets the bindings on the GPU
+                gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+
+                gl::BindVertexArray(vertex_array_object);
+
+                triangle_objects[1].shader_program.set_used();
+
+                let horizontal_offset = CString::new("HorizontalOffset")?;
+
+                let horizontal_location = gl::GetUniformLocation(shader_program.id(), horizontal_offset.as_ptr());
+
+                gl::Uniform1f(horizontal_location, -0.48);
+
+                gl::DrawArrays(gl::TRIANGLES, 0, 3);
+
+                gl::BindVertexArray(0);
+
+                // Resets the bindings on the GPU
+                gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+
         }
         /// End of rendering code.
 

@@ -3,6 +3,6 @@ use crate::renderer::shaders::shader::Shader;
 
 pub struct TriangleRenderComponent {
 
-    shader_program : ShaderProgram,
+    pub shader_program : ShaderProgram,
 }
 
