@@ -2,6 +2,36 @@ use gl;
 use std;
 
 use crate::renderer::shaders::*;
+use crate::renderer::shaders::shader::Shader;
+
+#[macro_export]
+// Macro for creating a key typed event.
+macro_rules! triangle_render {
+    () => {{
+        let program = ShaderProgram::from_shaders(&[Shader::from_vert_source(
+            &CString::new(include_str!("renderer/triangle.vert"))
+                    .unwrap()).unwrap(),
+                    Shader::from_frag_source(&CString::new(
+                    include_str!("renderer/triangle.frag"))
+                    .unwrap()).unwrap()]).unwrap();
+        program
+    }};
+}
+
+#[macro_export]
+// Macro for creating a key typed event.
+macro_rules! triangle_fade {
+    () => {{
+        let program = ShaderProgram::from_shaders(&[Shader::from_vert_source(
+        &CString::new(include_str!("renderer/fade_triangle.glsl"))
+            .unwrap()).unwrap(),
+        Shader::from_frag_source(&CString::new(
+            include_str!("renderer/fade_triangle.frag"))
+            .unwrap()).unwrap()]).unwrap();
+
+            program
+    }};
+}
 
 // A Program is a combination of multiple shaders working together to achieve an effect.
 pub struct ShaderProgram {

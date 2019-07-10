@@ -26,6 +26,16 @@ pub fn basic_program() -> Result<ShaderProgram, Error> {
                     .unwrap()).unwrap()]).unwrap())
 }
 
+pub fn fade_program() -> Result<ShaderProgram, Error> {
+
+    Ok(ShaderProgram::from_shaders(&[Shader::from_vert_source(
+        &CString::new(include_str!("triangle.vert"))
+            .unwrap()).unwrap(),
+        Shader::from_frag_source(&CString::new(
+            include_str!("fade_triangle.frag"))
+            .unwrap()).unwrap()]).unwrap())
+}
+
 pub fn render_basic_square_with_elements() -> Result<Vec<u32>, Error> {
 
     // returns a struct which stores both index and vertex information.

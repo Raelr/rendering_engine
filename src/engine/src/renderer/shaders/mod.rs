@@ -1,3 +1,3 @@
 pub mod shader;
-pub mod shader_program;
+#[macro_use] pub mod shader_program;
 pub mod shader_utilities;

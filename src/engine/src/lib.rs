@@ -1,3 +1,4 @@
+#![feature(duration_float)]
 extern crate strum;
 extern crate failure;
 
@@ -15,8 +16,9 @@ macro_rules! bit {
 #[macro_use] pub mod window;
 pub mod generational_index;
 pub mod platform;
+#[macro_use]pub mod renderer;
 pub mod application;
-pub mod renderer;
+
 
 
 
