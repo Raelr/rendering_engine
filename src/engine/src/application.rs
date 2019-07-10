@@ -103,13 +103,11 @@ pub fn run() -> Result<(), Error> {
 
     let vertices: Vec<f32> = vec![
 
-        // positions     // colors
-        -0.5, -0.5, 0.0, //1.0, 0.0, 0.0,
-        0.5, -0.5, 0.0, //0.0, 1.0, 0.0,
-        0.0, 0.5, 0.0, //0.0, 0.0, 1.0
+         // positions     // colors
+         0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
+         -0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+         0.0,  0.5, 0.0,  0.0, 0.0, 1.0,
     ];
-
-    let mut shader_program = basic_program()?;
 
     let mut vertex_buffer_object: gl::types::GLuint = 0;
 
@@ -130,9 +128,9 @@ pub fn run() -> Result<(), Error> {
                                                  &vertex_buffer_object, &vertices);
 
         // Creates a vertex attribute pointer and enables it on the GPU
-        render_application::generate_vertex_array(0, 3, 3, 0);
+        render_application::generate_vertex_array(0, 3, 6, 0);
 
-        //render_application::generate_vertex_array(1, 3, 6, 3);
+        render_application::generate_vertex_array(1, 3, 6, 3);
 
         gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
 
@@ -194,7 +192,9 @@ pub fn run() -> Result<(), Error> {
 
             triangle_objects[0].shader_program.set_used();
 
-            gl::Uniform1f(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("HorizontalOffset")?.as_ptr()), 0.5);
+            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("Offset")?.as_ptr()), 0.5, 0.0);
+
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 1);
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
@@ -202,7 +202,9 @@ pub fn run() -> Result<(), Error> {
 
             triangle_objects[1].shader_program.set_used();
 
-            gl::Uniform1f(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("HorizontalOffset")?.as_ptr()), -0.5);
+            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("Offset")?.as_ptr()), -0.5, 0.0);
+
+            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 0);
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
@@ -216,6 +218,7 @@ pub fn run() -> Result<(), Error> {
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
+
         /// End of rendering code.
 
         window.on_update();
