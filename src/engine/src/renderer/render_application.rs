@@ -3,11 +3,6 @@ extern crate sdl2;
 extern crate gl;
 extern crate failure;
 
-// Use
-use failure::Error;
-use sdl2::video::Window;
-use sdl2::Sdl;
-
 pub fn generate_n_buffers(amount: i32, buffers: Vec<&mut u32>) {
     unsafe {
         for buffer in buffers {

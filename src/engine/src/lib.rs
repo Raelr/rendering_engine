@@ -17,6 +17,7 @@ macro_rules! bit {
 pub mod generational_index;
 pub mod platform;
 #[macro_use]pub mod renderer;
+pub mod components;
 pub mod application;
 
 

@@ -44,7 +44,7 @@ pub trait WindowTrait {
     fn on_update(&mut self) {}
     fn get_width(&self) -> u32 {0}
     fn get_height(&self) -> u32 {0}
-    fn set_vsync(&mut self, enabled : bool) {}
+    fn set_vsync(&mut self, _enabled : bool) {}
     fn is_vsync(&self) -> &bool {&false}
     fn get_native_window(&self) {}
     fn get_data(&mut self) -> &mut WindowData;

@@ -5,21 +5,18 @@ extern crate failure;
 
 // Use
 use failure::Error;
-use sdl2::Sdl;
 use crate::platform::windows::windows_window;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use crate::window::{WindowProperties, WindowTrait};
-use crate::platform::windows::windows_window::{WindowsWindow, process_event};
+use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
 use crate::generational_index::generational_index::*;
 use crate::events::window_event::WindowEvent;
 use crate::renderer::render_application;
-use crate::renderer::renderer_tests::{basic_program, fade_program};
 use crate::renderer::renderer_component::TriangleRenderComponent;
 use crate::renderer::shaders::shader::Shader;
 use std::time::{Duration, Instant};
-use std::os::raw::c_float;
-use std::ffi::{CStr, CString};
+use std::ffi::{CString};
 
 /// GameState object stores all entities and components within itself. If handles the streaming of
 /// components into different systems.
@@ -41,7 +38,7 @@ impl GameState {
 
 pub struct ScrapYardApplication {
     pub game_state: GameState,
-    pub update_void_events: Vec<Box<FnMut(&mut GameState)>>,
+    pub update_void_events: Vec<Box<dyn FnMut(&mut GameState)>>,
 }
 
 /// Constructor and registration methods. Might need to remove the update events (since they don't seem to do anything right now)
@@ -78,7 +75,7 @@ pub fn run() -> Result<(), Error> {
     let mut window = windows_window::create_new(window_base!(), &sdl);
 
     // Create the base application.
-    let mut app = ScrapYardApplication::new();
+    let mut _app = ScrapYardApplication::new();
 
     // Get the event pump from sdl.
     let mut pump = sdl.event_pump().unwrap();
@@ -98,8 +95,8 @@ pub fn run() -> Result<(), Error> {
 
     triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
 
-    /// Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
-    /// TODO: Move the rendering code to a different struct (probably a renderer component).
+    // Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
+    // TODO: Move the rendering code to a different struct (probably a renderer component).
 
     let vertices: Vec<f32> = vec![
 
@@ -149,15 +146,15 @@ pub fn run() -> Result<(), Error> {
         for event in pump.poll_iter() {
             match event {
                 // All window events are rerouted toward the active window.
-                sdl2::event::Event::Window { timestamp, window_id, win_event }
+                sdl2::event::Event::Window { timestamp : _ , window_id : _, win_event }
                 => windows_window::process_event(&win_event, &mut WindowEvent { window: &mut window, events: &mut one_time_window_events }),
 
                 // TODO
-                sdl2::event::Event::MouseButtonDown { timestamp, window_id, which, mouse_btn, clicks, x, y }
+                sdl2::event::Event::MouseButtonDown { timestamp : _, window_id, which : _, mouse_btn : _, clicks : _, x, y }
                 => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
 
                 // TODO
-                sdl2::event::Event::MouseMotion { timestamp, window_id, which, mousestate, x, y, xrel, yrel }
+                sdl2::event::Event::MouseMotion { timestamp : _, window_id : _, which : _, mousestate : _, x, y, xrel: _, yrel: _ }
                 => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
 
                 // TODO
@@ -178,23 +175,22 @@ pub fn run() -> Result<(), Error> {
             e(&mut window);
         }
 
-        /// Continuation of rendering code.
-
+        // Continuation of rendering code.
         unsafe {
 
             gl::BindVertexArray(vertex_array_object);
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            /// This is the code needed to render something AT THE VERY LEAST.
+            // This is the code needed to render something AT THE VERY LEAST.
 
             // FIRST TRIANGLE
 
             triangle_objects[0].shader_program.set_used();
 
-            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("Offset")?.as_ptr()), 0.5, 0.0);
+            triangle_objects[0].shader_program.set_vector2("Offset", (0.5, 0.0))?;
 
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[0].shader_program.id(), CString::new("UsePosition")?.as_ptr()), 1);
+            triangle_objects[0].shader_program.set_bool(true, "UsePosition")?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
@@ -202,9 +198,9 @@ pub fn run() -> Result<(), Error> {
 
             triangle_objects[1].shader_program.set_used();
 
-            gl::Uniform2f(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("Offset")?.as_ptr()), -0.5, 0.0);
+            triangle_objects[0].shader_program.set_vector2("Offset", (-0.5, 0.0))?;
 
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[1].shader_program.id(), CString::new("UseVertexColors")?.as_ptr()), 1);
+            triangle_objects[1].shader_program.set_bool(true, "UseVertexColors")?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
@@ -212,16 +208,14 @@ pub fn run() -> Result<(), Error> {
 
             triangle_objects[2].shader_program.set_used();
 
-            let color_location = gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("VertexColor")?.as_ptr());
+            triangle_objects[2].shader_program.set_bool(true, "ReverseShape")?;
 
-            gl::Uniform1ui(gl::GetUniformLocation(triangle_objects[2].shader_program.id(), CString::new("ReverseShape")?.as_ptr()), 1);
-
-            gl::Uniform4f(color_location, 0.0, (f32::sin( now.elapsed().as_secs_f64() as f32) / 1.5 + 0.5), 0.0, 1.0);
+            triangle_objects[2].shader_program.set_vector4("VertexColor", (0.0, (f32::sin( now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0))?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }
 
-        /// End of rendering code.
+        // End of rendering code.
 
         window.on_update();
 
@@ -229,7 +223,6 @@ pub fn run() -> Result<(), Error> {
     }
 
     unsafe {
-
         // Unbind vertex array.
         gl::BindVertexArray(0);
         gl::BindBuffer(gl::ARRAY_BUFFER, 0);
