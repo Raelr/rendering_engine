@@ -25,10 +25,10 @@ type Entity = GenerationalIndex;
 /// components into different systems.
 
 pub struct GameState {
-    pub render_components : Vec<Option<RenderComponent>>,
-    pub color_components : Vec<Option<ColorComponent>>,
-    pub position_components : Vec<Option<PositionComponent>>,
-    pub entities : Vec<u32>
+    pub render_components : GenerationalIndexArray<RenderComponent>,
+    pub color_components : GenerationalIndexArray<ColorComponent>,
+    pub position_components : GenerationalIndexArray<PositionComponent>,
+    pub entities : Vec<Entity>
 }
 
 /// should store all components and entity IDs when actual gameobjects and players are added to the game.
@@ -37,9 +37,9 @@ pub struct GameState {
 impl GameState {
     pub fn create_initial_state() -> GameState {
         let state = GameState {
-            render_components : Vec::new(),
-            color_components : Vec::new(),
-            position_components : Vec::new(),
+            render_components : GenerationalIndexArray::new(),
+            color_components : GenerationalIndexArray::new(),
+            position_components : GenerationalIndexArray::new(),
             entities : Vec::new()
         };
 
@@ -76,11 +76,17 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
+    let first_comp = allocator.allocate();
 
-    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
+    let second_comp = allocator.allocate();
 
-    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
+    let third_comp = allocator.allocate();
+
+    game_state.render_components.set(&first_comp, RenderComponent { shader_program: triangle_render!() });
+
+    game_state.render_components.set(&second_comp, RenderComponent { shader_program: triangle_render!() });
+
+    game_state.render_components.set(&third_comp, RenderComponent { shader_program: triangle_render!() });
 
     // Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
     // TODO: Move the rendering code to a different struct (probably a renderer component).
@@ -127,14 +133,18 @@ pub fn run() -> Result<(), Error> {
     let now = Instant::now();
 
     // Main loop of the game engine.
-    loop {
+    'running: loop {
 
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
         for event in pump.poll_iter() {
             match event {
+
                 // All window events are rerouted toward the active window.
                 sdl2::event::Event::Window { timestamp : _ , window_id : _, win_event }
                 => windows_window::process_event(&win_event, &mut WindowEvent { window: &mut window, events: &mut one_time_window_events }),
+
+                // Breaks the loop.
+                sdl2::event::Event::Quit { .. }=> { break 'running },
 
                 // TODO
                 sdl2::event::Event::MouseButtonDown { timestamp : _, window_id, which : _, mouse_btn : _, clicks : _, x, y }
@@ -171,7 +181,7 @@ pub fn run() -> Result<(), Error> {
 
             // This is the code needed to render something AT THE VERY LEAST.
 
-            let component = game_state.render_components[0].as_ref().unwrap();
+            let component = game_state.render_components.get_mut(&first_comp).unwrap();
 
             // FIRST TRIANGLE
 
@@ -185,7 +195,7 @@ pub fn run() -> Result<(), Error> {
 
             // SECOND TRIANGLE
 
-            let component = game_state.render_components[1].as_ref().unwrap();
+            let component = game_state.render_components.get_mut(&second_comp).unwrap();
 
             component.shader_program.set_used();
 
@@ -197,7 +207,7 @@ pub fn run() -> Result<(), Error> {
 
             // THIRD TRIANGLE
 
-            let component = game_state.render_components[2].as_ref().unwrap();
+            let component = game_state.render_components.get_mut(&third_comp).unwrap();
 
             component.shader_program.set_used();
 
