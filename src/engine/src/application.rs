@@ -13,48 +13,37 @@ use std::collections::VecDeque;
 use crate::generational_index::generational_index::*;
 use crate::events::window_event::WindowEvent;
 use crate::renderer::render_application;
-use crate::renderer::renderer_component::TriangleRenderComponent;
+use crate::renderer::renderer_component::{RenderComponent};
 use crate::renderer::shaders::shader::Shader;
 use std::time::{Duration, Instant};
 use std::ffi::{CString};
+use crate::components::{ColorComponent, PositionComponent};
+
+type Entity = GenerationalIndex;
 
 /// GameState object stores all entities and components within itself. If handles the streaming of
 /// components into different systems.
 
-pub struct GameState {}
+pub struct GameState {
+    pub render_components : Vec<Option<RenderComponent>>,
+    pub color_components : Vec<Option<ColorComponent>>,
+    pub position_components : Vec<Option<PositionComponent>>,
+    pub entities : Vec<u32>
+}
 
 /// should store all components and entity IDs when actual gameobjects and players are added to the game.
 /// TODO: populate GameState with relevant variables.
 
 impl GameState {
     pub fn create_initial_state() -> GameState {
-        let state = GameState {};
-
-        state
-    }
-}
-
-/// The base application struct for the engine.
-
-pub struct ScrapYardApplication {
-    pub game_state: GameState,
-    pub update_void_events: Vec<Box<dyn FnMut(&mut GameState)>>,
-}
-
-/// Constructor and registration methods. Might need to remove the update events (since they don't seem to do anything right now)
-
-impl ScrapYardApplication {
-    pub fn new() -> ScrapYardApplication {
-        let mut app = ScrapYardApplication {
-            game_state: GameState::create_initial_state(),
-            update_void_events: Vec::new(),
+        let state = GameState {
+            render_components : Vec::new(),
+            color_components : Vec::new(),
+            position_components : Vec::new(),
+            entities : Vec::new()
         };
 
-        app
-    }
-
-    pub fn register_game_update_event(&mut self, event: Box<dyn FnMut(&mut GameState)>) {
-        &self.update_void_events.push(event);
+        state
     }
 }
 
@@ -71,11 +60,12 @@ pub fn run() -> Result<(), Error> {
     // Initialise sdl
     let sdl = sdl2::init().unwrap();
 
+    let mut allocator = GenerationalIndexAllocator::new();
+
     // Create the base window for the application.
     let mut window = windows_window::create_new(window_base!(), &sdl);
 
-    // Create the base application.
-    let mut _app = ScrapYardApplication::new();
+    let mut game_state = GameState::create_initial_state();
 
     // Get the event pump from sdl.
     let mut pump = sdl.event_pump().unwrap();
@@ -86,14 +76,11 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    // Create a list of triangle render objects.
-    let mut triangle_objects: Vec<TriangleRenderComponent> = Vec::new();
+    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
 
-    triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
+    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
 
-    triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
-
-    triangle_objects.push(TriangleRenderComponent { shader_program: triangle_render!() });
+    game_state.render_components.push(Some(RenderComponent { shader_program: triangle_render!() }));
 
     // Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
     // TODO: Move the rendering code to a different struct (probably a renderer component).
@@ -184,33 +171,39 @@ pub fn run() -> Result<(), Error> {
 
             // This is the code needed to render something AT THE VERY LEAST.
 
+            let component = game_state.render_components[0].as_ref().unwrap();
+
             // FIRST TRIANGLE
 
-            triangle_objects[0].shader_program.set_used();
+            component.shader_program.set_used();
 
-            triangle_objects[0].shader_program.set_vector2("Offset", (0.5, 0.0))?;
+            component.shader_program.set_vector2("Offset", (0.5, 0.0))?;
 
-            triangle_objects[0].shader_program.set_bool(true, "UsePosition")?;
+            component.shader_program.set_bool(true, "UsePosition")?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             // SECOND TRIANGLE
 
-            triangle_objects[1].shader_program.set_used();
+            let component = game_state.render_components[1].as_ref().unwrap();
 
-            triangle_objects[0].shader_program.set_vector2("Offset", (-0.5, 0.0))?;
+            component.shader_program.set_used();
 
-            triangle_objects[1].shader_program.set_bool(true, "UseVertexColors")?;
+            component.shader_program.set_vector2("Offset", (-0.5, 0.0))?;
+
+            component.shader_program.set_bool(true, "UseVertexColors")?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
             // THIRD TRIANGLE
 
-            triangle_objects[2].shader_program.set_used();
+            let component = game_state.render_components[2].as_ref().unwrap();
 
-            triangle_objects[2].shader_program.set_bool(true, "ReverseShape")?;
+            component.shader_program.set_used();
 
-            triangle_objects[2].shader_program.set_vector4("VertexColor", (0.0, (f32::sin( now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0))?;
+            component.shader_program.set_bool(true, "ReverseShape")?;
+
+            component.shader_program.set_vector4("VertexColor", (0.0, (f32::sin( now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0))?;
 
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
         }

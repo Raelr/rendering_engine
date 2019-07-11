@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 pub struct GenerationalIndex {
     index : usize,
     generation: u64
@@ -22,13 +24,14 @@ impl<T> GenerationalIndexArray<T> {
     pub fn new() -> GenerationalIndexArray<T> {
 
         let array = GenerationalIndexArray {
-            0: vec![]
+            0: Vec::new()
         };
 
         array
     }
 
     pub fn set(&mut self, index : GenerationalIndex, value : T) {
+
 
     }
 
@@ -41,9 +44,10 @@ impl<T> GenerationalIndexArray<T> {
     }
 }
 
-pub struct AllocatorEntry {
+/// Used to create the generational indices which will be stored in the generational index array.
 
-    live : bool,
+pub struct AllocatorEntry {
+    pub live : bool,
     generation : u64
 }
 
@@ -64,24 +68,44 @@ impl GenerationalIndexAllocator {
         allocator
     }
 
-    pub fn allocate(&mut self) -> AllocatorEntry {
+    pub fn allocate(&mut self) -> GenerationalIndex {
 
-        let entry = AllocatorEntry {
-            live: false,
-            generation : 0
-        };
+        let mut index : usize = 0;
+        let mut generation : u64 = 0;
 
-        entry
+        if !self.free.is_empty() {
 
+            let free_index = self.free[0];
+
+            let mut entry = &mut self.entries[free_index];
+
+            entry.generation += 1;
+            entry.live = true;
+
+            index = self.free.pop().unwrap();
+            generation = entry.generation;
+
+        } else {
+
+            self.entries.push(AllocatorEntry { live : true, generation : 0});
+            index = self.entries.len() - 1;
+        }
+
+        //println!("Generated index with index: {}, and generation: {}", index, generation);
+        GenerationalIndex {index, generation }
     }
 
-    pub fn deallocate(&mut self, index : GenerationalIndex) -> bool {
+    pub fn deallocate(&mut self, index : &GenerationalIndex) -> bool {
 
-        false
+        self.free.push(index.index());
+        self.entries[index.index].live = false;
+
+        true
     }
 
-    pub fn is_live(&self, index : GenerationalIndex) -> bool {
+    pub fn is_live(&self, index : &GenerationalIndex) -> bool {
 
-        false
+        //println!("Index is live: {}", self.entries[index.index].live);
+        self.entries[index.index].live
     }
 }
