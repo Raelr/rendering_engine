@@ -1,6 +1,10 @@
 use crate::components::{ColorComponent, PositionComponent, TimerComponent};
 use crate::generational_index::generational_index::*;
 use crate::renderer::renderer_component::{RenderComponent};
+use std::time::{Duration, Instant};
+use crate::renderer::shaders::shader::Shader;
+use crate::renderer::shaders::shader_program::ShaderProgram;
+use std::ffi::{CString};
 
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
@@ -118,5 +122,46 @@ impl GameState {
 
             self.entities.push(entity);
         }
+    }
+
+    pub fn init_test_state(&mut self) {
+
+        let first_comp = self.create_entity();
+
+        let second_comp = self.create_entity();
+
+        let third_comp = self.create_entity();
+
+        // RIGHT
+
+        self.register_renderer(&first_comp, RenderComponent { shader_program: triangle_render!() });
+
+        self.register_position(&first_comp, PositionComponent { position : (0.5, 0.0, 0.0), reversed : false });
+
+        self.register_color(&first_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true});
+
+        self.register_entity(first_comp);
+
+        // LEFT
+
+        self.register_renderer(&second_comp, RenderComponent { shader_program: triangle_render!() });
+
+        self.register_position(&second_comp, PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false });
+
+        self.register_color(&second_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false});
+
+        self.register_entity(second_comp);
+
+        // CENTER
+
+        self.register_renderer(&third_comp, RenderComponent { shader_program: triangle_render!() });
+
+        self.register_position(&third_comp, PositionComponent { position : (0.0, 0.0, 0.0), reversed : true });
+
+        self.register_color(&third_comp, ColorComponent { color : (0.0, 1.0, 0.0, 0.0), use_vertex_colors : false, use_position : false});
+
+        self.register_timer(&third_comp, TimerComponent {now : Instant::now()});
+
+        self.register_entity(third_comp);
     }
 }
