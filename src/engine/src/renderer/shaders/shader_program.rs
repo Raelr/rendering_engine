@@ -2,7 +2,8 @@ use gl;
 use std;
 
 use crate::renderer::shaders::*;
-use crate::renderer::shaders::shader::Shader;
+use std::ffi::{CString};
+use failure::Error;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -39,6 +40,7 @@ pub struct ShaderProgram {
     id : gl::types::GLuint,
 }
 
+/// A program which combines multiple shaders to create a single shape.
 impl ShaderProgram {
 
     pub fn from_shaders(shaders: &[shader::Shader]) -> Result<ShaderProgram, String> {
@@ -101,6 +103,31 @@ impl ShaderProgram {
         unsafe {
             gl::UseProgram(self.id);
         }
+    }
+
+    pub unsafe fn set_bool(&self, value : bool, name : &str) -> Result<(), Error> {
+        let condition : u32 = match value {
+            true => (1),
+            false => (0)
+        };
+
+        gl::Uniform1ui(gl::GetUniformLocation(self.id(), CString::new(name)?.as_ptr()), condition);
+
+        Ok(())
+    }
+
+    pub unsafe fn set_vector4(&self, name : &str, vec : (f32, f32, f32, f32)) -> Result<(), Error>{
+
+        gl::Uniform4f(gl::GetUniformLocation(self.id(), CString::new(name)?.as_ptr()), vec.0, vec.1, vec.2, vec.3);
+
+        Ok(())
+    }
+
+    pub unsafe fn set_vector2(&self, name : &str, vec : (f32, f32)) -> Result<(), Error> {
+
+        gl::Uniform2f(gl::GetUniformLocation(self.id(), CString::new(name)?.as_ptr()), vec.0, vec.1);
+
+        Ok(())
     }
 }
 

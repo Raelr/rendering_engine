@@ -3,11 +3,6 @@ extern crate sdl2;
 extern crate gl;
 extern crate failure;
 
-// Use
-use failure::Error;
-use sdl2::video::Window;
-use sdl2::Sdl;
-
 pub fn generate_n_buffers(amount: i32, buffers: Vec<&mut u32>) {
     unsafe {
         for buffer in buffers {
@@ -59,23 +54,4 @@ pub fn generate_vertex_array(location : u32, components : i32,
     }
 }
 
-pub fn draw(vertex_arrays: &Vec<u32>, stride: i32, is_element: bool) {
 
-    unsafe {
-
-        for vao in vertex_arrays {
-            // Binds the vertex array
-            gl::BindVertexArray(*vao);
-
-            if is_element {
-                gl::DrawElements(gl::TRIANGLES, stride, gl::UNSIGNED_INT, std::ptr::null());
-            } else {
-                gl::DrawArrays(gl::TRIANGLES, 0, stride);
-            }
-        }
-
-        // gl::BindVertexArray(vertex_arrays[0 as usize]);
-        // Draws count vertices in the vertex buffer or VAO.
-        gl::BindVertexArray(0);
-    }
-}

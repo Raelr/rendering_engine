@@ -5,8 +5,6 @@ extern crate failure;
 
 // Use crate
 use crate::window::{WindowProperties, WindowTrait};
-use crate::events::window_event;
-use crate::application::{ScrapYardApplication};
 use crate::events::window_event::WindowEvent;
 use crate::platform::open_gl::OpenGLContext;
 
@@ -14,8 +12,6 @@ use crate::platform::open_gl::OpenGLContext;
 use sdl2::video::Window;
 use sdl2::Sdl;
 use self::sdl2::video::SwapInterval::{VSync, Immediate};
-use std::process;
-use std::collections::VecDeque;
 
 /// Indended to be a window class for a windows implementation. A bit irrelevant at the moment since the window work on mac, but
 /// in future, if the engine is going to be used with the WinAPI, then it'll be more customised.
@@ -91,7 +87,7 @@ impl WindowsWindow {
             .build()
             .unwrap();
 
-        let mut context = OpenGLContext::new(&mut window, &mut video_subsystem);
+        let context = OpenGLContext::new(&mut window, &mut video_subsystem);
 
         let data = WindowData {
             title : properties.title.clone(),
@@ -163,7 +159,6 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut Wind
 #[inline] pub fn on_window_close<'a>(event : &mut WindowsWindow) {
 
     println!("WINDOW: Window closed, Exiting {}.", event.data.title);
-    process::exit(1)
 }
 
 /// Logs the new height and width of the window after a resize has occurred.
