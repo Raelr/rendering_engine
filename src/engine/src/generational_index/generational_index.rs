@@ -10,14 +10,14 @@ impl GenerationalIndex {
     }
 }
 
-struct ArrayEntry<T> {
+pub struct ArrayEntry<T> {
     pub value : T,
     pub generation : u64
 }
 
 pub struct GenerationalIndexArray<T> {
 
-    entries : Vec<Option<ArrayEntry<T>>>,
+    pub entries : Vec<Option<ArrayEntry<T>>>,
 }
 
 impl<T> GenerationalIndexArray<T> {
@@ -31,17 +31,19 @@ impl<T> GenerationalIndexArray<T> {
         array
     }
 
+    pub fn set_empty(&mut self) {
+
+        self.entries.push(None);
+    }
+
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
         if index.index < self.entries.len() {
 
-            let entry = self.entries[index.index()].as_mut();
+            let mut entry = self.entries[index.index()].as_mut();
 
-            match entry {
+            entry = Some(ArrayEntry {value, generation : index.generation} ).as_mut();
 
-                Some(e) => { e.value = value; e.generation = index.generation },
-                _ => ()
-            }
         } else {
 
             println!("Placing value in index: {} and generation: {}", index.index, index.generation);

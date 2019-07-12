@@ -10,42 +10,16 @@ use crate::renderer::shaders::shader_program::ShaderProgram;
 use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
-use crate::generational_index::generational_index::*;
 use crate::events::window_event::WindowEvent;
 use crate::renderer::render_application;
 use crate::renderer::renderer_component::{RenderComponent};
 use crate::renderer::shaders::shader::Shader;
 use std::time::{Duration, Instant};
 use std::ffi::{CString};
-use crate::components::{ColorComponent, PositionComponent};
+use crate::game_state::GameState;
+use crate::components::{PositionComponent, ColorComponent, TimerComponent};
+use crate::renderer::renderer_systems::RendererTestSystem;
 
-type Entity = GenerationalIndex;
-
-/// GameState object stores all entities and components within itself. If handles the streaming of
-/// components into different systems.
-
-pub struct GameState {
-    pub render_components : GenerationalIndexArray<RenderComponent>,
-    pub color_components : GenerationalIndexArray<ColorComponent>,
-    pub position_components : GenerationalIndexArray<PositionComponent>,
-    pub entities : Vec<Entity>
-}
-
-/// should store all components and entity IDs when actual gameobjects and players are added to the game.
-/// TODO: populate GameState with relevant variables.
-
-impl GameState {
-    pub fn create_initial_state() -> GameState {
-        let state = GameState {
-            render_components : GenerationalIndexArray::new(),
-            color_components : GenerationalIndexArray::new(),
-            position_components : GenerationalIndexArray::new(),
-            entities : Vec::new()
-        };
-
-        state
-    }
-}
 
 /// This is the code for the current event loop.
 /// The event loop controls the basic data flow of the engine.
@@ -59,8 +33,6 @@ pub fn run() -> Result<(), Error> {
 
     // Initialise sdl
     let sdl = sdl2::init().unwrap();
-
-    let mut allocator = GenerationalIndexAllocator::new();
 
     // Create the base window for the application.
     let mut window = windows_window::create_new(window_base!(), &sdl);
@@ -76,17 +48,37 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    let first_comp = allocator.allocate();
+    let first_comp = game_state.create_entity();
 
-    let second_comp = allocator.allocate();
+    let second_comp = game_state.create_entity();
 
-    let third_comp = allocator.allocate();
+    let third_comp = game_state.create_entity();
 
-    game_state.render_components.set(&first_comp, RenderComponent { shader_program: triangle_render!() });
+    game_state.register_renderer(&first_comp, RenderComponent { shader_program: triangle_render!() });
 
-    game_state.render_components.set(&second_comp, RenderComponent { shader_program: triangle_render!() });
+    game_state.register_position(&first_comp, PositionComponent { position : (0.5, 0.0, 0.0), reversed : false });
 
-    game_state.render_components.set(&third_comp, RenderComponent { shader_program: triangle_render!() });
+    game_state.register_color(&first_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false});
+
+    game_state.register_entity(first_comp);
+
+    game_state.register_renderer(&second_comp, RenderComponent { shader_program: triangle_render!() });
+
+    game_state.register_position(&second_comp, PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false });
+
+    game_state.register_color(&second_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true});
+
+    game_state.register_entity(second_comp);
+
+    game_state.register_renderer(&third_comp, RenderComponent { shader_program: triangle_render!() });
+
+    game_state.register_position(&third_comp, PositionComponent { position : (0.0, 0.0, 0.0), reversed : true });
+
+    game_state.register_color(&third_comp, ColorComponent { color : (0.0, 1.0, 0.0, 0.0), use_vertex_colors : false});
+
+    game_state.register_timer(&third_comp, TimerComponent {now : Instant::now()});
+
+    game_state.register_entity(third_comp);
 
     // Rendering code. For now this will stay here. Need to find a suitable home for it once i've gotten a hang of rendering.
     // TODO: Move the rendering code to a different struct (probably a renderer component).
@@ -130,6 +122,8 @@ pub fn run() -> Result<(), Error> {
         gl::BindVertexArray(0);
     }
 
+    let mut render_system = RendererTestSystem;
+
     let now = Instant::now();
 
     // Main loop of the game engine.
@@ -172,50 +166,19 @@ pub fn run() -> Result<(), Error> {
             e(&mut window);
         }
 
-        // Continuation of rendering code.
+        // DRAW CODE
         unsafe {
 
             gl::BindVertexArray(vertex_array_object);
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            // This is the code needed to render something AT THE VERY LEAST.
+            render_system.render_positions(&mut game_state.render_components, &mut game_state.position_components, &game_state.entities);
 
-            let component = game_state.render_components.get_mut(&first_comp).unwrap();
+            render_system.render_colors(&mut game_state.render_components, &mut game_state.color_components,
+                                        &mut game_state.timer_components,  &game_state.entities);
 
-            // FIRST TRIANGLE
-
-            component.shader_program.set_used();
-
-            component.shader_program.set_vector2("Offset", (0.5, 0.0))?;
-
-            component.shader_program.set_bool(true, "UsePosition")?;
-
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
-
-            // SECOND TRIANGLE
-
-            let component = game_state.render_components.get_mut(&second_comp).unwrap();
-
-            component.shader_program.set_used();
-
-            component.shader_program.set_vector2("Offset", (-0.5, 0.0))?;
-
-            component.shader_program.set_bool(true, "UseVertexColors")?;
-
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
-
-            // THIRD TRIANGLE
-
-            let component = game_state.render_components.get_mut(&third_comp).unwrap();
-
-            component.shader_program.set_used();
-
-            component.shader_program.set_bool(true, "ReverseShape")?;
-
-            component.shader_program.set_vector4("VertexColor", (0.0, (f32::sin( now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0))?;
-
-            gl::DrawArrays(gl::TRIANGLES, 0, 3);
+            render_system.draw_triangles(&mut game_state.render_components);
         }
 
         // End of rendering code.
