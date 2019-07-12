@@ -54,27 +54,33 @@ pub fn run() -> Result<(), Error> {
 
     let third_comp = game_state.create_entity();
 
+    // RIGHT
+
     game_state.register_renderer(&first_comp, RenderComponent { shader_program: triangle_render!() });
 
     game_state.register_position(&first_comp, PositionComponent { position : (0.5, 0.0, 0.0), reversed : false });
 
-    game_state.register_color(&first_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false});
+    game_state.register_color(&first_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true});
 
     game_state.register_entity(first_comp);
+
+    // LEFT
 
     game_state.register_renderer(&second_comp, RenderComponent { shader_program: triangle_render!() });
 
     game_state.register_position(&second_comp, PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false });
 
-    game_state.register_color(&second_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true});
+    game_state.register_color(&second_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false});
 
     game_state.register_entity(second_comp);
+
+    // CENTER
 
     game_state.register_renderer(&third_comp, RenderComponent { shader_program: triangle_render!() });
 
     game_state.register_position(&third_comp, PositionComponent { position : (0.0, 0.0, 0.0), reversed : true });
 
-    game_state.register_color(&third_comp, ColorComponent { color : (0.0, 1.0, 0.0, 0.0), use_vertex_colors : false});
+    game_state.register_color(&third_comp, ColorComponent { color : (0.0, 1.0, 0.0, 0.0), use_vertex_colors : false, use_position : false});
 
     game_state.register_timer(&third_comp, TimerComponent {now : Instant::now()});
 

@@ -108,7 +108,7 @@ impl ShaderProgram {
     pub unsafe fn set_bool(&self, value : bool, name : &str) -> Result<(), Error> {
         let condition : u32 = match value {
             true => (1),
-            false => (2)
+            false => (0)
         };
 
         gl::Uniform1ui(gl::GetUniformLocation(self.id(), CString::new(name)?.as_ptr()), condition);

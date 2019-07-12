@@ -11,6 +11,7 @@ pub struct ColorComponent {
 
     pub color : (f32, f32, f32, f32),
     pub use_vertex_colors : bool,
+    pub use_position : bool
 }
 
 pub struct TimerComponent {
