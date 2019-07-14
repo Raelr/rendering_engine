@@ -96,10 +96,10 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            render_system.render_positions(&mut game_state.render_components, &mut game_state.position_components, &game_state.entities);
+            RendererTestSystem::render_positions(&mut game_state.render_components, &mut game_state.position_components);
 
-            render_system.render_colors(&mut game_state.render_components, &mut game_state.color_components,
-                                        &mut game_state.timer_components,  &game_state.entities);
+            RendererTestSystem::render_colors(&mut game_state.color_components, &mut game_state.render_components,
+                                        &mut game_state.timer_components);
 
             render_system.draw_triangles(&mut game_state.render_components);
         }

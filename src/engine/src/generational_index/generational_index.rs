@@ -1,6 +1,6 @@
 pub struct GenerationalIndex {
-    index : usize,
-    generation: u64
+    pub index : usize,
+    pub generation: u64
 }
 
 impl GenerationalIndex {

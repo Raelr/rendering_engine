@@ -5,6 +5,7 @@ use crate::game_state::GameState;
 use failure::Error;
 use crate::renderer::render_application;
 use crate::platform::windows::windows_window::WindowsWindow;
+use std::borrow::BorrowMut;
 
 extern crate gl;
 
@@ -12,64 +13,61 @@ pub struct RendererTestSystem;
 
 impl RendererTestSystem {
 
-    pub fn render_positions(&mut self, renderers : &mut GenerationalIndexArray<RenderComponent>,
-                        positions : &mut GenerationalIndexArray<PositionComponent>, entities : &Vec<GenerationalIndex>) {
+    pub fn render_positions(renderers : &mut GenerationalIndexArray<RenderComponent>,
+                              positions : &mut GenerationalIndexArray<PositionComponent>) -> Result<(), Error> {
 
-        for entity in entities {
+        for index in 0..renderers.entries.len() {
 
-            let renderer = renderers.get_mut(entity);
+            if let Some(r) = &renderers.entries[index] {
 
-            if let Some(e) = renderer {
+                let renderer = &r.value.shader_program;
 
-                e.shader_program.set_used();
+                renderer.set_used();
 
-                let position = positions.get(entity);
+                let position = positions.get(&GenerationalIndex { index, generation : r.generation});
 
                 if let Some(p) = position {
 
                     unsafe {
-                        e.shader_program.set_vector2("Offset", (p.position.0, p.position.1));
-                        e.shader_program.set_bool(p.reversed, "ReverseShape", );
+
+                        renderer.set_vector2("Offset", (p.position.0, p.position.1))?;
+                        renderer.set_bool(p.reversed, "ReverseShape", )?;
 
                     }
                 }
             }
         }
+
+        Ok(())
     }
 
-    pub fn render_colors(&mut self, renderers : &mut GenerationalIndexArray<RenderComponent>,
-                     color : &mut GenerationalIndexArray<ColorComponent>, timer :  &mut GenerationalIndexArray<TimerComponent>,
-                     entities : &Vec<GenerationalIndex>) -> Result<(), Error> {
+    pub fn render_colors(color : &mut GenerationalIndexArray<ColorComponent>, renderers : &mut GenerationalIndexArray<RenderComponent>,
+                         timer :  &mut GenerationalIndexArray<TimerComponent>) -> Result<(), Error> {
 
-        for entity in entities {
+        for index in 0..color.entries.len() {
 
-            let renderer = renderers.get_mut(entity);
+            if let Some(c) = &color.entries[index] {
 
-            if let Some(e) = renderer {
+                let component = &c.value;
 
-                e.shader_program.set_used();
+                if let Some(r) = renderers.get(&GenerationalIndex {index, generation : c.generation}) {
 
-                let color = color.get(entity);
-
-                if let Some(c) = color {
+                    r.shader_program.set_used();
 
                     unsafe {
-
-                        e.shader_program.set_bool(c.use_position, "UsePosition")?;
-                        e.shader_program.set_bool(c.use_vertex_colors, "UseVertexColors")?;
+                        r.shader_program.set_bool(component.use_position, "UsePosition")?;
+                        r.shader_program.set_bool(component.use_vertex_colors, "UseVertexColors")?;
 
                         let color = {
 
-                            if let Some(t) = timer.get_mut(entity) {
+                            if let Some(t) = timer.get_mut(&GenerationalIndex {index, generation : c.generation}) {
                                 (0.0, (f32::sin( t.now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0)
-
                             } else {
-                                c.color
+                                component.color
                             }
-
                         };
 
-                        e.shader_program.set_vector4( "VertexColor", color)?;
+                        r.shader_program.set_vector4( "VertexColor", color)?;
                     }
                 }
             }
