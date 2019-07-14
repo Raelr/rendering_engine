@@ -47,8 +47,6 @@ pub fn run() -> Result<(), Error> {
 
     game_state.init_test_state();
 
-    let mut render_system = RendererTestSystem;
-
     RendererTestSystem::init_shapes(&window);
 
     // Main loop of the game engine.
@@ -96,12 +94,11 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            RendererTestSystem::render_positions(&mut game_state.render_components, &mut game_state.position_components);
+            RendererTestSystem::render_positions(&mut game_state.render_components, &mut game_state.position_components)?;
 
-            RendererTestSystem::render_colors(&mut game_state.color_components, &mut game_state.render_components,
-                                        &mut game_state.timer_components);
+            RendererTestSystem::render_colors(&mut game_state.color_components, &mut game_state.render_components, &mut game_state.timer_components)?;
 
-            render_system.draw_triangles(&mut game_state.render_components);
+            RendererTestSystem::draw_triangles(&mut game_state.render_components);
         }
 
         // End of rendering code.

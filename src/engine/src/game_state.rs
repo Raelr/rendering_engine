@@ -5,6 +5,7 @@ use std::time::{Duration, Instant};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::ffi::{CString};
+use std::borrow::BorrowMut;
 
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
@@ -48,65 +49,49 @@ impl GameState {
 
     pub fn register_renderer(&mut self, entity : &Entity, value : RenderComponent) {
 
-        self.render_components.set(&entity, value);
+        let mut set = &mut self.render_components;
 
-        self.sync_registries();
+        GameState::sync_registries(&self.entities, &mut set);
+
+        set.set(&entity, value);
     }
 
     pub fn register_position(&mut self, entity : &Entity, value : PositionComponent) {
 
-        self.position_components.set(&entity, value);
+        let mut set = &mut self.position_components;
 
-        self.sync_registries();
+        GameState::sync_registries(&mut self.entities, &mut set);
+
+        set.set(&entity, value);
     }
 
     pub fn register_color(&mut self, entity : &Entity, value : ColorComponent) {
 
-        self.color_components.set(&entity, value);
+        let mut set = &mut self.color_components;
 
-        self.sync_registries();
+        GameState::sync_registries(&self.entities, &mut set);
+
+        set.set(&entity, value);
     }
 
     pub fn register_timer(&mut self, entity : &Entity, value : TimerComponent) {
 
-        self.timer_components.set(&entity, value);
+        let mut set = &mut self.timer_components;
 
-        self.sync_registries();
+        GameState::sync_registries(&self.entities, &mut set);
+
+        set.set(&entity, value);
     }
 
-    pub fn sync_registries(&mut self) {
+    pub fn sync_registries<T>(entities : &Vec<Entity>,  array : &mut GenerationalIndexArray<T>) {
 
-        let entities = self.entities.len();
+        let entities = entities.len();
 
-        if self.render_components.entries.len() < entities {
+        if array.entries.len() < entities {
 
-            for entity in self.render_components.entries.len()..entities {
+            for _entity in array.entries.len()..entities {
 
-                self.render_components.set_empty();
-            }
-        }
-
-        if self.position_components.entries.len() < entities {
-
-            for entity in self.position_components.entries.len()..entities {
-
-                self.position_components.set_empty();
-            }
-        }
-
-        if self.color_components.entries.len() < entities {
-
-            for entity in self.color_components.entries.len()..entities {
-
-                self.color_components.set_empty();
-            }
-        }
-
-        if self.timer_components.entries.len() < entities {
-
-            for entity in self.timer_components.entries.len()..entities {
-
-                self.timer_components.set_empty();
+                array.set_empty();
             }
         }
     }

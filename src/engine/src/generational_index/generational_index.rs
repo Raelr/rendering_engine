@@ -33,7 +33,7 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set_empty(&mut self) {
 
-        self.entries.push(None);
+        &mut self.entries.push(None);
     }
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
@@ -46,7 +46,7 @@ impl<T> GenerationalIndexArray<T> {
 
         } else {
 
-            println!("Placing value in index: {} and generation: {}", index.index, index.generation);
+            //println!("Placing value in index: {} and generation: {}", index.index, index.generation);
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
         }
     }

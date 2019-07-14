@@ -76,7 +76,7 @@ impl RendererTestSystem {
         Ok(())
     }
 
-    pub fn draw_triangles(&mut self, renderers : &mut GenerationalIndexArray<RenderComponent>) {
+    pub fn draw_triangles(renderers : &mut GenerationalIndexArray<RenderComponent>) {
 
         for renderer in &renderers.entries {
 
