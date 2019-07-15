@@ -1,7 +1,7 @@
 #![feature(duration_float)]
 extern crate strum;
 extern crate failure;
-
+extern crate anymap;
 ////////////////////////////////////
 //           M A C R O S          //
 ////////////////////////////////////

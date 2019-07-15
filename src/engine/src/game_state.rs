@@ -1,11 +1,12 @@
 use crate::components::{ColorComponent, PositionComponent, TimerComponent};
 use crate::generational_index::generational_index::*;
 use crate::renderer::renderer_component::{RenderComponent};
-use std::time::{Duration, Instant};
+use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::ffi::{CString};
 use std::borrow::BorrowMut;
+use anymap::AnyMap;
 
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
@@ -14,10 +15,8 @@ type EntityMap<T> = GenerationalIndexArray<T>;
 /// components into different systems.
 
 pub struct GameState {
-    pub render_components : EntityMap<RenderComponent>,
-    pub color_components : EntityMap<ColorComponent>,
-    pub position_components : EntityMap<PositionComponent>,
-    pub timer_components : EntityMap<TimerComponent>,
+
+    pub components : AnyMap,
     pub allocator : GenerationalIndexAllocator,
     pub entities : Vec<Entity>
 }
@@ -28,11 +27,9 @@ pub struct GameState {
 impl GameState {
 
     pub fn create_initial_state() -> GameState {
-        let state = GameState {
-            render_components : EntityMap::new(),
-            color_components : EntityMap::new(),
-            position_components : EntityMap::new(),
-            timer_components : EntityMap::new(),
+
+        let mut state = GameState {
+            components : AnyMap::new(),
             allocator : GenerationalIndexAllocator::new(),
             entities : Vec::new()
         };
@@ -40,50 +37,49 @@ impl GameState {
         state
     }
 
-    pub fn create_entity(&mut self) -> Entity {
+    pub fn register_component<T : 'static>(&mut self, component : T, index : &GenerationalIndex) {
 
-        let entity = self.allocator.allocate();
+        let map = self.components.get_mut::<EntityMap<T>>().unwrap();
 
-        entity
+        GameState::sync_registry(&self.entities, map);
+
+        map.set(index, component);
     }
 
-    pub fn register_renderer(&mut self, entity : &Entity, value : RenderComponent) {
+    pub fn register_map<T : 'static>(&mut self, component : GenerationalIndexArray<T>) {
 
-        let mut set = &mut self.render_components;
-
-        GameState::sync_registries(&self.entities, &mut set);
-
-        set.set(&entity, value);
+        self.components.insert(component);
     }
 
-    pub fn register_position(&mut self, entity : &Entity, value : PositionComponent) {
+    pub fn create_entity(entities : &mut Vec<Entity>, allocator : &mut GenerationalIndexAllocator) -> GenerationalIndex {
 
-        let mut set = &mut self.position_components;
+        let entity = allocator.allocate();
 
-        GameState::sync_registries(&mut self.entities, &mut set);
+        let idx = entity.index();
 
-        set.set(&entity, value);
+        if idx < entities.len() {
+
+            entities[idx] = entity;
+
+        } else {
+
+            entities.push(entity);
+        }
+
+        entities[idx].clone()
     }
 
-    pub fn register_color(&mut self, entity : &Entity, value : ColorComponent) {
+    pub fn get_map_mut<T : 'static>(&mut self) -> &mut EntityMap<T> {
 
-        let mut set = &mut self.color_components;
-
-        GameState::sync_registries(&self.entities, &mut set);
-
-        set.set(&entity, value);
+        self.components.get_mut::<EntityMap<T>>().unwrap()
     }
 
-    pub fn register_timer(&mut self, entity : &Entity, value : TimerComponent) {
+    pub fn get_map<T : 'static>(&self) -> &EntityMap<T> {
 
-        let mut set = &mut self.timer_components;
-
-        GameState::sync_registries(&self.entities, &mut set);
-
-        set.set(&entity, value);
+        self.components.get::<EntityMap<T>>().unwrap()
     }
 
-    pub fn sync_registries<T>(entities : &Vec<Entity>,  array : &mut GenerationalIndexArray<T>) {
+    pub fn sync_registry<T>(entities : &Vec<Entity>, array : &mut GenerationalIndexArray<T>) {
 
         let entities = entities.len();
 
@@ -96,57 +92,49 @@ impl GameState {
         }
     }
 
-    pub fn register_entity(&mut self, entity : Entity) {
+    pub fn init_test_state(state : &mut GameState) {
 
-        if entity.index() < (self.entities.len()) {
+        let render_comps : EntityMap<RenderComponent> = EntityMap::new();
+        let pos_comps : EntityMap<PositionComponent> = EntityMap::new();
+        let color_comps : EntityMap<ColorComponent> = EntityMap::new();
+        let timer_comps : EntityMap<TimerComponent> = EntityMap::new();
 
-            let idx = entity.index();
-            self.entities[idx] = entity;
-
-        } else {
-
-            self.entities.push(entity);
-        }
-    }
-
-    pub fn init_test_state(&mut self) {
-
-        let first_comp = self.create_entity();
-
-        let second_comp = self.create_entity();
-
-        let third_comp = self.create_entity();
+        state.register_map(render_comps);
+        state.register_map(pos_comps);
+        state.register_map(color_comps);
+        state.register_map(timer_comps);
 
         // RIGHT
 
-        self.register_renderer(&first_comp, RenderComponent { shader_program: triangle_render!() });
+        let first_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
 
-        self.register_position(&first_comp, PositionComponent { position : (0.5, 0.0, 0.0), reversed : false });
+        state.register_component(RenderComponent { shader_program: triangle_render!() }, &first_comp);
 
-        self.register_color(&first_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true});
+        state.register_component(PositionComponent { position : (0.5, 0.0, 0.0), reversed : false }, &first_comp);
 
-        self.register_entity(first_comp);
+        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true}, &first_comp);
 
         // LEFT
 
-        self.register_renderer(&second_comp, RenderComponent { shader_program: triangle_render!() });
+        let second_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
 
-        self.register_position(&second_comp, PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false });
+        state.register_component(RenderComponent { shader_program: triangle_render!() }, &second_comp);
 
-        self.register_color(&second_comp, ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false});
+        state.register_component(PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false }, &second_comp);
 
-        self.register_entity(second_comp);
+        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false}, &second_comp);
 
         // CENTER
 
-        self.register_renderer(&third_comp, RenderComponent { shader_program: triangle_render!() });
+        let third_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
 
-        self.register_position(&third_comp, PositionComponent { position : (0.0, 0.0, 0.0), reversed : true });
+        state.register_component(RenderComponent { shader_program: triangle_render!() }, &third_comp);
 
-        self.register_color(&third_comp, ColorComponent { color : (0.0, 1.0, 0.0, 0.0), use_vertex_colors : false, use_position : false});
+        state.register_component(PositionComponent { position : (0.0, 0.0, 0.0), reversed : true }, &third_comp);
 
-        self.register_timer(&third_comp, TimerComponent {now : Instant::now()});
+        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false}, &third_comp);
 
-        self.register_entity(third_comp);
+        state.register_component(TimerComponent { now : Instant::now()}, &third_comp);
     }
+
 }

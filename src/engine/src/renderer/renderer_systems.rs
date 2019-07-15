@@ -1,11 +1,9 @@
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::renderer::renderer_component::RenderComponent;
 use crate::components::{PositionComponent, ColorComponent, TimerComponent};
-use crate::game_state::GameState;
 use failure::Error;
 use crate::renderer::render_application;
 use crate::platform::windows::windows_window::WindowsWindow;
-use std::borrow::BorrowMut;
 
 extern crate gl;
 
@@ -13,8 +11,8 @@ pub struct RendererTestSystem;
 
 impl RendererTestSystem {
 
-    pub fn render_positions(renderers : &mut GenerationalIndexArray<RenderComponent>,
-                              positions : &mut GenerationalIndexArray<PositionComponent>) -> Result<(), Error> {
+    pub fn render_positions(renderers : &GenerationalIndexArray<RenderComponent>,
+                              positions : &GenerationalIndexArray<PositionComponent>) -> Result<(), Error> {
 
         for index in 0..renderers.entries.len() {
 
@@ -41,8 +39,10 @@ impl RendererTestSystem {
         Ok(())
     }
 
-    pub fn render_colors(color : &mut GenerationalIndexArray<ColorComponent>, renderers : &mut GenerationalIndexArray<RenderComponent>,
-                         timer :  &mut GenerationalIndexArray<TimerComponent>) -> Result<(), Error> {
+    pub fn render_colors(color : &GenerationalIndexArray<ColorComponent>, renderers : &GenerationalIndexArray<RenderComponent>,
+                         timer :  &GenerationalIndexArray<TimerComponent>) -> Result<(), Error> {
+
+        let mut count = 0;
 
         for index in 0..color.entries.len() {
 
@@ -60,9 +60,12 @@ impl RendererTestSystem {
 
                         let color = {
 
-                            if let Some(t) = timer.get_mut(&GenerationalIndex {index, generation : c.generation}) {
+                            if let Some(t) = timer.get(&GenerationalIndex {index, generation : c.generation}) {
+
                                 (0.0, (f32::sin( t.now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0)
+
                             } else {
+
                                 component.color
                             }
                         };
@@ -71,12 +74,12 @@ impl RendererTestSystem {
                     }
                 }
             }
+            count += 1;
         }
-
         Ok(())
     }
 
-    pub fn draw_triangles(renderers : &mut GenerationalIndexArray<RenderComponent>) {
+    pub fn draw_triangles(renderers : &GenerationalIndexArray<RenderComponent>) {
 
         for renderer in &renderers.entries {
 
@@ -87,9 +90,8 @@ impl RendererTestSystem {
                 unsafe {
 
                     gl::DrawArrays(gl::TRIANGLES, 0, 3);
+                    //println!("{}", count);
                 }
-            } else {
-                continue
             }
         }
     }

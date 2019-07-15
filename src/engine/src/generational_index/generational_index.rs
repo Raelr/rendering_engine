@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct GenerationalIndex {
     pub index : usize,
     pub generation: u64
@@ -42,7 +43,9 @@ impl<T> GenerationalIndexArray<T> {
 
             let mut entry = self.entries[index.index()].as_mut();
 
-            entry = Some(ArrayEntry {value, generation : index.generation} ).as_mut();
+            //println!("Entry exists, placing value in index: {}", index.index());
+
+            self.entries[index.index()] = Some(ArrayEntry {value, generation : index.generation} );
 
         } else {
 
