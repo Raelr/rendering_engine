@@ -105,3 +105,5 @@ Cargo.lock
 \.idea/modules\.xml
 
 \.idea/vcs\.xml
+
+/*.dll

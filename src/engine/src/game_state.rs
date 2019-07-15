@@ -22,10 +22,10 @@ pub struct GameState {
 }
 
 /// should store all components and entity IDs when actual gameobjects and players are added to the game.
-/// TODO: populate GameState with relevant variables.
 
 impl GameState {
 
+    /// Basic constructor for the game state.
     pub fn create_initial_state() -> GameState {
 
         let mut state = GameState {
@@ -37,19 +37,29 @@ impl GameState {
         state
     }
 
+    /// Takes in a generic component and attempts to map it to a type in the component anymap.
+
     pub fn register_component<T : 'static>(&mut self, component : T, index : &GenerationalIndex) {
 
-        let map = self.components.get_mut::<EntityMap<T>>().unwrap();
+        if let Some(m) = self.components.get_mut::<EntityMap<T>>() {
 
-        GameState::sync_registry(&self.entities, map);
+            GameState::sync_registry(&self.entities, m);
 
-        map.set(index, component);
+            m.set(index, component);
+
+        } else {
+            eprintln!("The component does not exist!");
+        }
     }
+
+    /// used to register a component array to the anymap
 
     pub fn register_map<T : 'static>(&mut self, component : GenerationalIndexArray<T>) {
 
         self.components.insert(component);
     }
+
+    /// Allocates a generational index and adds it to the entity vector
 
     pub fn create_entity(entities : &mut Vec<Entity>, allocator : &mut GenerationalIndexAllocator) -> GenerationalIndex {
 
@@ -69,15 +79,22 @@ impl GameState {
         entities[idx].clone()
     }
 
+    /// Returns a mutable reference of the map
+
     pub fn get_map_mut<T : 'static>(&mut self) -> &mut EntityMap<T> {
 
         self.components.get_mut::<EntityMap<T>>().unwrap()
     }
 
+    /// Returns an immutable reference of the component map
+
     pub fn get_map<T : 'static>(&self) -> &EntityMap<T> {
 
         self.components.get::<EntityMap<T>>().unwrap()
     }
+
+    /// Ensures that the inputted index array is the same size as the number of entities
+    /// (Each entity can have ONE of each component)
 
     pub fn sync_registry<T>(entities : &Vec<Entity>, array : &mut GenerationalIndexArray<T>) {
 
@@ -91,6 +108,9 @@ impl GameState {
             }
         }
     }
+
+    /// A sandbox for experimenting with component creation. The goal is to have entity creation be
+    /// reduced to one or two lines of code.
 
     pub fn init_test_state(state : &mut GameState) {
 
