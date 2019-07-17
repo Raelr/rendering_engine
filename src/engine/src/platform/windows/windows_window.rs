@@ -154,7 +154,7 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut Wind
     }
 }
 
-/// Not sure if this function should be left alone. So far it just closes the entire application.
+/// Not sure if this function should be left alone.
 
 #[inline] pub fn on_window_close<'a>(event : &mut WindowsWindow) {
 
@@ -165,6 +165,10 @@ pub fn process_event(window_event : &sdl2::event::WindowEvent, event : &mut Wind
 /// TODO: Add more functionality when rendering is actually put into place.
 
 #[inline] pub fn on_window_resized(event : &mut WindowsWindow) {
+
+    unsafe {
+        gl::Viewport(0, 0, event.data.width as i32, event.data.height as i32);
+    }
 
     println!("{} {} {}", "WINDOW: Resized:", event.data.width, event.data.height);
 }

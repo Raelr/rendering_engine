@@ -1,8 +1,7 @@
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
-use crate::renderer::renderer_component::RenderComponent;
-use crate::components::{PositionComponent, ColorComponent, TimerComponent};
+use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
 use failure::Error;
-use crate::renderer::render_application;
+use crate::platform::open_gl::*;
 use crate::platform::windows::windows_window::WindowsWindow;
 
 extern crate gl;
@@ -110,7 +109,7 @@ impl RendererTestSystem {
 
         let mut vertex_array_object: gl::types::GLuint = 0;
 
-        render_application::generate_n_buffers(1, vec![&mut vertex_buffer_object]);
+        generate_n_buffers(1, vec![&mut vertex_buffer_object]);
 
         unsafe {
             gl::GenVertexArrays(1, &mut vertex_array_object);
@@ -121,13 +120,13 @@ impl RendererTestSystem {
 
             // Binds the created buffer to a specific type (in this case we specify that this is an
             // array buffer)
-            render_application::generate_buffer_data(gl::ARRAY_BUFFER,
+            generate_buffer_data(gl::ARRAY_BUFFER,
                                                      &vertex_buffer_object, &vertices);
 
             // Creates a vertex attribute pointer and enables it on the GPU
-            render_application::generate_vertex_array(0, 3, 6, 0);
+            generate_vertex_array(0, 3, 6, 0);
 
-            render_application::generate_vertex_array(1, 3, 6, 3);
+            generate_vertex_array(1, 3, 6, 3);
 
             gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
 

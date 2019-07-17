@@ -1,6 +1,5 @@
-use crate::components::{ColorComponent, PositionComponent, TimerComponent};
+use crate::components::{ColorComponent, PositionComponent, TimerComponent, RenderComponent};
 use crate::generational_index::generational_index::*;
-use crate::renderer::renderer_component::{RenderComponent};
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
@@ -156,5 +155,4 @@ impl GameState {
 
         state.register_component(TimerComponent { now : Instant::now()}, &third_comp);
     }
-
 }

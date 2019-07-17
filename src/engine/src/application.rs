@@ -13,8 +13,7 @@ use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use crate::renderer::renderer_systems::RendererTestSystem;
 use std::time::Duration;
-use crate::renderer::renderer_component::RenderComponent;
-use crate::components::{PositionComponent, ColorComponent, TimerComponent};
+use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
 
 
 /// This is the code for the current event loop.

@@ -20,5 +20,5 @@ void main() {
     // Takes in the position of the input vertices and places them in a vector4
     gl_Position = ReverseShape == 1 ? vec4(-Position.xy + Offset.xy, -Position.z, 1.0) : vec4(Position.xy + Offset.xy, Position.z, 1.0);
 
-    OUT.Color = UsePosition == 0 ? (UseVertexColors == 1 ? OUT.Color = vec4(Color, 1.0) : OUT.Color = vec4(VertexColor)) : gl_Position;
+    OUT.Color = UsePosition == 0 ? (UseVertexColors == 1 ? vec4(Color, 1.0) : VertexColor) : gl_Position;
 }
