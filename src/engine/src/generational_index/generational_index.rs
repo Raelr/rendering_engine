@@ -1,6 +1,7 @@
+#[derive(Clone)]
 pub struct GenerationalIndex {
-    index : usize,
-    generation: u64
+    pub index : usize,
+    pub generation: u64
 }
 
 impl GenerationalIndex {
@@ -33,20 +34,20 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set_empty(&mut self) {
 
-        self.entries.push(None);
+        &mut self.entries.push(None);
     }
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
         if index.index < self.entries.len() {
 
-            let mut entry = self.entries[index.index()].as_mut();
+            //println!("Entry exists, placing value in index: {}", index.index());
 
-            entry = Some(ArrayEntry {value, generation : index.generation} ).as_mut();
+            self.entries[index.index()] = Some(ArrayEntry {value, generation : index.generation} );
 
         } else {
 
-            println!("Placing value in index: {} and generation: {}", index.index, index.generation);
+            //println!("Placing value in index: {} and generation: {}", index.index, index.generation);
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
         }
     }

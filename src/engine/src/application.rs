@@ -10,21 +10,15 @@ use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
-use crate::renderer::render_application;
-use crate::renderer::renderer_component::{RenderComponent};
 use crate::game_state::GameState;
-use crate::components::{PositionComponent, ColorComponent, TimerComponent};
 use crate::renderer::renderer_systems::RendererTestSystem;
 use std::time::Duration;
+use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
 
 
 /// This is the code for the current event loop.
-/// The event loop controls the basic data flow of the engine.
-/// Currently, it contains the window, a reference to the main application struct, and all the SDL details.
-/// There are a couple of details which i'm not sure about - specifically relating to how the data should be organised.
-/// Mainly, I'm unsure whether the window should handle all sdl related events or just events relating to it.
-/// Currently I have the event pump in the main loop, the match statement would, in theory, redirect the events toward the
-/// correct module.
+/// So far the event loop contains the base SDL struct, an event pump, a window, and a game state object.
+/// So far, it initialises all entities, and has the event loop render three triangles to the screen.
 
 pub fn run() -> Result<(), Error> {
 
@@ -45,17 +39,18 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    game_state.init_test_state();
-
-    let mut render_system = RendererTestSystem;
-
+    // A basic method which initialises the vertices for the triangles.
     RendererTestSystem::init_shapes(&window);
 
-    // Main loop of the game engine.
+    // Sets up the entities in the ECS.
+    GameState::init_test_state(&mut game_state);
+
+    // MAIN LOOP
     'running: loop {
 
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
         for event in pump.poll_iter() {
+
             match event {
 
                 // All window events are rerouted toward the active window.
@@ -96,16 +91,18 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            render_system.render_positions(&mut game_state.render_components, &mut game_state.position_components, &game_state.entities);
+            // Set the positions in the renderer to those within the position component.
+            RendererTestSystem::render_positions(&game_state.get_map::<RenderComponent>(), &game_state.get_map::<PositionComponent>())?;
 
-            render_system.render_colors(&mut game_state.render_components, &mut game_state.color_components,
-                                        &mut game_state.timer_components,  &game_state.entities);
+            // Set the color of the renderer to the color within the color component.
+            RendererTestSystem::render_colors(&game_state.get_map::<ColorComponent>(),
+                                              &game_state.get_map::<RenderComponent>(), &game_state.get_map::<TimerComponent>())?;
 
-            render_system.draw_triangles(&mut game_state.render_components);
+            // Finally, draw the triangles using the render components.
+            RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
         }
 
         // End of rendering code.
-
         window.on_update();
 
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
