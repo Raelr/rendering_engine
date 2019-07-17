@@ -132,7 +132,6 @@ impl GameState {
             .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true})
             .build();
 
-
         // LEFT
 
         let _second_comp = GameState::create_entity(state)
