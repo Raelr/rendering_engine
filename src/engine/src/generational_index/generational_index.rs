@@ -41,8 +41,6 @@ impl<T> GenerationalIndexArray<T> {
 
         if index.index < self.entries.len() {
 
-            let mut entry = self.entries[index.index()].as_mut();
-
             //println!("Entry exists, placing value in index: {}", index.index());
 
             self.entries[index.index()] = Some(ArrayEntry {value, generation : index.generation} );

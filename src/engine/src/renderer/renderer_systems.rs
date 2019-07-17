@@ -1,4 +1,4 @@
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
+use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex, ArrayEntry};
 use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
 use failure::Error;
 use crate::platform::open_gl::*;
@@ -12,87 +12,59 @@ impl RendererTestSystem {
 
     pub fn render_positions(renderers : &GenerationalIndexArray<RenderComponent>,
                               positions : &GenerationalIndexArray<PositionComponent>) -> Result<(), Error> {
-
-        for index in 0..renderers.entries.len() {
-
-            if let Some(r) = &renderers.entries[index] {
-
-                let renderer = &r.value.shader_program;
-
-                renderer.set_used();
-
-                let position = positions.get(&GenerationalIndex { index, generation : r.generation});
-
-                if let Some(p) = position {
-
+        let mut idx = 0;
+        renderers.entries.iter().try_for_each( |renderer| -> Result<(), Error>{
+            if let Some(renderer) = renderer {
+                renderer.value.shader_program.set_used();
+                if let Some(position) = positions.get(&GenerationalIndex { index : idx, generation : renderer.generation}) {
                     unsafe {
-
-                        renderer.set_vector2("Offset", (p.position.0, p.position.1))?;
-                        renderer.set_bool(p.reversed, "ReverseShape", )?;
-
+                        renderer.value.shader_program.set_vector2("Offset", (position.position.0, position.position.1))?;
+                        renderer.value.shader_program.set_bool(position.reversed, "ReverseShape", )?;
                     }
-                }
-            }
-        }
-
+                } idx+= 1;
+            } Ok(()) })?;
         Ok(())
     }
 
     pub fn render_colors(color : &GenerationalIndexArray<ColorComponent>, renderers : &GenerationalIndexArray<RenderComponent>,
                          timer :  &GenerationalIndexArray<TimerComponent>) -> Result<(), Error> {
 
-        let mut count = 0;
+        let mut idx = 0;
 
-        for index in 0..color.entries.len() {
-
-            if let Some(c) = &color.entries[index] {
-
-                let component = &c.value;
-
-                if let Some(r) = renderers.get(&GenerationalIndex {index, generation : c.generation}) {
-
-                    r.shader_program.set_used();
-
+        color.entries.iter().try_for_each(|component : &Option<ArrayEntry<ColorComponent>>| -> Result<(), Error> {
+            if let Some(entry) = component.as_ref() {
+                let value = &entry.value;
+                let generational_idx = &GenerationalIndex {index : idx, generation : entry.generation};
+                if let Some(renderer) = renderers.get(generational_idx) {
+                    renderer.shader_program.set_used();
                     unsafe {
-                        r.shader_program.set_bool(component.use_position, "UsePosition")?;
-                        r.shader_program.set_bool(component.use_vertex_colors, "UseVertexColors")?;
-
-                        let color = {
-
-                            if let Some(t) = timer.get(&GenerationalIndex {index, generation : c.generation}) {
-
-                                (0.0, (f32::sin( t.now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0)
-
-                            } else {
-
-                                component.color
+                        renderer.shader_program.set_bool(value.use_position, "UsePosition")?;
+                        renderer.shader_program.set_bool(value.use_vertex_colors, "UseVertexColors")?;
+                        let color =  {
+                            let mut input_color = value.color;
+                            if !timer.entries.is_empty() {
+                                if let Some(color_timer) = timer.get(generational_idx) {
+                                    input_color = (0.0, (f32::sin( color_timer.now.elapsed().as_secs_f64() as f32)  + 1.0 / 2.0), 0.0, 1.0)
+                                }
                             }
+                            input_color
                         };
-
-                        r.shader_program.set_vector4( "VertexColor", color)?;
+                        renderer.shader_program.set_vector4( "VertexColor", color)?; idx += 1;
                     }
                 }
-            }
-            count += 1;
-        }
+            } Ok(())
+        })?;
         Ok(())
     }
 
     pub fn draw_triangles(renderers : &GenerationalIndexArray<RenderComponent>) {
 
-        for renderer in &renderers.entries {
-
-            if let Some(e) = renderer {
-
-                e.value.shader_program.set_used();
-
-                unsafe {
-
-                    gl::DrawArrays(gl::TRIANGLES, 0, 3);
-                    //println!("{}", count);
-                }
+        renderers.entries.iter().for_each(|renderer| {
+            if let Some(renderer) = renderer {
+                renderer.value.shader_program.set_used();
+                unsafe { gl::DrawArrays(gl::TRIANGLES, 0, 3); }
             }
-        }
+        });
     }
 
     pub fn init_shapes(window : &WindowsWindow) {

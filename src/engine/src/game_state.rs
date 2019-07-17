@@ -1,11 +1,12 @@
-use crate::components::{ColorComponent, PositionComponent, TimerComponent, RenderComponent};
+use crate::components::{ColorComponent, PositionComponent, TimerComponent, RenderComponent, Component};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::ffi::{CString};
-use std::borrow::BorrowMut;
 use anymap::AnyMap;
+
+/// Types for the generational indices and arrays.
 
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
@@ -27,7 +28,7 @@ impl GameState {
     /// Basic constructor for the game state.
     pub fn create_initial_state() -> GameState {
 
-        let mut state = GameState {
+        let state = GameState {
             components : AnyMap::new(),
             allocator : GenerationalIndexAllocator::new(),
             entities : Vec::new()
@@ -60,22 +61,22 @@ impl GameState {
 
     /// Allocates a generational index and adds it to the entity vector
 
-    pub fn create_entity(entities : &mut Vec<Entity>, allocator : &mut GenerationalIndexAllocator) -> GenerationalIndex {
+    pub fn create_entity(state : &mut GameState) -> EntityBuilder {
 
-        let entity = allocator.allocate();
+        let entity = state.allocator.allocate();
 
         let idx = entity.index();
 
-        if idx < entities.len() {
+        if idx < state.entities.len() {
 
-            entities[idx] = entity;
+            state.entities[idx] = entity;
 
         } else {
 
-            entities.push(entity);
+            state.entities.push(entity);
         }
 
-        entities[idx].clone()
+        EntityBuilder::new(state.entities[idx].clone(), state)
     }
 
     /// Returns a mutable reference of the map
@@ -125,34 +126,59 @@ impl GameState {
 
         // RIGHT
 
-        let first_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
+        let _first_comp = GameState::create_entity(state)
+            .with(RenderComponent {shader_program : triangle_render!()})
+            .with(PositionComponent {position : (0.5, 0.0, 0.0), reversed : false })
+            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true})
+            .build();
 
-        state.register_component(RenderComponent { shader_program: triangle_render!() }, &first_comp);
-
-        state.register_component(PositionComponent { position : (0.5, 0.0, 0.0), reversed : false }, &first_comp);
-
-        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true}, &first_comp);
 
         // LEFT
 
-        let second_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
+        let _second_comp = GameState::create_entity(state)
+            .with(RenderComponent {shader_program : triangle_render!()})
+            .with(PositionComponent {position : (-0.5, 0.0, 0.0), reversed : false })
+            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false})
+            .build();
 
-        state.register_component(RenderComponent { shader_program: triangle_render!() }, &second_comp);
+        //CENTRE
 
-        state.register_component(PositionComponent { position : (-0.5, 0.0, 0.0), reversed : false }, &second_comp);
+        let _third_comp = GameState::create_entity(state)
+            .with(RenderComponent {shader_program : triangle_render!()})
+            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
+            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false})
+            .with(TimerComponent { now : Instant::now()})
+            .build();
+    }
+}
 
-        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false}, &second_comp);
+/// Struct for the EntityBuilder. The struct allows the user to easily build and configure entities
+/// within the the game.
+pub struct EntityBuilder<'a>{
 
-        // CENTER
+    id : GenerationalIndex,
+    state : &'a mut GameState
+}
 
-        let third_comp = GameState::create_entity(&mut state.entities, &mut state.allocator);
+/// Temporary container for building and configuring entities.
+impl<'a> EntityBuilder<'a> {
 
-        state.register_component(RenderComponent { shader_program: triangle_render!() }, &third_comp);
+    /// Basic Constructor.
+    pub fn new(id : GenerationalIndex, state : &'a mut GameState) -> EntityBuilder {
 
-        state.register_component(PositionComponent { position : (0.0, 0.0, 0.0), reversed : true }, &third_comp);
+        EntityBuilder { id, state}
+    }
 
-        state.register_component(ColorComponent { color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false}, &third_comp);
+    /// Function used for adding new components to the entity.
+    pub fn with<T : Component >(self, component : T) -> Self {
 
-        state.register_component(TimerComponent { now : Instant::now()}, &third_comp);
+        self.state.register_component(component, &self.id);
+
+        self
+    }
+
+    /// Simply returns the ID of the entity.
+    pub fn build(self) -> Entity{
+        self.id
     }
 }
