@@ -128,26 +128,26 @@ impl GameState {
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!()})
-            .with(PositionComponent {position : (0.5, 0.0, 0.0), reversed : false })
+            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : false })
             .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true})
             .build();
 
-        // LEFT
-
-        let _second_comp = GameState::create_entity(state)
-            .with(RenderComponent {shader_program : triangle_render!()})
-            .with(PositionComponent {position : (-0.5, 0.0, 0.0), reversed : false })
-            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false})
-            .build();
-
-        //CENTRE
-
-        let _third_comp = GameState::create_entity(state)
-            .with(RenderComponent {shader_program : triangle_render!()})
-            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
-            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false})
-            .with(TimerComponent { now : Instant::now()})
-            .build();
+//        // LEFT
+//
+//        let _second_comp = GameState::create_entity(state)
+//            .with(RenderComponent {shader_program : triangle_render!()})
+//            .with(PositionComponent {position : (-0.5, 0.0, 0.0), reversed : false })
+//            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : true, use_position : false})
+//            .build();
+//
+//        //CENTRE
+//
+//        let _third_comp = GameState::create_entity(state)
+//            .with(RenderComponent {shader_program : triangle_render!()})
+//            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
+//            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false})
+//            .with(TimerComponent { now : Instant::now()})
+//            .build();
     }
 }
 

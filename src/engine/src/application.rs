@@ -14,6 +14,7 @@ use crate::game_state::GameState;
 use crate::renderer::renderer_systems::RendererTestSystem;
 use std::time::Duration;
 use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
+use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
 
 
 /// This is the code for the current event loop.
@@ -39,8 +40,9 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    // A basic method which initialises the vertices for the triangles.
-    RendererTestSystem::init_shapes(&window);
+    let mut shape = Quad::new();
+    shape.init(&window)?;
+    shape.set_used();
 
     // Sets up the entities in the ECS.
     GameState::init_test_state(&mut game_state);
@@ -99,7 +101,9 @@ pub fn run() -> Result<(), Error> {
                                               &game_state.get_map::<RenderComponent>(), &game_state.get_map::<TimerComponent>())?;
 
             // Finally, draw the triangles using the render components.
-            RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
+            //RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
+
+            RendererTestSystem::draw_quad(&game_state.get_map::<RenderComponent>());
         }
 
         // End of rendering code.

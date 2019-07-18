@@ -2,6 +2,7 @@
 extern crate strum;
 extern crate failure;
 extern crate anymap;
+extern crate image;
 ////////////////////////////////////
 //           M A C R O S          //
 ////////////////////////////////////

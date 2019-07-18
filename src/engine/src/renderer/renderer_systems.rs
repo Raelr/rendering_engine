@@ -67,47 +67,13 @@ impl RendererTestSystem {
         });
     }
 
-    pub fn init_shapes(window : &WindowsWindow) {
+    pub fn draw_quad(renderers : &GenerationalIndexArray<RenderComponent>) {
 
-        let vertices: Vec<f32> = vec![
-
-            // positions     // colors
-            0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
-            -0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
-            0.0,  0.5, 0.0,  0.0, 0.0, 1.0,
-        ];
-
-        let mut vertex_buffer_object: gl::types::GLuint = 0;
-
-        let mut vertex_array_object: gl::types::GLuint = 0;
-
-        generate_n_buffers(1, vec![&mut vertex_buffer_object]);
-
-        unsafe {
-            gl::GenVertexArrays(1, &mut vertex_array_object);
-
-            // Binds a VAO  to the GPU. From now on, and changes to VBO's or vertices will be stored in,
-            // the VAO
-            gl::BindVertexArray(vertex_array_object);
-
-            // Binds the created buffer to a specific type (in this case we specify that this is an
-            // array buffer)
-            generate_buffer_data(gl::ARRAY_BUFFER,
-                                                     &vertex_buffer_object, &vertices);
-
-            // Creates a vertex attribute pointer and enables it on the GPU
-            generate_vertex_array(0, 3, 6, 0);
-
-            generate_vertex_array(1, 3, 6, 3);
-
-            gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
-
-            // Resets the bindings on the GPU
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-
-            gl::BindVertexArray(0);
-
-            gl::BindVertexArray(vertex_array_object);
-        }
+        renderers.entries.iter().for_each(|renderer| {
+            if let Some(renderer) = renderer {
+                renderer.value.shader_program.set_used();
+                unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null()); }
+            }
+        });
     }
 }
