@@ -3,6 +3,7 @@ use crate::components::{PositionComponent, ColorComponent, TimerComponent, Rende
 use failure::Error;
 use crate::platform::open_gl::*;
 use crate::platform::windows::windows_window::WindowsWindow;
+use crate::renderer::shapes::shape::{Quad, Shape};
 
 extern crate gl;
 
@@ -72,7 +73,7 @@ impl RendererTestSystem {
         renderers.entries.iter().for_each(|renderer| {
             if let Some(renderer) = renderer {
                 renderer.value.shader_program.set_used();
-                unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null()); }
+                unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());}
             }
         });
     }
