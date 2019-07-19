@@ -2,11 +2,14 @@
 
 in VS_OUTPUT {
     vec4 Color;
+    vec2 TexCoord;
 } IN;
+
+uniform sampler2D ourTexture;
 
 out vec4 Color;
 
 void main() {
 
-    Color = IN.Color;
+    Color = texture(ourTexture, IN.TexCoord);
 }

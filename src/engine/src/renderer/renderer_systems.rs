@@ -68,10 +68,11 @@ impl RendererTestSystem {
         });
     }
 
-    pub fn draw_quad(renderers : &GenerationalIndexArray<RenderComponent>) {
+    pub fn draw_quad(renderers : &GenerationalIndexArray<RenderComponent>, shape : &Quad) {
 
         renderers.entries.iter().for_each(|renderer| {
             if let Some(renderer) = renderer {
+                shape.set_texture();
                 renderer.value.shader_program.set_used();
                 unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());}
             }

@@ -12,6 +12,7 @@ pub trait Shape {
     fn get_vertex_array_object(&self) -> Self::ArrayObject;
     fn init(&mut self, window : &WindowsWindow) -> Result<(), Error>;
     fn set_used(&self);
+    fn set_texture(&self) {}
 
 }
 
@@ -49,21 +50,9 @@ impl Shape for Triangle {
 
         let mut vertex_buffer_object: gl::types::GLuint = 0;
 
-        let mut texture : gl::types::GLuint = 0;
-
         generate_n_buffers(1, vec![&mut vertex_buffer_object]);
 
         unsafe {
-
-//            gl::GenTextures(1, &mut texture);
-//
-//            gl::BindTexture(gl::TEXTURE_2D, texture);
-//
-//            let image  = image::open("src/engine/src/renderer/textures/container.jpg")?;
-//
-//            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGB as i32, image.width() as i32, image.height() as i32, 0, gl::RGB, 0, image.to_rgba().as_ptr() as *const c_void);
-//
-//            gl::GenerateMipmap(gl::TEXTURE_2D);
 
             gl::GenVertexArrays(1, &mut self.vertex_array_object);
 
@@ -100,13 +89,14 @@ impl Shape for Triangle {
 pub struct Quad {
 
     vertex_array_object : gl::types::GLuint,
-    pub element_buffer_object : gl::types::GLuint
+    pub element_buffer_object : gl::types::GLuint,
+    pub texture : gl::types::GLuint
 }
 
 impl Quad {
 
     pub fn new() -> Quad {
-        Quad { vertex_array_object : 0, element_buffer_object : 0}
+        Quad { vertex_array_object : 0, element_buffer_object : 0, texture : 0}
     }
 }
 
@@ -121,10 +111,11 @@ impl Shape for Quad {
     fn init(&mut self, window: &WindowsWindow) -> Result<(), Error> {
 
         let vertices : Vec<gl::types::GLfloat> = vec![
-             0.5,  0.5, 0.0,
-             0.5, -0.5, 0.0,
-            -0.5, -0.5, 0.0,
-            -0.5,  0.5, 0.0
+             // Position      // Color        //Texture
+             0.5,  0.5, 0.0,  1.0, 0.0, 0.0,  1.0, 1.0, // top right
+             0.5, -0.5, 0.0,  0.0, 1.0, 0.0,  1.0, 0.0, // bottom right
+            -0.5, -0.5, 0.0,  0.0, 0.0, 1.0,  0.0, 0.0, // bottom left
+            -0.5,  0.5, 0.0,  1.0, 1.0, 0.0,  0.0, 1.0  // top left
         ];
 
         let indices : Vec<gl::types::GLuint> = vec! [
@@ -136,6 +127,22 @@ impl Shape for Quad {
 
             let mut vertex_buffer_object: gl::types::GLuint = 0;
 
+            gl::GenTextures(1, &mut self.texture);
+            gl::BindTexture(gl::TEXTURE_2D, self.texture);
+
+            let image  = image::open("src/engine/src/renderer/textures/container.jpg")?;
+
+            gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, image.width() as i32, image.height() as i32, 0, gl::RGBA, gl::UNSIGNED_BYTE, image.to_rgba().into_raw().as_ptr() as *const c_void);
+
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+            gl::GenerateMipmap(gl::TEXTURE_2D);
+
+            // TEXTURES
+
             generate_n_buffers(1, vec![&mut vertex_buffer_object, &mut self.element_buffer_object]);
 
             gl::GenVertexArrays(1, &mut self.vertex_array_object);
@@ -146,7 +153,11 @@ impl Shape for Quad {
 
             generate_buffer_data(gl::ELEMENT_ARRAY_BUFFER, &self.element_buffer_object, &indices);
 
-            generate_vertex_array(0, 3, 3, 0);
+            generate_vertex_array(0, 3, 8, 0);
+
+            generate_vertex_array(1, 3, 8, 3);
+
+            generate_vertex_array(2, 3, 8, 6);
 
             gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
 
@@ -160,6 +171,10 @@ impl Shape for Quad {
 
     fn set_used(&self) {
         unsafe { gl::BindVertexArray(self.vertex_array_object) };
+    }
+
+    fn set_texture(&self) {
+        unsafe { gl::BindTexture(gl::TEXTURE_2D, self.texture); }
     }
 }
 

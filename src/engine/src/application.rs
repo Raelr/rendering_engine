@@ -100,10 +100,12 @@ pub fn run() -> Result<(), Error> {
             RendererTestSystem::render_colors(&game_state.get_map::<ColorComponent>(),
                                               &game_state.get_map::<RenderComponent>(), &game_state.get_map::<TimerComponent>())?;
 
+            shape.set_texture();
+
             // Finally, draw the triangles using the render components.
             //RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
 
-            RendererTestSystem::draw_quad(&game_state.get_map::<RenderComponent>());
+            RendererTestSystem::draw_quad(&game_state.get_map::<RenderComponent>(), &shape);
         }
 
         // End of rendering code.

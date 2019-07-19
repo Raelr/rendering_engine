@@ -129,7 +129,7 @@ impl GameState {
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!()})
             .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : false })
-            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : true})
+            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false})
             .build();
 
 //        // LEFT
