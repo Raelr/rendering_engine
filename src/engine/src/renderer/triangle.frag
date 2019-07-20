@@ -5,11 +5,12 @@ in VS_OUTPUT {
     vec2 TexCoord;
 } IN;
 
-uniform sampler2D ourTexture;
+uniform sampler2D Texture1;
+uniform sampler2D Texture2;
 
 out vec4 Color;
 
 void main() {
 
-    Color = texture(ourTexture, IN.TexCoord) * IN.Color;
+    Color = mix(texture(Texture1, IN.TexCoord), texture(Texture2, IN.TexCoord), 0.2) * IN.Color;
 }

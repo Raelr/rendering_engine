@@ -72,8 +72,8 @@ impl RendererTestSystem {
 
         renderers.entries.iter().for_each(|renderer| {
             if let Some(renderer) = renderer {
-                shape.set_texture();
                 renderer.value.shader_program.set_used();
+                shape.set_texture(&renderer.value);
                 unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());}
             }
         });
