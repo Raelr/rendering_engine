@@ -11,5 +11,5 @@ out vec4 Color;
 
 void main() {
 
-    Color = texture(ourTexture, IN.TexCoord);
+    Color = texture(ourTexture, IN.TexCoord) * IN.Color;
 }

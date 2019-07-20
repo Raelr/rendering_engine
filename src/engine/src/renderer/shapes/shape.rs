@@ -157,7 +157,7 @@ impl Shape for Quad {
 
             generate_vertex_array(1, 3, 8, 3);
 
-            generate_vertex_array(2, 3, 8, 6);
+            generate_vertex_array(2, 2, 8, 6);
 
             gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32);
 
