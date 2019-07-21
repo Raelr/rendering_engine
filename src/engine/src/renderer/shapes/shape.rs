@@ -13,9 +13,9 @@ pub trait Shape {
     fn get_vertex_array_object(&self) -> Self::ArrayObject;
     fn init(&mut self, window : &WindowsWindow) -> Result<(), Error>;
     fn set_used(&self);
-    fn set_texture(&self, renderer: &RenderComponent) {}
+    fn set_texture(&self, _renderer: &RenderComponent) -> Result<(), Error> {Ok(())}
     fn create_texture() -> gl::types::GLuint {0}
-    fn add_texture(&mut self, texture : (gl::types::GLenum, gl::types::GLuint, i32, String)) { }
+    fn add_texture(&mut self, _texture : (gl::types::GLenum, gl::types::GLuint, i32, String)) {}
 
 }
 
@@ -93,13 +93,18 @@ pub struct Quad {
 
     vertex_array_object : gl::types::GLuint,
     pub element_buffer_object : gl::types::GLuint,
-    pub texture : Vec<(gl::types::GLenum, gl::types::GLuint, i32, String)>
+    pub texture : Vec<(gl::types::GLenum, gl::types::GLuint, i32, String)>,
+    pub opacity : gl::types::GLfloat
 }
 
 impl Quad {
 
     pub fn new() -> Quad {
-        Quad { vertex_array_object : 0, element_buffer_object : 0, texture : Vec::new()}
+        Quad { vertex_array_object : 0, element_buffer_object : 0, texture : Vec::new(), opacity : 0.0}
+    }
+
+    pub fn increment_opacity(&mut self, opacity : f32) {
+        self.opacity += opacity;
     }
 }
 
@@ -200,14 +205,15 @@ impl Shape for Quad {
         unsafe { gl::BindVertexArray(self.vertex_array_object) };
     }
 
-    fn set_texture(&self, renderer: &RenderComponent) {
+    fn set_texture(&self, renderer: &RenderComponent) -> Result<(), Error>{
         unsafe {
             for texture in &self.texture {
                 gl::ActiveTexture(texture.0);
                 gl::BindTexture(gl::TEXTURE_2D, texture.1);
-                renderer.shader_program.set_int(&texture.3, texture.2);
+                renderer.shader_program.set_int(&texture.3, texture.2)?;
             }
         }
+        Ok(())
     }
 
     fn add_texture(&mut self, texture : (gl::types::GLenum, gl::types::GLuint, i32, String)) {

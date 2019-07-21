@@ -136,6 +136,13 @@ impl ShaderProgram {
 
         Ok(())
     }
+
+    pub unsafe fn set_float(&self, name : &str, number : f32) -> Result<(), Error> {
+
+        gl::Uniform1f(gl::GetUniformLocation(self.id(), CString::new(name)?.as_ptr()), number);
+
+        Ok(())
+    }
 }
 
 impl Drop for ShaderProgram {

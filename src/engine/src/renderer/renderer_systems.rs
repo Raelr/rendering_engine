@@ -68,14 +68,18 @@ impl RendererTestSystem {
         });
     }
 
-    pub fn draw_quad(renderers : &GenerationalIndexArray<RenderComponent>, shape : &Quad) {
+    pub fn draw_quad(renderers : &GenerationalIndexArray<RenderComponent>, shape : &Quad) -> Result<(), Error>{
 
-        renderers.entries.iter().for_each(|renderer| {
+        renderers.entries.iter().try_for_each(|renderer : &Option<ArrayEntry<RenderComponent>> | -> Result<(), Error>{
             if let Some(renderer) = renderer {
                 renderer.value.shader_program.set_used();
-                shape.set_texture(&renderer.value);
-                unsafe { gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());}
-            }
-        });
+                shape.set_texture(&renderer.value)?;
+                unsafe {
+                    renderer.value.shader_program.set_float("opacity", shape.opacity)?;
+                    gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+                }
+            } Ok(())
+        })?;
+        Ok(())
     }
 }

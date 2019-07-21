@@ -72,7 +72,13 @@ pub fn run() -> Result<(), Error> {
 
                 // TODO
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat),
+                => {let key_code = keycode.unwrap();
+                    match key_code {
+                        sdl2::keyboard::Keycode::Up => shape.increment_opacity(0.1),
+                        sdl2::keyboard::Keycode::Down => shape.increment_opacity(-0.1),
+                        _ => ()
+                    }
+                    println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
 
                 // TODO
                 _ => ()
