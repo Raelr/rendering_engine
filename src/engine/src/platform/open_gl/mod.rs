@@ -42,7 +42,7 @@ pub fn generate_buffer_data<T>(buffer_type: gl::types::GLenum, buffer : &u32, ve
         // specified before INTO the buffer we created:
         gl::BufferData(
             buffer_type, // target
-            (vertices.len() * std::mem::size_of::<f32>()) as gl::types::GLsizeiptr, // size of data in bytes
+            (vertices.len() * std::mem::size_of::<T>()) as gl::types::GLsizeiptr, // size of data in bytes
             vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
             gl::STATIC_DRAW, // Specifies the object does not change. If it did change,
             // the call would be DYNAMIC_DRAW or STREAM_DRAW,
