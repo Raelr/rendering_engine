@@ -11,11 +11,11 @@ use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
-use crate::renderer::renderer_systems::RendererTestSystem;
 use std::time::Duration;
 use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
 use crate::ecs::systems::{RenderSystem, System, TextureUpdateSystem};
+use crate::generational_index::generational_index::GenerationalIndex;
 
 
 /// This is the code for the current event loop.
@@ -77,8 +77,16 @@ pub fn run() -> Result<(), Error> {
                 => { let key_code = keycode.unwrap();
                     match key_code {
 
-                     sdl2::keyboard::Keycode::Up => { }
-//                        sdl2::keyboard::Keycode::Down => shape.increment_opacity(-0.1),
+                      sdl2::keyboard::Keycode::Up => {
+                          if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                              update.opacity_change = 0.1;
+                          }
+                      }
+                      sdl2::keyboard::Keycode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                          update.opacity_change = -0.1;
+                      }}
                         _ => ()
                     }
                     println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
@@ -102,10 +110,13 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            render_system.run((game_state.get_map::<RenderComponentTemp>(),
-                                     game_state.get_map::<PositionComponent>(),
-                                     game_state.get_map::<ColorComponent>(),
-                                     game_state.get_map::<TextureMixComponent>()))?;
+            texture_change.run(&mut game_state)?;
+
+            render_system.run(
+                (game_state.get_map::<RenderComponentTemp>(),
+                     game_state.get_map::<PositionComponent>(),
+                     game_state.get_map::<ColorComponent>(),
+                     game_state.get_map::<TextureMixComponent>()))?;
         }
 
         // End of rendering code.

@@ -6,19 +6,22 @@ pub mod systems;
 
 #[macro_export]
 // Macro for creating a key typed event.
-macro_rules! texture { ($path:expr, $id:expr, $number:expr, $enum:expr, $name:expr) => {{
+macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
 
         use image::GenericImageView;
         use std::os::raw::c_void;
 
+        let mut texture_id : gl::types::GLuint = 0;
+
         unsafe {
 
-            gl::GenTextures(1, &mut $id);
-            gl::BindTexture(gl::TEXTURE_2D, $id);
+            gl::GenTextures(1, &mut texture_id);
+            gl::BindTexture(gl::TEXTURE_2D, texture_id);
 
             let image  = image::open($path)?;
 
             gl::TexImage2D(gl::TEXTURE_2D, 0, gl::RGBA as i32, image.width() as i32, image.height() as i32, 0, gl::RGBA, gl::UNSIGNED_BYTE, image.to_rgba().into_raw().as_ptr() as *const c_void);
+
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
             gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
@@ -27,7 +30,7 @@ macro_rules! texture { ($path:expr, $id:expr, $number:expr, $enum:expr, $name:ex
             gl::GenerateMipmap(gl::TEXTURE_2D);
         }
 
-        Texture { uniform_name: $name, texture_id : $id, number: $number, active_texture_enum: $enum }
+        Texture { uniform_name: $name, texture_id, number: $number, active_texture_enum: $enum }
     }};
 }
 // Test struct. I know bools are bad, however i need to test this somehow.
@@ -89,7 +92,9 @@ pub struct Texture {
 
 pub struct TextureUpdateComponent {
 
-    opacity_change : gl::types::GLfloat
+    pub opacity_change : gl::types::GLfloat
 }
+
+impl Component for TextureUpdateComponent {}
 
 pub trait Component: Any + Sized {}

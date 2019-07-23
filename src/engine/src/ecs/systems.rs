@@ -32,7 +32,11 @@ impl<'a> System<'a> for RenderSystem {
             if let Some(shader_program) = shader {
 
                 let index = GenerationalIndex {index: idx, generation : shader_program.generation};
+
                 unsafe {
+
+                    gl::BindVertexArray(shader_program.value.vertex_array_object);
+
                     // Set shader program being used.
                     gl::UseProgram(shader_program.value.shader_program);
 
@@ -58,25 +62,24 @@ impl<'a> System<'a> for RenderSystem {
 
                     // Set texture
                     let texture_mix = input.3.get(&index);
+
                     if let Some(texture_comp) = texture_mix {
 
                         for texture in texture_comp.textures.iter() {
 
+                            RenderSystem::set_int(shader_program.value.shader_program, &texture.uniform_name, texture.number)?;
+                            RenderSystem::set_float(shader_program.value.shader_program, "opacity", texture_comp.opacity)?;
                             gl::ActiveTexture(texture.active_texture_enum);
                             gl::BindTexture(gl::TEXTURE_2D, texture.texture_id);
 
-                            RenderSystem::set_int(shader_program.value.shader_program, &texture.uniform_name, texture.number)?;
-
-                            RenderSystem::set_float(shader_program.value.shader_program, "opacity", texture_comp.opacity)?;
                         }
                     }
-                    gl::BindVertexArray(shader_program.value.vertex_array_object);
 
                     gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
-                }
-            } idx += 1;
+                } idx += 1;
+            }
             Ok(())
-        });
+        })?;
         Ok(())
     }
 }
@@ -130,6 +133,35 @@ impl<'a> System<'a> for TextureUpdateSystem {
     type SystemInput = (&'a mut GameState);
 
     fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
+
+        let size = input.get_map::<TextureUpdateComponent>().entries.len();
+
+        let mut opacity: gl::types::GLfloat = 0.0;
+
+        for index in 0..size {
+
+            let mut generation = 0;
+
+            {
+                let mut updates = &mut input.get_map_mut::<TextureUpdateComponent>();
+
+                if let Some(change) = updates.entries[index].as_mut() {
+                    opacity = change.value.opacity_change;
+                    generation = change.generation;
+                    change.value.opacity_change = 0.0;
+                } else {
+                    continue
+                }
+            }
+
+            let gen_index = GenerationalIndex { index, generation};
+
+            let textures = input.get_map_mut::<TextureMixComponent>();
+
+            if let Some(texture) = textures.get_mut(&gen_index) {
+                texture.opacity += opacity
+            }
+        }
         Ok(())
     }
 }
