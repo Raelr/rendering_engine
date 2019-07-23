@@ -33,8 +33,11 @@ pub struct RenderComponent {
     pub shader_program : ShaderProgram,
 }
 
-impl Component for RenderComponent {}
+pub struct ShaderComponent {
 
-pub trait Component: Any + Sized {
 
 }
+
+impl Component for RenderComponent {}
+
+pub trait Component: Any + Sized {}
