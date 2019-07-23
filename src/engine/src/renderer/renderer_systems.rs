@@ -1,5 +1,5 @@
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex, ArrayEntry};
-use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
+use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
 use failure::Error;
 use crate::platform::open_gl::*;
 use crate::platform::windows::windows_window::WindowsWindow;

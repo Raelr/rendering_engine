@@ -1,18 +1,20 @@
-use crate::components::{ColorComponent, PositionComponent, TimerComponent, RenderComponent, Component};
+use crate::ecs::{ColorComponent, PositionComponent, TimerComponent, RenderComponent, Component, TextureMixComponent, Texture, RenderComponentTemp, TextureUpdateComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
 use crate::renderer::shaders::shader_program::ShaderProgram;
+use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
+use failure::Error;
 
 /// Types for the generational indices and arrays.
 
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
 
-/// GameState object stores all entities and components within itself. If handles the streaming of
-/// components into different systems.
+/// GameState object stores all entities and ecs within itself. If handles the streaming of
+/// ecs into different systems.
 
 pub struct GameState {
 
@@ -21,7 +23,7 @@ pub struct GameState {
     pub entities : Vec<Entity>
 }
 
-/// should store all components and entity IDs when actual gameobjects and players are added to the game.
+/// should store all ecs and entity IDs when actual gameobjects and players are added to the game.
 
 impl GameState {
 
@@ -90,7 +92,7 @@ impl GameState {
 
     pub fn get_map<T : 'static>(&self) -> &EntityMap<T> {
 
-        self.components.get::<EntityMap<T>>().unwrap()
+        &*self.components.get::<EntityMap<T>>().unwrap()
     }
 
     /// Ensures that the inputted index array is the same size as the number of entities
@@ -112,24 +114,32 @@ impl GameState {
     /// A sandbox for experimenting with component creation. The goal is to have entity creation be
     /// reduced to one or two lines of code.
 
-    pub fn init_test_state(state : &mut GameState) {
+    pub fn init_test_state(state : &mut GameState) -> Result<(), Error>{
 
-        let render_comps : EntityMap<RenderComponent> = EntityMap::new();
+        let render_comps : EntityMap<RenderComponentTemp> = EntityMap::new();
         let pos_comps : EntityMap<PositionComponent> = EntityMap::new();
         let color_comps : EntityMap<ColorComponent> = EntityMap::new();
         let timer_comps : EntityMap<TimerComponent> = EntityMap::new();
+        let texture_comps : EntityMap<TextureMixComponent> = EntityMap::new();
+        let texture_changes : EntityMap<TextureUpdateComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
         state.register_map(color_comps);
         state.register_map(timer_comps);
+        state.register_map(texture_comps);
+        state.register_map(texture_changes);
 
         // RIGHT
 
         let _first_comp = GameState::create_entity(state)
-            .with(RenderComponent {shader_program : triangle_render!()})
+            .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
             .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
+            .with(TextureMixComponent { textures : vec!
+                [texture!("src/engine/src/renderer/textures/container.jpg", 0, 0, gl::TEXTURE0, String::from("Texture1")),
+                 texture!("src/engine/src/renderer/textures/awesomeface.png", 0, 0, gl::TEXTURE1, String::from("Texture2"))],
+                 opacity: 0.0})
             .build();
 
 //        // LEFT
@@ -148,6 +158,8 @@ impl GameState {
 //            .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0), use_vertex_colors : false, use_position : false})
 //            .with(TimerComponent { now : Instant::now()})
 //            .build();
+
+        Ok(())
     }
 }
 
@@ -168,7 +180,7 @@ impl<'a> EntityBuilder<'a> {
         EntityBuilder { id, state}
     }
 
-    /// Function used for adding new components to the entity.
+    /// Function used for adding new ecs to the entity.
     pub fn with<T : Component >(self, component : T) -> Self {
 
         self.state.register_component(component, &self.id);

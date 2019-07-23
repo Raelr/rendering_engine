@@ -65,6 +65,11 @@ impl<T> GenerationalIndexArray<T> {
             None
     }
 
+    pub fn remove(&mut self, index : &GenerationalIndex) {
+
+        self.entries[index.index()] = None;
+    }
+
     pub fn get_mut(&mut self, index : &GenerationalIndex) -> Option<&mut T> {
 
         let entry = self.entries[index.index()].as_mut();

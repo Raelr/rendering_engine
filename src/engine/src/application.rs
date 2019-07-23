@@ -13,8 +13,9 @@ use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use crate::renderer::renderer_systems::RendererTestSystem;
 use std::time::Duration;
-use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
+use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
+use crate::ecs::systems::{RenderSystem, System, TextureUpdateSystem};
 
 
 /// This is the code for the current event loop.
@@ -40,12 +41,13 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    let mut shape = Quad::new();
-    shape.init(&window)?;
-    shape.set_used();
-
     // Sets up the entities in the ECS.
-    GameState::init_test_state(&mut game_state);
+    GameState::init_test_state(&mut game_state)?;
+
+    let render_system = RenderSystem;
+    let texture_change = TextureUpdateSystem;
+
+    unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
     // MAIN LOOP
     'running: loop {
@@ -72,10 +74,11 @@ pub fn run() -> Result<(), Error> {
 
                 // TODO
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => {let key_code = keycode.unwrap();
+                => { let key_code = keycode.unwrap();
                     match key_code {
-                        sdl2::keyboard::Keycode::Up => shape.increment_opacity(0.1),
-                        sdl2::keyboard::Keycode::Down => shape.increment_opacity(-0.1),
+
+                     sdl2::keyboard::Keycode::Up => { }
+//                        sdl2::keyboard::Keycode::Down => shape.increment_opacity(-0.1),
                         _ => ()
                     }
                     println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
@@ -99,17 +102,10 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            // Set the positions in the renderer to those within the position component.
-            RendererTestSystem::render_positions(&game_state.get_map::<RenderComponent>(), &game_state.get_map::<PositionComponent>())?;
-
-            // Set the color of the renderer to the color within the color component.
-            RendererTestSystem::render_colors(&game_state.get_map::<ColorComponent>(),
-                                              &game_state.get_map::<RenderComponent>(), &game_state.get_map::<TimerComponent>())?;
-
-            // Finally, draw the triangles using the render components.
-            //RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
-
-            RendererTestSystem::draw_quad(&game_state.get_map::<RenderComponent>(), &shape);
+            render_system.run((game_state.get_map::<RenderComponentTemp>(),
+                                     game_state.get_map::<PositionComponent>(),
+                                     game_state.get_map::<ColorComponent>(),
+                                     game_state.get_map::<TextureMixComponent>()))?;
         }
 
         // End of rendering code.
