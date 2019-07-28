@@ -15,7 +15,7 @@ impl GenerationalIndex {
 }
 
 pub enum EntryValue {
-    Full(u64),
+    Full((u64, usize)),
     Empty
 }
 
@@ -51,23 +51,38 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
-        
+        let mut idx = 0;
 
-        if index.index < self.entries.len() {
+        if let Some(idx) = self.get_unpacked_index(index){
             //println!("Entry exists, placing value in index: {}", index.index());
             //println!("Setting value");
-            self.entries[index.index()] = Some(ArrayEntry {value, generation : index.generation} );
+
+            self.entries[idx.1] = Some(ArrayEntry {value, generation : index.generation} );
 
         } else {
             //println!("pushing value");
             //println!("Placing value in index: {} and generation: {}", index.index, index.generation);
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
+            idx = self.entries.len();
         }
 
         if index.index < self.unpacked_entries.len() {
 
-            self.unpacked_entries[index.index()] = EntryValue::Full(index.generation.clone());
+            self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), idx-1));
         }
+    }
+
+    pub fn get_unpacked_index(&self, index : &GenerationalIndex) -> Option<(u64, usize)>{
+
+        let mut success = None;
+
+        if index.index() < self.unpacked_entries.len() {
+            match self.unpacked_entries[index.index()] {
+                EntryValue::Full(v) => success = Some(v),
+                EntryValue::Empty => ()
+            }
+        }
+        success
     }
 
     pub fn get(&self, index : &GenerationalIndex) -> Option<&T> {
@@ -76,7 +91,7 @@ impl<T> GenerationalIndexArray<T> {
 
         if self.contains(index) {
 
-        let entry = self.entries[index.index()].as_ref().unwrap();
+        let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
 
             if index.generation == entry.generation {
                 value =  Some(&entry.value);
@@ -85,13 +100,13 @@ impl<T> GenerationalIndexArray<T> {
         value
     }
 
-    pub fn contains(&self, index : &GenerationalIndex) -> bool{
+    pub fn contains(&self, index : &GenerationalIndex) -> bool {
 
         let mut success = false;
 
         if index.index() < self.unpacked_entries.len() {
             match &self.unpacked_entries[index.index()] {
-                EntryValue::Full(gen) => if *gen == index.generation { success = true },
+                EntryValue::Full(gen) => if gen.0 == index.generation { success = true },
                 EntryValue::Empty => success = false
             }
         }
@@ -111,29 +126,16 @@ impl<T> GenerationalIndexArray<T> {
 
         if self.contains(index) {
 
-            let entry = self.entries[index.index()].as_mut();
+            let idx = self.get_unpacked_index(index).as_ref().unwrap().1;
+            let mut entry = &mut self.entries[idx];
 
-            if let Some(i) = entry {
-
-                if index.generation == i.generation {
-                    value = Some(&mut i.value);
+                if let Some(mut val) = entry.as_mut() {
+                    if index.generation == val.generation {
+                        value = Some(&mut val.value);
+                    }
                 }
             }
-        }
         value
-    }
-
-    pub fn get_non_empty_components(&self) -> Vec<&ArrayEntry<T>> {
-
-        let mut relevant_values = Vec::new();
-
-        for option in &self.entries {
-            if option.is_some() {
-                let new_val = option.clone();
-                relevant_values.push(new_val.as_ref().unwrap());
-            }
-        }
-        relevant_values
     }
 }
 
