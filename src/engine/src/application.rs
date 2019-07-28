@@ -113,10 +113,10 @@ pub fn run() -> Result<(), Error> {
             texture_change.run(&mut game_state)?;
 
             render_system.run(
-                (game_state.get_map::<RenderComponentTemp>(),
-                     game_state.get_map::<PositionComponent>(),
-                     game_state.get_map::<ColorComponent>(),
-                     game_state.get_map::<TextureMixComponent>()))?;
+                ( game_state.get_map::<RenderComponentTemp>(),
+                        game_state.get_map::<PositionComponent>(),
+                        game_state.get_map::<ColorComponent>(),
+                        game_state.get_map::<TextureMixComponent>()) )?;
         }
 
         // End of rendering code.

@@ -9,7 +9,6 @@ use anymap::AnyMap;
 use failure::Error;
 
 /// Types for the generational indices and arrays.
-
 type Entity = GenerationalIndex;
 type EntityMap<T> = GenerationalIndexArray<T>;
 
@@ -78,7 +77,9 @@ impl GameState {
             state.entities.push(entity);
         }
 
-        EntityBuilder::new(state.entities[idx].clone(), state)
+        let new_idx = state.entities[idx];
+
+        EntityBuilder::new(new_idx, state)
     }
 
     /// Returns a mutable reference of the map
@@ -102,9 +103,9 @@ impl GameState {
 
         let entities = entities.len();
 
-        if array.entries.len() < entities {
+        if array.unpacked_entries.len() < entities {
 
-            for _entity in array.entries.len()..entities {
+            for _entity in array.unpacked_entries.len()..entities {
 
                 array.set_empty();
             }
