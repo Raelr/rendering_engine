@@ -41,29 +41,27 @@ impl<'a> System<'a> for RenderSystem {
                     gl::UseProgram(shader_program.value.shader_program);
 
                     // Set Position of Shader
-                    let position = input.1.get(&index);
-                    if let Some(position_comp) = position {
+                    let position = input.1.get(&index).unwrap();
 
-                        RenderSystem::set_vector2(shader_program.value.shader_program, "Offset", (position_comp.position.0, position_comp.position.1))?;
+                        RenderSystem::set_vector2(shader_program.value.shader_program, "Offset", (position.position.0, position.position.1))?;
 
-                        RenderSystem::set_bool(shader_program.value.shader_program, position_comp.reversed, "ReverseShape", )?;
-                    }
+                        RenderSystem::set_bool(shader_program.value.shader_program, position.reversed, "ReverseShape", )?;
 
                     // Set Color of Shader
-                    let color = input.2.get(&index);
-                    if let Some(color_comp) = color {
+                    let color = input.2.get(&index).unwrap();
 
-                        RenderSystem::set_bool(shader_program.value.shader_program,color_comp.use_position, "UsePosition")?;
+                        RenderSystem::set_bool(shader_program.value.shader_program,color.use_position, "UsePosition")?;
 
-                        RenderSystem::set_bool(shader_program.value.shader_program, color_comp.use_vertex_colors, "UseVertexColors")?;
+                        RenderSystem::set_bool(shader_program.value.shader_program, color.use_vertex_colors, "UseVertexColors")?;
 
-                        RenderSystem::set_vector4( shader_program.value.shader_program,"VertexColor", color_comp.color)?;
-                    }
+                        RenderSystem::set_vector4( shader_program.value.shader_program,"VertexColor", color.color)?;
 
                     // Set texture
                     let texture_mix = input.3.get(&index);
 
                     if let Some(texture_comp) = texture_mix {
+
+                        RenderSystem::set_bool(shader_program.value.shader_program, true, "usingTextures")?;
 
                         for texture in texture_comp.textures.iter() {
 
@@ -76,6 +74,8 @@ impl<'a> System<'a> for RenderSystem {
                     }
 
                     gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+                    RenderSystem::set_bool(shader_program.value.shader_program, false, "usingTextures")?;
+
                 } idx += 1;
             }
             Ok(())

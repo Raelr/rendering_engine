@@ -8,10 +8,11 @@ in VS_OUTPUT {
 uniform sampler2D Texture1;
 uniform sampler2D Texture2;
 uniform float opacity;
+uniform uint usingTextures;
 
 out vec4 Color;
 
 void main() {
 
-    Color = mix(texture(Texture1, IN.TexCoord), texture(Texture2, IN.TexCoord), opacity) * IN.Color;
+    Color = usingTextures == 1 ? (mix(texture(Texture1, IN.TexCoord), texture(Texture2, IN.TexCoord), opacity) * IN.Color) : IN.Color;
 }

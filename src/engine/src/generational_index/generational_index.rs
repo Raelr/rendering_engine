@@ -45,7 +45,7 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set_empty(&mut self) {
 
-        println!("Setting empty...");
+        //println!("Setting empty...");
         &mut self.unpacked_entries.push(EntryValue::Empty);
     }
 
@@ -68,7 +68,9 @@ impl<T> GenerationalIndexArray<T> {
 
         if index.index < self.unpacked_entries.len() {
 
+            println!("Assigning value to packed index: {}", idx);
             self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), idx-1));
+
         }
     }
 
@@ -94,7 +96,10 @@ impl<T> GenerationalIndexArray<T> {
         let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
 
             if index.generation == entry.generation {
+                //println!("Found value for index: {}", index.index);
                 value =  Some(&entry.value);
+            } else {
+                //println!("did not find value for index: {}", index.index);
             }
         }
         value
