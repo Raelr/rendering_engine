@@ -22,11 +22,11 @@ macro_rules! quad { () => {{
         unsafe {
 
             let vertices : Vec<gl::types::GLfloat> = vec![
-             // Position      // Color        //Texture
-             0.5,  0.5, 0.0,  1.0, 0.0, 0.0,  1.0, 1.0, // top right
-             0.5, -0.5, 0.0,  0.0, 1.0, 0.0,  1.0, 0.0, // bottom right
-            -0.5, -0.5, 0.0,  0.0, 0.0, 1.0,  0.0, 0.0, // bottom left
-            -0.5,  0.5, 0.0,  1.0, 1.0, 0.0,  0.0, 1.0  // top left
+             // Position      //Texture
+             0.5,  0.5, 0.0,  1.0, 1.0, // top right
+             0.5, -0.5, 0.0,  1.0, 0.0, // bottom right
+            -0.5, -0.5, 0.0,  0.0, 0.0, // bottom left
+            -0.5,  0.5, 0.0,  0.0, 1.0  // top left
             ];
 
             let indices : Vec<gl::types::GLuint> = vec! [
@@ -46,11 +46,9 @@ macro_rules! quad { () => {{
 
                 generate_buffer_data(gl::ELEMENT_ARRAY_BUFFER, &element_buffer_object, &indices);
 
-                generate_vertex_array(0, 3, 8, 0);
+                generate_vertex_array(0, 3, 5, 0);
 
-                generate_vertex_array(1, 3, 8, 3);
-
-                generate_vertex_array(2, 2, 8, 6);
+                generate_vertex_array(1, 2, 5, 3);
 
                 gl::BindBuffer(gl::ARRAY_BUFFER, 0);
                 //gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);

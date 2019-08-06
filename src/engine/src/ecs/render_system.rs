@@ -1,17 +1,9 @@
-use crate::ecs::{RenderComponentTemp, PositionComponent, ColorComponent, TextureMixComponent, TextureUpdateComponent};
-use failure::Error;
+use crate::ecs::system::System;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
+use crate::ecs::*;
+use failure::Error;
+use cgmath::{vec3, Matrix};
 use std::ffi::CString;
-use crate::game_state::GameState;
-use std::borrow::BorrowMut;
-use cgmath::{vec3, Matrix4, Matrix};
-
-pub trait System<'a> {
-
-    type SystemInput;
-
-    fn run(&self, input : Self::SystemInput) -> Result<(), Error>;
-}
 
 pub struct RenderSystem;
 
@@ -47,26 +39,16 @@ impl<'a> System<'a> for RenderSystem {
 
                     //cgmath stuff.
 
-                        let trans = cgmath::Matrix4::from_scale(0.5);
+                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
+                        * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(input.4.clone() * 15.0)))
+                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
 
-                        let trans = trans * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(input.4.clone() * 10.0)));
-
-                        let trans = trans * cgmath::Matrix4::from_translation(vec3(0.0, 0.0, 0.0));
-
-                        RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
-
-                        RenderSystem::set_vector2(shader_program.value.shader_program, "Offset", (position.position.0, position.position.1))?;
-
-                        RenderSystem::set_bool(shader_program.value.shader_program, position.reversed, "ReverseShape", )?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
 
                     // Set Color of Shader
                     let color = input.2.get(&index).unwrap();
 
-                        RenderSystem::set_bool(shader_program.value.shader_program,color.use_position, "UsePosition")?;
-
-                        RenderSystem::set_bool(shader_program.value.shader_program, color.use_vertex_colors, "UseVertexColors")?;
-
-                        RenderSystem::set_vector4( shader_program.value.shader_program,"VertexColor", color.color)?;
+                    RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;
 
                     // Set texture
                     let texture_mix = input.3.get(&index);
@@ -141,46 +123,6 @@ impl RenderSystem {
 
         gl::UniformMatrix4fv(gl::GetUniformLocation(id, CString::new(name)?.as_ptr()),1, gl::FALSE, mat.as_ptr());
 
-        Ok(())
-    }
-}
-
-pub struct TextureUpdateSystem;
-
-impl<'a> System<'a> for TextureUpdateSystem {
-
-    type SystemInput = (&'a mut GameState);
-
-    fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
-
-        let size = input.get_map::<TextureUpdateComponent>().entries.len();
-
-        let mut opacity: gl::types::GLfloat = 0.0;
-
-        for index in 0..size {
-
-            let mut generation = 0;
-
-            {
-                let mut updates = &mut input.get_map_mut::<TextureUpdateComponent>();
-
-                if let Some(change) = updates.entries[index].as_mut() {
-                    opacity = change.value.opacity_change;
-                    generation = change.generation;
-                    change.value.opacity_change = 0.0;
-                } else {
-                    continue
-                }
-            }
-
-            let gen_index = GenerationalIndex { index, generation};
-
-            let textures = input.get_map_mut::<TextureMixComponent>();
-
-            if let Some(texture) = textures.get_mut(&gen_index) {
-                texture.opacity += opacity
-            }
-        }
         Ok(())
     }
 }

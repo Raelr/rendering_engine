@@ -14,8 +14,11 @@ use crate::game_state::GameState;
 use std::time::{Duration, Instant};
 use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
-use crate::ecs::systems::{RenderSystem, System, TextureUpdateSystem};
+use crate::ecs::*;
 use crate::generational_index::generational_index::GenerationalIndex;
+use crate::ecs::render_system::RenderSystem;
+use crate::ecs::texture_update_system::TextureUpdateSystem;
+use crate::ecs::system::System;
 
 
 /// This is the code for the current event loop.

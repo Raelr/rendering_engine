@@ -2,7 +2,9 @@ use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
 
-pub mod systems;
+pub mod system;
+pub mod render_system;
+pub mod texture_update_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -37,7 +39,7 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
 pub struct PositionComponent {
 
     pub position : (f32, f32, f32),
-    pub reversed : bool
+    pub velocity : (f32, f32, f32)
 }
 
 impl Component for PositionComponent {}
@@ -45,9 +47,7 @@ impl Component for PositionComponent {}
 //  Same as above.
 pub struct ColorComponent {
 
-    pub color : (f32, f32, f32, f32),
-    pub use_vertex_colors : bool,
-    pub use_position : bool
+    pub color : (f32, f32, f32, f32)
 }
 
 impl Component for ColorComponent {}
@@ -96,5 +96,13 @@ pub struct TextureUpdateComponent {
 }
 
 impl Component for TextureUpdateComponent {}
+
+pub struct RotationComponent {
+
+    rotation : (f32, f32, f32),
+    rotation_update : (f32, f32, f32)
+}
+
+impl Component for RotationComponent {}
 
 pub trait Component: Any + Sized {}

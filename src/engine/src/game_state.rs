@@ -137,8 +137,8 @@ impl GameState {
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
-            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
+            .with(PositionComponent {position : (0.0, 0.0, 0.0), velocity : (0.0, 0.0, 0.0)})
+            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
                 [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
                  texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
