@@ -82,13 +82,6 @@ pub fn run() -> Result<(), Error> {
                 => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
 
                 // TODO
-                sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => { let key_code = keycode.unwrap();
-                    match key_code {
-                        _ => ()
-                    }},
-
-                // TODO
                 _ => ()
             }
         }
@@ -106,7 +99,7 @@ pub fn run() -> Result<(), Error> {
 
                 sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
-                    update.opacity_change = -0.01;
+                    update.opacity_change = -0.1;
                 }}
 
                 sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
