@@ -1,1 +1,1 @@
-pub mod shape;
+#[macro_use] pub mod shape;

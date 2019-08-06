@@ -64,7 +64,7 @@ pub fn generate_vertex_array(location : u32, components : i32,
         // Specifies how data stored in the vertex buffer is to be interpreted.
         gl::VertexAttribPointer(
             location, // index of the generic vertex attribute ("layout (location = 0)")
-            components, // the number of components per generic vertex attribute. since its a vec3 the size is 3
+            components, // the number of ecs per generic vertex attribute. since its a vec3 the size is 3
             gl::FLOAT, // data type
             gl::FALSE, // normalized (int-to-float conversion)
             (stride * std::mem::size_of::<f32>()) as gl::types::GLint, // stride (byte offset between consecutive attributes)

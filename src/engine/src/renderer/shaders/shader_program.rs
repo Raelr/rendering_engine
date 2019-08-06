@@ -43,7 +43,7 @@ pub struct ShaderProgram {
 /// A program which combines multiple shaders to create a single shape.
 impl ShaderProgram {
 
-    pub fn from_shaders(shaders: &[shader::Shader]) -> Result<ShaderProgram, String> {
+    pub fn from_shaders(shaders: &[shader::Shader]) -> Result<gl::types::GLuint, String> {
 
         // Creates a shader program instance in the GPU and returns it's ID
         let program_id = unsafe { gl::CreateProgram() };
@@ -92,7 +92,8 @@ impl ShaderProgram {
             }
             return Err(error.to_string_lossy().into_owned()); // Return the error.
         }
-        Ok(ShaderProgram {id : program_id})
+
+        Ok(program_id)
     }
 
     pub fn id(&self) -> gl::types::GLuint{

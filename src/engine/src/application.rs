@@ -11,10 +11,15 @@ use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
-use crate::renderer::renderer_systems::RendererTestSystem;
-use std::time::Duration;
-use crate::components::{PositionComponent, ColorComponent, TimerComponent, RenderComponent};
+use std::time::{Duration, Instant};
+use crate::ecs::{PositionComponent, ColorComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
+use crate::ecs::*;
+use crate::generational_index::generational_index::GenerationalIndex;
+use crate::ecs::render_system::RenderSystem;
+use crate::ecs::texture_update_system::TextureUpdateSystem;
+use crate::ecs::system::System;
+use crate::ecs::position_update_system::PositionUpdateSystem;
 
 
 /// This is the code for the current event loop.
@@ -40,12 +45,18 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    let mut shape = Quad::new();
-    shape.init(&window)?;
-    shape.set_used();
-
     // Sets up the entities in the ECS.
-    GameState::init_test_state(&mut game_state);
+    GameState::init_test_state(&mut game_state)?;
+
+    let render_system = RenderSystem;
+
+    let texture_change = TextureUpdateSystem;
+
+    let move_update = PositionUpdateSystem;
+
+    unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
+
+    let now = Instant::now();
 
     // MAIN LOOP
     'running: loop {
@@ -72,18 +83,54 @@ pub fn run() -> Result<(), Error> {
 
                 // TODO
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => {let key_code = keycode.unwrap();
+                => { let key_code = keycode.unwrap();
                     match key_code {
-                        sdl2::keyboard::Keycode::Up => shape.increment_opacity(0.1),
-                        sdl2::keyboard::Keycode::Down => shape.increment_opacity(-0.1),
                         _ => ()
-                    }
-                    println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
+                    }},
 
                 // TODO
                 _ => ()
             }
         }
+
+        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes() {
+
+            match scancode {
+
+                sdl2::keyboard::Scancode::Up => {
+                    if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                        update.opacity_change = 0.1;
+                    }
+                }
+
+                sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                    update.opacity_change = -0.01;
+                }}
+
+                sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
+                }}
+
+                _ => ()
+            };
+
+            println!("MAIN LOOP: Key pressed: {}", scancode);
+        }
+
         // Cycles through all events stored in this queue and executes them.
         while let Some(mut e) = one_time_events.pop_front() {
             e();
@@ -99,17 +146,16 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            // Set the positions in the renderer to those within the position component.
-            RendererTestSystem::render_positions(&game_state.get_map::<RenderComponent>(), &game_state.get_map::<PositionComponent>())?;
+            texture_change.run(&mut game_state)?;
 
-            // Set the color of the renderer to the color within the color component.
-            RendererTestSystem::render_colors(&game_state.get_map::<ColorComponent>(),
-                                              &game_state.get_map::<RenderComponent>(), &game_state.get_map::<TimerComponent>())?;
+            move_update.run(&mut game_state);
 
-            // Finally, draw the triangles using the render components.
-            //RendererTestSystem::draw_triangles(&game_state.get_map::<RenderComponent>());
-
-            RendererTestSystem::draw_quad(&game_state.get_map::<RenderComponent>(), &shape);
+            render_system.run(
+                ( game_state.get_map::<RenderComponentTemp>(),
+                        game_state.get_map::<PositionComponent>(),
+                        game_state.get_map::<ColorComponent>(),
+                        game_state.get_map::<TextureMixComponent>(),
+                        &now.elapsed().as_secs_f32()))?;
         }
 
         // End of rendering code.

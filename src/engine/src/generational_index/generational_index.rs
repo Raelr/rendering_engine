@@ -1,4 +1,7 @@
-#[derive(Clone)]
+use crate::generational_index::generational_index::EntryValue::Empty;
+use anymap::Entry;
+
+#[derive(Clone, Copy)]
 pub struct GenerationalIndex {
     pub index : usize,
     pub generation: u64
@@ -11,6 +14,12 @@ impl GenerationalIndex {
     }
 }
 
+pub enum EntryValue {
+    Full((u64, usize)),
+    Empty
+}
+
+#[derive(Clone, Copy)]
 pub struct ArrayEntry<T> {
     pub value : T,
     pub generation : u64
@@ -18,7 +27,8 @@ pub struct ArrayEntry<T> {
 
 pub struct GenerationalIndexArray<T> {
 
-    pub entries : Vec<Option<ArrayEntry<T>>>,
+    pub unpacked_entries : Vec<EntryValue>,
+    pub entries : Vec<Option<ArrayEntry<T>>>
 }
 
 impl<T> GenerationalIndexArray<T> {
@@ -26,6 +36,7 @@ impl<T> GenerationalIndexArray<T> {
     pub fn new() -> GenerationalIndexArray<T> {
 
         let array = GenerationalIndexArray {
+            unpacked_entries: Vec::with_capacity(1024),
             entries: Vec::with_capacity(1024)
         };
 
@@ -34,48 +45,102 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set_empty(&mut self) {
 
-        &mut self.entries.push(None);
+        //println!("Setting empty...");
+        &mut self.unpacked_entries.push(EntryValue::Empty);
     }
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
-        if index.index < self.entries.len() {
+        let mut idx = 0;
 
+        if let Some(idx) = self.get_unpacked_index(index){
             //println!("Entry exists, placing value in index: {}", index.index());
+            //println!("Setting value");
 
-            self.entries[index.index()] = Some(ArrayEntry {value, generation : index.generation} );
+            self.entries[idx.1] = Some(ArrayEntry {value, generation : index.generation} );
 
         } else {
-
+            //println!("pushing value");
             //println!("Placing value in index: {} and generation: {}", index.index, index.generation);
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
+            idx = self.entries.len();
         }
+
+        if index.index < self.unpacked_entries.len() {
+
+            println!("Assigning value to packed index: {}", idx);
+            self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), idx-1));
+
+        }
+    }
+
+    pub fn get_unpacked_index(&self, index : &GenerationalIndex) -> Option<(u64, usize)>{
+
+        let mut success = None;
+
+        if index.index() < self.unpacked_entries.len() {
+            match self.unpacked_entries[index.index()] {
+                EntryValue::Full(v) => success = Some(v),
+                EntryValue::Empty => ()
+            }
+        }
+        success
     }
 
     pub fn get(&self, index : &GenerationalIndex) -> Option<&T> {
 
-        let entry = self.entries[index.index()].as_ref();
+        let mut value : Option<&T> = None;
 
-        if let Some(i) = entry {
+        if self.contains(index) {
 
-            if index.generation == i.generation {
-                return Some(&i.value);
+        let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
+
+            if index.generation == entry.generation {
+                //println!("Found value for index: {}", index.index);
+                value =  Some(&entry.value);
+            } else {
+                //println!("did not find value for index: {}", index.index);
             }
         }
-            None
+        value
+    }
+
+    pub fn contains(&self, index : &GenerationalIndex) -> bool {
+
+        let mut success = false;
+
+        if index.index() < self.unpacked_entries.len() {
+            match &self.unpacked_entries[index.index()] {
+                EntryValue::Full(gen) => if gen.0 == index.generation { success = true },
+                EntryValue::Empty => success = false
+            }
+        }
+        //println!("Success: {}", success);
+        success
+    }
+
+    pub fn remove(&mut self, index : &GenerationalIndex) {
+
+        self.entries.remove(index.index());
+        self.unpacked_entries[index.index()] = Empty;
     }
 
     pub fn get_mut(&mut self, index : &GenerationalIndex) -> Option<&mut T> {
 
-        let entry = self.entries[index.index()].as_mut();
+        let mut value = None;
 
-        if let Some(i) = entry {
+        if self.contains(index) {
 
-            if index.generation == i.generation {
-                return Some(&mut i.value);
+            let idx = self.get_unpacked_index(index).as_ref().unwrap().1;
+            let mut entry = &mut self.entries[idx];
+
+                if let Some(mut val) = entry.as_mut() {
+                    if index.generation == val.generation {
+                        value = Some(&mut val.value);
+                    }
+                }
             }
-        }
-        None
+        value
     }
 }
 

@@ -1,8 +1,11 @@
 #![feature(duration_float)]
+#[macro_use]
 extern crate strum;
 extern crate failure;
 extern crate anymap;
 extern crate image;
+extern crate cgmath;
+
 ////////////////////////////////////
 //           M A C R O S          //
 ////////////////////////////////////
@@ -18,7 +21,7 @@ macro_rules! bit {
 pub mod generational_index;
 pub mod platform;
 #[macro_use]pub mod renderer;
-pub mod components;
+#[macro_use]pub mod ecs;
 pub mod game_state;
 pub mod application;
 
