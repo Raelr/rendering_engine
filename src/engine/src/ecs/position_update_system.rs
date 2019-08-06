@@ -28,7 +28,9 @@ impl<'a> System<'a> for PositionUpdateSystem {
                     generation = velocity.generation;
                     velocity_change = velocity.value.velocity;
 
-                    
+                    velocity.value.velocity = (velocity.value.velocity.0 - (velocity.value.velocity.0 * 0.2),
+                                               velocity.value.velocity.1 - (velocity.value.velocity.1 * 0.2),
+                                               velocity.value.velocity.2 - (velocity.value.velocity.2 * 0.2));
                 }
             }
 

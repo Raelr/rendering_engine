@@ -85,19 +85,35 @@ pub fn run() -> Result<(), Error> {
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
                 => { let key_code = keycode.unwrap();
                     match key_code {
-                      sdl2::keyboard::Keycode::Up => {
+
+                        sdl2::keyboard::Keycode::Up => {
                           if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
                               update.opacity_change = 0.1;
                           }
-                      }
-                      sdl2::keyboard::Keycode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                        }
+
+                        sdl2::keyboard::Keycode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
                           update.opacity_change = -0.01;
-                      }}
-                        sdl2::keyboard::Keycode::Right => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                            velocity.velocity = (0.005, 0.0, 0.0);
                         }}
+
+                        sdl2::keyboard::Keycode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                            velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
+                        }}
+
+                        sdl2::keyboard::Keycode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                            velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
+                        }}
+
+                        sdl2::keyboard::Keycode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                            velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
+                        }}
+
+                        sdl2::keyboard::Keycode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                            velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
+                        }}
+
                         _ => ()
                     }
                     println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
