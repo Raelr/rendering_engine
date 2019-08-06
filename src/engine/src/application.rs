@@ -11,7 +11,7 @@ use crate::platform::windows::windows_window::{WindowsWindow};
 use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
 use crate::ecs::systems::{RenderSystem, System, TextureUpdateSystem};
@@ -48,6 +48,8 @@ pub fn run() -> Result<(), Error> {
     let texture_change = TextureUpdateSystem;
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
+
+    let now = Instant::now();
 
     // MAIN LOOP
     'running: loop {
@@ -116,7 +118,8 @@ pub fn run() -> Result<(), Error> {
                 ( game_state.get_map::<RenderComponentTemp>(),
                         game_state.get_map::<PositionComponent>(),
                         game_state.get_map::<ColorComponent>(),
-                        game_state.get_map::<TextureMixComponent>()) )?;
+                        game_state.get_map::<TextureMixComponent>(),
+                        &now.elapsed().as_secs_f32()))?;
         }
 
         // End of rendering code.

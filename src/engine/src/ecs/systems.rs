@@ -20,7 +20,8 @@ impl<'a> System<'a> for RenderSystem {
     type SystemInput = (&'a GenerationalIndexArray<RenderComponentTemp>,
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
-                        &'a GenerationalIndexArray<TextureMixComponent>);
+                        &'a GenerationalIndexArray<TextureMixComponent>,
+                        &'a f32);
 
     fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
 
@@ -48,7 +49,7 @@ impl<'a> System<'a> for RenderSystem {
 
                         let trans = cgmath::Matrix4::from_scale(0.5);
 
-                        let trans = trans * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(90.0)));
+                        let trans = trans * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(input.4.clone() * 10.0)));
 
                         let trans = trans * cgmath::Matrix4::from_translation(vec3(0.0, 0.0, 0.0));
 
