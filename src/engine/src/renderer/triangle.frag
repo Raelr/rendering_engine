@@ -14,5 +14,5 @@ out vec4 Color;
 
 void main() {
 
-    Color = usingTextures == 1 ? (mix(texture(Texture1, IN.TexCoord), texture(Texture2, IN.TexCoord), opacity) * IN.Color) : IN.Color;
+    Color = usingTextures == 1 ? (mix(texture(Texture1, IN.TexCoord), texture(Texture2, -IN.TexCoord), opacity) * IN.Color) : IN.Color;
 }

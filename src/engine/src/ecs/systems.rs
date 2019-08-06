@@ -4,6 +4,7 @@ use crate::generational_index::generational_index::{GenerationalIndexArray, Gene
 use std::ffi::CString;
 use crate::game_state::GameState;
 use std::borrow::BorrowMut;
+use cgmath::{vec3, Matrix4, Matrix};
 
 pub trait System<'a> {
 
@@ -42,6 +43,16 @@ impl<'a> System<'a> for RenderSystem {
 
                     // Set Position of Shader
                     let position = input.1.get(&index).unwrap();
+
+                    //cgmath stuff.
+
+                        let trans = cgmath::Matrix4::from_scale(0.5);
+
+                        let trans = trans * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(90.0)));
+
+                        let trans = trans * cgmath::Matrix4::from_translation(vec3(0.0, 0.0, 0.0));
+
+                        RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
 
                         RenderSystem::set_vector2(shader_program.value.shader_program, "Offset", (position.position.0, position.position.1))?;
 
@@ -121,6 +132,13 @@ impl RenderSystem {
     pub unsafe fn set_float(id : gl::types::GLuint, name : &str, number : f32) -> Result<(), Error> {
 
         gl::Uniform1f(gl::GetUniformLocation(id, CString::new(name)?.as_ptr()), number);
+
+        Ok(())
+    }
+
+    pub unsafe fn set_mat4(id : gl::types::GLuint, name : &str, mat : cgmath::Matrix4<f32> ) -> Result<(), Error> {
+
+        gl::UniformMatrix4fv(gl::GetUniformLocation(id, CString::new(name)?.as_ptr()),1, gl::FALSE, mat.as_ptr());
 
         Ok(())
     }

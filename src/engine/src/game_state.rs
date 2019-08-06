@@ -7,6 +7,8 @@ use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
+use cgmath;
+use cgmath::{Vector4, Vector3, vec3};
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -135,7 +137,7 @@ impl GameState {
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : (-0.5, 0.0, 0.0), reversed : true })
+            .with(PositionComponent {position : (0.0, 0.0, 0.0), reversed : true })
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
             .with(TextureMixComponent { textures : vec!
                 [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
@@ -144,11 +146,11 @@ impl GameState {
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .build();
 
-        let _second_comp = GameState::create_entity(state)
-            .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : (0.5, 0.0, 0.0), reversed : true })
-            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
-            .build();
+//        let _second_comp = GameState::create_entity(state)
+//            .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
+//            .with(PositionComponent {position : (0.5, 0.0, 0.0), reversed : true })
+//            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
+//            .build();
 
         Ok(())
     }

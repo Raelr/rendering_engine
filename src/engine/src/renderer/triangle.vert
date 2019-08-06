@@ -12,6 +12,8 @@ uniform uint UsePosition;
 uniform uint UseVertexColors;
 uniform uint ReverseShape;
 
+uniform mat4 Transform;
+
 out VS_OUTPUT {
     vec4 Color;
     vec2 TexCoord;
@@ -20,7 +22,9 @@ out VS_OUTPUT {
 void main() {
 
     // Takes in the position of the input vertices and places them in a vector4
-    gl_Position = ReverseShape == 1 ? vec4(-Position.xy + Offset.xy, -Position.z, 1.0) : vec4(Position.xy + Offset.xy, Position.z, 1.0);
+    //gl_Position = ReverseShape == 1 ? vec4(-Position.xy + Offset.xy, -Position.z, 1.0) : vec4(Position.xy + Offset.xy, Position.z, 1.0);
+
+    gl_Position = Transform * vec4(Position, 1.0);
 
     OUT.Color = UsePosition == 0 ? (UseVertexColors == 1 ? vec4(Color, 1.0) : VertexColor) : gl_Position;
 
