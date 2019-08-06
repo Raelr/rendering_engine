@@ -85,43 +85,52 @@ pub fn run() -> Result<(), Error> {
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
                 => { let key_code = keycode.unwrap();
                     match key_code {
-
-                        sdl2::keyboard::Keycode::Up => {
-                          if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-
-                              update.opacity_change = 0.1;
-                          }
-                        }
-
-                        sdl2::keyboard::Keycode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-
-                          update.opacity_change = -0.01;
-                        }}
-
-                        sdl2::keyboard::Keycode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                            velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
-                        }}
-
-                        sdl2::keyboard::Keycode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                            velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
-                        }}
-
-                        sdl2::keyboard::Keycode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                            velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
-                        }}
-
-                        sdl2::keyboard::Keycode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                            velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
-                        }}
-
                         _ => ()
-                    }
-                    println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
+                    }},
 
                 // TODO
                 _ => ()
             }
         }
+
+        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes() {
+
+            match scancode {
+
+                sdl2::keyboard::Scancode::Up => {
+                    if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                        update.opacity_change = 0.1;
+                    }
+                }
+
+                sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+
+                    update.opacity_change = -0.01;
+                }}
+
+                sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
+                }}
+
+                sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
+                }}
+
+                _ => ()
+            };
+
+            println!("MAIN LOOP: Key pressed: {}", scancode);
+        }
+
         // Cycles through all events stored in this queue and executes them.
         while let Some(mut e) = one_time_events.pop_front() {
             e();
