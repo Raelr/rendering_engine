@@ -12,13 +12,14 @@ use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use std::time::{Duration, Instant};
-use crate::ecs::{PositionComponent, ColorComponent, TimerComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
+use crate::ecs::{PositionComponent, ColorComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
 use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
 use crate::ecs::*;
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
+use crate::ecs::position_update_system::PositionUpdateSystem;
 
 
 /// This is the code for the current event loop.
@@ -48,7 +49,10 @@ pub fn run() -> Result<(), Error> {
     GameState::init_test_state(&mut game_state)?;
 
     let render_system = RenderSystem;
+
     let texture_change = TextureUpdateSystem;
+
+    let move_update = PositionUpdateSystem;
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
@@ -81,7 +85,6 @@ pub fn run() -> Result<(), Error> {
                 sdl2::event::Event::KeyDown { keycode, repeat, .. }
                 => { let key_code = keycode.unwrap();
                     match key_code {
-
                       sdl2::keyboard::Keycode::Up => {
                           if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
@@ -90,8 +93,11 @@ pub fn run() -> Result<(), Error> {
                       }
                       sdl2::keyboard::Keycode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
-                          update.opacity_change = -0.1;
+                          update.opacity_change = -0.01;
                       }}
+                        sdl2::keyboard::Keycode::Right => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                            velocity.velocity = (0.005, 0.0, 0.0);
+                        }}
                         _ => ()
                     }
                     println!("MAIN LOOP: Key pressed: {} repeating: {}", keycode.unwrap(), repeat);},
@@ -116,6 +122,8 @@ pub fn run() -> Result<(), Error> {
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
             texture_change.run(&mut game_state)?;
+
+            move_update.run(&mut game_state);
 
             render_system.run(
                 ( game_state.get_map::<RenderComponentTemp>(),

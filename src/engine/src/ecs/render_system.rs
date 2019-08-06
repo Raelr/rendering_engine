@@ -2,7 +2,7 @@ use crate::ecs::system::System;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::ecs::*;
 use failure::Error;
-use cgmath::{vec3, Matrix};
+use cgmath::{vec3, Matrix, Rad, Deg};
 use std::ffi::CString;
 
 pub struct RenderSystem;
@@ -39,8 +39,11 @@ impl<'a> System<'a> for RenderSystem {
 
                     //cgmath stuff.
 
+//                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
+//                        * cgmath::Matrix4::from_axis_angle(vec3(0.0, 0.0, 1.0), Rad::from(Deg(input.4.clone() * 15.0)))
+//                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
+
                     let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
-                        * cgmath::Matrix4::from_angle_z(cgmath::Rad::from(cgmath::Deg(input.4.clone() * 15.0)))
                         * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;

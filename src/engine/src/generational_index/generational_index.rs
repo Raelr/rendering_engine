@@ -121,7 +121,7 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn remove(&mut self, index : &GenerationalIndex) {
 
-        self.entries[index.index()] = None;
+        self.entries.remove(index.index());
         self.unpacked_entries[index.index()] = Empty;
     }
 

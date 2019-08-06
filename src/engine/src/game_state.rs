@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, TimerComponent, RenderComponent, Component, TextureMixComponent, Texture, RenderComponentTemp, TextureUpdateComponent};
+use crate::ecs::{ColorComponent, PositionComponent, RenderComponent, Component, TextureMixComponent, Texture, RenderComponentTemp, TextureUpdateComponent, VelocityComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
@@ -50,6 +50,15 @@ impl GameState {
 
             m.set(index, component);
 
+        } else {
+            eprintln!("The component does not exist!");
+        }
+    }
+
+    pub fn remove_component<T : Component>(&mut self, index : &Entity) {
+
+        if let Some(array) = self.components.get_mut::<EntityMap<T>>() {
+            array.remove(&index);
         } else {
             eprintln!("The component does not exist!");
         }
@@ -122,28 +131,29 @@ impl GameState {
         let render_comps : EntityMap<RenderComponentTemp> = EntityMap::new();
         let pos_comps : EntityMap<PositionComponent> = EntityMap::new();
         let color_comps : EntityMap<ColorComponent> = EntityMap::new();
-        let timer_comps : EntityMap<TimerComponent> = EntityMap::new();
         let texture_comps : EntityMap<TextureMixComponent> = EntityMap::new();
         let texture_changes : EntityMap<TextureUpdateComponent> = EntityMap::new();
+        let velocity_changes : EntityMap<VelocityComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
         state.register_map(color_comps);
-        state.register_map(timer_comps);
         state.register_map(texture_comps);
         state.register_map(texture_changes);
+        state.register_map(velocity_changes);
 
         // RIGHT
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : (0.0, 0.0, 0.0), velocity : (0.0, 0.0, 0.0)})
+            .with(PositionComponent {position : (0.0, 0.0, 0.0)})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
                 [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
                  texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
                  opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
+            .with(VelocityComponent {velocity : (0.0, 0.0, 0.0)})
             .build();
 
 //        let _second_comp = GameState::create_entity(state)

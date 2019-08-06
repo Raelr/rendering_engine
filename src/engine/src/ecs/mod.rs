@@ -5,6 +5,7 @@ use std::any::Any;
 pub mod system;
 pub mod render_system;
 pub mod texture_update_system;
+pub mod position_update_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -38,11 +39,17 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
 // Test struct. I know bools are bad, however i need to test this somehow.
 pub struct PositionComponent {
 
-    pub position : (f32, f32, f32),
-    pub velocity : (f32, f32, f32)
+    pub position : (f32, f32, f32)
 }
 
 impl Component for PositionComponent {}
+
+pub struct VelocityComponent {
+
+    pub velocity : (f32, f32, f32)
+}
+
+impl Component for VelocityComponent {}
 
 //  Same as above.
 pub struct ColorComponent {
@@ -51,13 +58,6 @@ pub struct ColorComponent {
 }
 
 impl Component for ColorComponent {}
-
-pub struct TimerComponent {
-
-    pub now : Instant
-}
-
-impl Component for TimerComponent {}
 
 pub struct RenderComponent {
 
@@ -99,10 +99,16 @@ impl Component for TextureUpdateComponent {}
 
 pub struct RotationComponent {
 
-    rotation : (f32, f32, f32),
-    rotation_update : (f32, f32, f32)
+    rotation : (f32, f32, f32)
 }
 
 impl Component for RotationComponent {}
+
+pub struct InputResponseComponent {
+
+
+}
+
+impl Component for InputResponseComponent {}
 
 pub trait Component: Any + Sized {}
