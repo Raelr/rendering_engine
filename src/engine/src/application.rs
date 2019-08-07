@@ -61,8 +61,11 @@ pub fn run() -> Result<(), Error> {
     // MAIN LOOP
     'running: loop {
 
+
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
         for event in pump.poll_iter() {
+
+            // WINDOW EVENTS
 
             match event {
 
@@ -86,7 +89,9 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes() {
+        // KEYBOARD INPUT
+
+        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes(){
 
             match scancode {
 
@@ -96,26 +101,25 @@ pub fn run() -> Result<(), Error> {
                         update.opacity_change = 0.1;
                     }
                 }
-
                 sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
 
                     update.opacity_change = -0.1;
                 }}
 
                 sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.01, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
+                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.01, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
+                    velocity.velocity = (velocity.velocity.0 + 0.01, velocity.velocity.1, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
+                    velocity.velocity = (velocity.velocity.0 - 0.01, velocity.velocity.1, 0.0);
                 }}
 
                 _ => ()
@@ -134,7 +138,7 @@ pub fn run() -> Result<(), Error> {
             e(&mut window);
         }
 
-        // DRAW CODE
+        // SYSTEMS
         unsafe {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);

@@ -25,12 +25,26 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
             {
                 if let Some(velocity) = input.get_map_mut::<VelocityComponent>().entries[index].as_mut() {
-                    generation = velocity.generation;
-                    velocity_change = velocity.value.velocity;
 
-                    velocity.value.velocity = (velocity.value.velocity.0 - (velocity.value.velocity.0 * 0.2),
-                                               velocity.value.velocity.1 - (velocity.value.velocity.1 * 0.2),
-                                               velocity.value.velocity.2 - (velocity.value.velocity.2 * 0.2));
+                    generation = velocity.generation;
+
+                        let velocity_length = (f32::sqrt((velocity.value.velocity.0 * velocity.value.velocity.0)
+                            + (velocity.value.velocity.1 * velocity.value.velocity.1)
+                            + (velocity.value.velocity.2 * velocity.value.velocity.2)));
+
+                    if velocity_length > 0.0 {
+
+                        if velocity_length >= 1.0 {
+                            velocity_change = ((velocity.value.velocity.0 / velocity_length) * velocity.value.velocity.0,
+                                               (velocity.value.velocity.1 / velocity_length) * velocity.value.velocity.1,
+                                               (velocity.value.velocity.2 / velocity_length) * velocity.value.velocity.2);
+                        } else {
+                            velocity_change = velocity.value.velocity;
+                        }
+                    }
+                    velocity.value.velocity.0 -= velocity.value.velocity.0 * 0.2;
+                    velocity.value.velocity.1 -= velocity.value.velocity.1 * 0.2;
+                    velocity.value.velocity.2 -= velocity.value.velocity.2 * 0.2;
                 }
             }
 

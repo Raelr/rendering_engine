@@ -3,7 +3,9 @@ use crate::generational_index::generational_index::{GenerationalIndexArray, Gene
 use crate::ecs::*;
 use failure::Error;
 use cgmath::{vec3, Matrix, Rad, Deg};
+use cgmath::Vector3;
 use std::ffi::CString;
+use crate::cgmath::InnerSpace;
 
 pub struct RenderSystem;
 
@@ -42,6 +44,7 @@ impl<'a> System<'a> for RenderSystem {
 //                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
 //                        * cgmath::Matrix4::from_axis_angle(vec3(0.0, 0.0, 1.0), Rad::from(Deg(input.4.clone() * 15.0)))
 //                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
+
 
                     let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
                         * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
