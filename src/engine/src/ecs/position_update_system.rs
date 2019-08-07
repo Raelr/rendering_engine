@@ -28,20 +28,22 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
                     generation = velocity.generation;
 
-                        let velocity_length = (f32::sqrt((velocity.value.velocity.0 * velocity.value.velocity.0)
+                        let velocity_length = (
+                            f32::sqrt((velocity.value.velocity.0 * velocity.value.velocity.0)
                             + (velocity.value.velocity.1 * velocity.value.velocity.1)
                             + (velocity.value.velocity.2 * velocity.value.velocity.2)));
 
                     if velocity_length > 0.0 {
 
-                        if velocity_length >= 1.0 {
-                            velocity_change = ((velocity.value.velocity.0 / velocity_length) * velocity.value.velocity.0,
-                                               (velocity.value.velocity.1 / velocity_length) * velocity.value.velocity.1,
-                                               (velocity.value.velocity.2 / velocity_length) * velocity.value.velocity.2);
-                        } else {
-                            velocity_change = velocity.value.velocity;
-                        }
+                        let x = if f32::is_sign_positive(velocity.value.velocity.0) { velocity.value.velocity.0 } else { -velocity.value.velocity.0 };
+                        let y = if f32::is_sign_positive(velocity.value.velocity.1) { velocity.value.velocity.1 } else { -velocity.value.velocity.1 };
+                        let z = if f32::is_sign_positive(velocity.value.velocity.2) { velocity.value.velocity.0 } else { -velocity.value.velocity.2 };
+
+                            velocity_change = ((velocity.value.velocity.0 / velocity_length) * x,
+                                               (velocity.value.velocity.1 / velocity_length) * y,
+                                               (velocity.value.velocity.2 / velocity_length) * z);
                     }
+
                     velocity.value.velocity.0 -= velocity.value.velocity.0 * 0.2;
                     velocity.value.velocity.1 -= velocity.value.velocity.1 * 0.2;
                     velocity.value.velocity.2 -= velocity.value.velocity.2 * 0.2;
