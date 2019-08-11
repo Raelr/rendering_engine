@@ -39,14 +39,14 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
 // Test struct. I know bools are bad, however i need to test this somehow.
 pub struct PositionComponent {
 
-    pub position : (f32, f32, f32)
+    pub position : cgmath::Vector3<f32>
 }
 
 impl Component for PositionComponent {}
 
 pub struct VelocityComponent {
 
-    pub velocity : (f32, f32, f32)
+    pub velocity : cgmath::Vector3<f32>
 }
 
 impl Component for VelocityComponent {}

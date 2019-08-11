@@ -14,8 +14,7 @@ impl<'a> System<'a> for RenderSystem {
     type SystemInput = (&'a GenerationalIndexArray<RenderComponentTemp>,
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
-                        &'a GenerationalIndexArray<TextureMixComponent>,
-                        &'a f32);
+                        &'a GenerationalIndexArray<TextureMixComponent>);
 
     fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
 
@@ -46,8 +45,8 @@ impl<'a> System<'a> for RenderSystem {
 //                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
 
 
-                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
-                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
+                    let trans = cgmath::Matrix4::from_translation(position.position)
+                    * cgmath::Matrix4::from_nonuniform_scale(0.5, 0.75, 0.5);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
 

@@ -6,6 +6,8 @@ extern crate anymap;
 extern crate image;
 extern crate cgmath;
 
+use cgmath::*;
+
 ////////////////////////////////////
 //           M A C R O S          //
 ////////////////////////////////////

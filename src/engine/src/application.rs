@@ -20,6 +20,7 @@ use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
+use cgmath::{Matrix4, vec3};
 
 
 /// This is the code for the current event loop.
@@ -89,7 +90,7 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        // KEYBOARD INPUT
+        // KEYBOARD INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
 
         for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes(){
 
@@ -107,19 +108,19 @@ pub fn run() -> Result<(), Error> {
                 }}
 
                 sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.01, 0.0);
+                    velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y + 0.01, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.01, 0.0);
+                    velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y - 0.01, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 + 0.01, velocity.velocity.1, 0.0);
+                    velocity.velocity = vec3(velocity.velocity.x + 0.01, velocity.velocity.y, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 - 0.01, velocity.velocity.1, 0.0);
+                    velocity.velocity = vec3(velocity.velocity.x - 0.01, velocity.velocity.y, 0.0);
                 }}
 
                 _ => ()
@@ -151,8 +152,7 @@ pub fn run() -> Result<(), Error> {
                 ( game_state.get_map::<RenderComponentTemp>(),
                         game_state.get_map::<PositionComponent>(),
                         game_state.get_map::<ColorComponent>(),
-                        game_state.get_map::<TextureMixComponent>(),
-                        &now.elapsed().as_secs_f32()))?;
+                        game_state.get_map::<TextureMixComponent>()))?;
         }
 
         // End of rendering code.
