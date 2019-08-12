@@ -1,4 +1,4 @@
-use crate::ecs::{RenderComponentTemp, PositionComponent, ColorComponent, TextureMixComponent, TextureUpdateComponent};
+use crate::ecs::{RenderComponent, PositionComponent, ColorComponent, TextureMixComponent, TextureUpdateComponent};
 use failure::Error;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use std::ffi::CString;

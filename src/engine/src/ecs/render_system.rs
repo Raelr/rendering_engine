@@ -6,12 +6,13 @@ use cgmath::{vec3, Matrix, Rad, Deg};
 use cgmath::Vector3;
 use std::ffi::CString;
 use crate::cgmath::InnerSpace;
+use crate::game_state::GameState;
 
 pub struct RenderSystem;
 
 impl<'a> System<'a> for RenderSystem {
 
-    type SystemInput = (&'a GenerationalIndexArray<RenderComponentTemp>,
+    type SystemInput = (&'a GenerationalIndexArray<RenderComponent>,
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>);
@@ -23,6 +24,8 @@ impl<'a> System<'a> for RenderSystem {
         let mut idx = 0;
 
         shaders.into_iter().try_for_each(|shader| -> Result<(), Error> {
+
+            println!("{}", idx);
 
             if let Some(shader_program) = shader {
 
@@ -37,13 +40,6 @@ impl<'a> System<'a> for RenderSystem {
 
                     // Set Position of Shader
                     let position = input.1.get(&index).unwrap();
-
-                    //cgmath stuff.
-
-//                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
-//                        * cgmath::Matrix4::from_axis_angle(vec3(0.0, 0.0, 1.0), Rad::from(Deg(input.4.clone() * 15.0)))
-//                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
-
 
                     let trans = cgmath::Matrix4::from_translation(position.position)
                     * cgmath::Matrix4::from_nonuniform_scale(0.5, 0.75, 0.5);

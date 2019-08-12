@@ -54,23 +54,17 @@ impl<T> GenerationalIndexArray<T> {
         let mut idx = 0;
 
         if let Some(idx) = self.get_unpacked_index(index){
-            //println!("Entry exists, placing value in index: {}", index.index());
-            //println!("Setting value");
 
             self.entries[idx.1] = Some(ArrayEntry {value, generation : index.generation} );
 
         } else {
-            //println!("pushing value");
-            //println!("Placing value in index: {} and generation: {}", index.index, index.generation);
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
-            idx = self.entries.len();
         }
 
         if index.index < self.unpacked_entries.len() {
 
             println!("Assigning value to packed index: {}", idx);
-            self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), idx-1));
-
+            self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), self.unpacked_entries.len() - 1));
         }
     }
 
@@ -121,8 +115,13 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn remove(&mut self, index : &GenerationalIndex) {
 
-        self.entries.remove(index.index());
-        self.unpacked_entries[index.index()] = Empty;
+        println!("Removing from entries...");
+        if self.contains(index) {
+
+            let unpacked_index = self.get_unpacked_index(index).unwrap().1;
+            self.entries.remove(unpacked_index);
+            self.unpacked_entries[index.index()] = Empty;
+        }
     }
 
     pub fn get_mut(&mut self, index : &GenerationalIndex) -> Option<&mut T> {

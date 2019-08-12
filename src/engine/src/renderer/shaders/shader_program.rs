@@ -5,10 +5,15 @@ use crate::renderer::shaders::*;
 use std::ffi::{CString};
 use failure::Error;
 
+
 #[macro_export]
 // Macro for creating a key typed event.
 macro_rules! triangle_render {
     () => {{
+    use crate::renderer::shaders::shader_program::*;
+    use crate::renderer::shaders::shader::*;
+    use std::ffi::{CString};
+
         let program = ShaderProgram::from_shaders(&[Shader::from_vert_source(
             &CString::new(include_str!("renderer/triangle.vert"))
                     .unwrap()).unwrap(),

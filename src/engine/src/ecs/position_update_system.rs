@@ -28,20 +28,22 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
                     generation = velocity.generation;
 
-                        let velocity_length = Vector3::magnitude(velocity.value.velocity);
+                    let mut current_velocity = velocity.value.velocity;
+
+                        let velocity_length = Vector3::magnitude(current_velocity);
 
                     if velocity_length > 0.0 {
 
-                        let x = if f32::is_sign_positive(velocity.value.velocity.x) { velocity.value.velocity.x } else { -velocity.value.velocity.x };
-                        let y = if f32::is_sign_positive(velocity.value.velocity.y) { velocity.value.velocity.y } else { -velocity.value.velocity.y };
-                        let z = if f32::is_sign_positive(velocity.value.velocity.z) { velocity.value.velocity.z } else { -velocity.value.velocity.z };
+                        let x = if f32::is_sign_positive(current_velocity.x) { current_velocity.x } else { -current_velocity.x };
+                        let y = if f32::is_sign_positive(current_velocity.y) { current_velocity.y } else { -current_velocity.y };
+                        let z = if f32::is_sign_positive(current_velocity.z) { current_velocity.z } else { -current_velocity.z };
 
-                        velocity_change = Vector3::normalize(velocity.value.velocity);
+                        velocity_change = Vector3::normalize(current_velocity);
 
                         velocity_change = vec3( velocity_change.x * x, velocity_change.y * y, velocity_change.z * z);
                     }
 
-                    velocity.value.velocity -= vec3(velocity.value.velocity.x * 0.2, velocity.value.velocity.y * 0.2, velocity.value.velocity.z * 0.2)
+                    velocity.value.velocity -= vec3(current_velocity.x * 0.2, current_velocity.y * 0.2, current_velocity.z * 0.2)
                 }
             }
 
@@ -50,11 +52,8 @@ impl<'a> System<'a> for PositionUpdateSystem {
             {
                 let positions = &mut input.get_map_mut::<PositionComponent>().get_mut(&idx).unwrap();
 
-                positions.position.x += velocity_change.x;
-                positions.position.y += velocity_change.y;
-                positions.position.z += velocity_change.z;
+                positions.position += velocity_change;
 
-                //println!("x: {}, y: {}, z: {}", positions.position.0, positions.position.1, positions.position.2);
             }
         }
         Ok(())

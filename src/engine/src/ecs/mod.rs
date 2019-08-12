@@ -1,6 +1,7 @@
 use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
+use cgmath::Vector3;
 
 pub mod system;
 pub mod render_system;
@@ -36,22 +37,43 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
         Texture { uniform_name: $name, texture_id, number: $number, active_texture_enum: $enum }
     }};
 }
-// Test struct. I know bools are bad, however i need to test this somehow.
+
+/// START OF TRANSFORM COMPONENTS ----------------------------------------------------------------->
+
+/// POSITION
+/// PositionComponent - Used to store the Entity's position. Currently represented as a
+/// Vector3
 pub struct PositionComponent {
 
-    pub position : cgmath::Vector3<f32>
+    pub position : Vector3<f32>
 }
 
 impl Component for PositionComponent {}
 
+/// VELOCITY
+/// Used to store the velocity of the entity. Currently adds velocity to position every frame
+/// SEE: position_update_system
 pub struct VelocityComponent {
 
-    pub velocity : cgmath::Vector3<f32>
+    pub velocity : Vector3<f32>
 }
 
 impl Component for VelocityComponent {}
 
-//  Same as above.
+/// ROTATION
+/// Stores current object rotation.
+
+pub struct RotationComponent {
+
+    rotation : Vector3<f32>
+}
+
+impl Component for RotationComponent {}
+
+/// END OF TRANFORM COMPONENTS -------------------------------------------------------------------->
+
+/// COLOR
+/// Need to abstract color object.
 pub struct ColorComponent {
 
     pub color : (f32, f32, f32, f32)
@@ -59,20 +81,20 @@ pub struct ColorComponent {
 
 impl Component for ColorComponent {}
 
+/// RENDERER
+/// Stores basic shader and renderer information.
+/// Uses position and velocity to update itself.
+
 pub struct RenderComponent {
-
-    pub shader_program : ShaderProgram,
-}
-
-impl Component for RenderComponent {}
-
-pub struct RenderComponentTemp {
 
     pub shader_program : gl::types::GLuint,
     pub vertex_array_object : gl::types::GLuint
 }
 
-impl Component for RenderComponentTemp {}
+impl Component for RenderComponent {}
+
+/// TEXTURES
+/// Stores a list of textures which can be overlaid on top of each other.
 
 pub struct TextureMixComponent {
 
@@ -82,6 +104,9 @@ pub struct TextureMixComponent {
 
 impl Component for TextureMixComponent {}
 
+/// TEXTURE
+/// A single texture object. Stores all texture data.
+
 pub struct Texture {
 
     pub uniform_name : String,
@@ -90,25 +115,13 @@ pub struct Texture {
     pub active_texture_enum : gl::types::GLenum
 }
 
+/// Stores details of textures which may or may not change each frame.
+
 pub struct TextureUpdateComponent {
 
     pub opacity_change : gl::types::GLfloat
 }
 
 impl Component for TextureUpdateComponent {}
-
-pub struct RotationComponent {
-
-    rotation : (f32, f32, f32)
-}
-
-impl Component for RotationComponent {}
-
-pub struct InputResponseComponent {
-
-
-}
-
-impl Component for InputResponseComponent {}
 
 pub trait Component: Any + Sized {}

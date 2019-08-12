@@ -12,8 +12,7 @@ use std::collections::VecDeque;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use std::time::{Duration, Instant};
-use crate::ecs::{PositionComponent, ColorComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
-use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
+use crate::ecs::{PositionComponent, ColorComponent, Texture, RenderComponent, TextureMixComponent, TextureUpdateComponent};
 use crate::ecs::*;
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::ecs::render_system::RenderSystem;
@@ -50,9 +49,7 @@ pub fn run() -> Result<(), Error> {
     GameState::init_test_state(&mut game_state)?;
 
     let render_system = RenderSystem;
-
     let texture_change = TextureUpdateSystem;
-
     let move_update = PositionUpdateSystem;
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
@@ -97,32 +94,42 @@ pub fn run() -> Result<(), Error> {
             match scancode {
 
                 sdl2::keyboard::Scancode::Up => {
-                    if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                    if let Some(update)
+                    = game_state.get_mut::<TextureUpdateComponent>(&GenerationalIndex {index : 0, generation : 0}) {
 
                         update.opacity_change = 0.1;
                     }
                 }
-                sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                sdl2::keyboard::Scancode::Down => {if let Some(update)
+                = game_state.get_mut::<TextureUpdateComponent>(&GenerationalIndex {index : 0, generation : 0}) {
 
                     update.opacity_change = -0.1;
                 }}
 
-                sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                sdl2::keyboard::Scancode::W => {if let Some(velocity)
+                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
                     velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y + 0.01, 0.0);
                 }}
 
-                sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                sdl2::keyboard::Scancode::S => {if let Some(velocity)
+                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
                     velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y - 0.01, 0.0);
                 }}
 
-                sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                sdl2::keyboard::Scancode::D => {if let Some(velocity)
+                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
                     velocity.velocity = vec3(velocity.velocity.x + 0.01, velocity.velocity.y, 0.0);
                 }}
 
-                sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+                sdl2::keyboard::Scancode::A => {if let Some(velocity)
+                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
                     velocity.velocity = vec3(velocity.velocity.x - 0.01, velocity.velocity.y, 0.0);
                 }}
 
+                sdl2::keyboard::Scancode::Escape => { game_state.remove_component::<RenderComponent>(&GenerationalIndex {index : 1, generation : 0})},
+
+                sdl2::keyboard::Scancode::Space => { game_state.add_component_to(
+                    RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()}, &GenerationalIndex {index : 1, generation : 0})}
                 _ => ()
             };
 
@@ -146,15 +153,14 @@ pub fn run() -> Result<(), Error> {
 
             texture_change.run(&mut game_state)?;
 
-            move_update.run(&mut game_state);
+            move_update.run(&mut game_state)?;
 
             render_system.run(
-                ( game_state.get_map::<RenderComponentTemp>(),
-                        game_state.get_map::<PositionComponent>(),
-                        game_state.get_map::<ColorComponent>(),
-                        game_state.get_map::<TextureMixComponent>()))?;
+                (game_state.get_map::<RenderComponent>(),
+                 game_state.get_map::<PositionComponent>(),
+                 game_state.get_map::<ColorComponent>(),
+                 game_state.get_map::<TextureMixComponent>()))?;
         }
-
         // End of rendering code.
         window.on_update();
 
