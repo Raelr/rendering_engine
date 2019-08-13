@@ -88,7 +88,15 @@ pub fn run() -> Result<(), Error> {
 
                     let clicked = Vector4::new((x as f32/ window.data.width as f32) * 2.0 - 1.0, (y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
 
-                    println!("MAIN LOOP: Mouse Moved: {},{}", clicked.x, -clicked.y) },
+                    let projection_view = ortho * view;
+
+                    let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
+
+                    let inversed = inversed * clicked;
+
+                    game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
+
+                    println!("MAIN LOOP: Mouse Moved: {},{}", inversed.x, -inversed.y) },
 
                 // TODO
                 _ => ()

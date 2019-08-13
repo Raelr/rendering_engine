@@ -42,7 +42,7 @@ impl<'a> System<'a> for RenderSystem {
 
                     let model = nalgebra::Matrix4::new_translation(&pos) * nalgebra::Matrix4::new_scaling(100.0);
 
-                    //println!("{}, {}, {}", pos.x, pos.y, pos.z);
+                    println!("{}, {}, {}", pos.x, pos.y, pos.z);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
