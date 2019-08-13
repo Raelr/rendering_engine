@@ -1,7 +1,7 @@
 use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
-use cgmath::Vector3;
+use nalgebra::Vector3;
 
 pub mod system;
 pub mod render_system;

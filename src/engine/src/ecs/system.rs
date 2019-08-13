@@ -4,7 +4,6 @@ use crate::generational_index::generational_index::{GenerationalIndexArray, Gene
 use std::ffi::CString;
 use crate::game_state::GameState;
 use std::borrow::BorrowMut;
-use cgmath::{vec3, Matrix4, Matrix};
 
 pub trait System<'a> {
 

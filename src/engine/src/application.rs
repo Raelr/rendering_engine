@@ -19,7 +19,7 @@ use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
-use cgmath::{Matrix4, vec3};
+use nalgebra::*;
 
 
 /// This is the code for the current event loop.
@@ -54,6 +54,10 @@ pub fn run() -> Result<(), Error> {
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
+    let ortho = nalgebra::Matrix4::new_orthographic(0.0, window.data.width as f32 ,window.data.height as f32 , 0.0, -1.0, 1.0);
+
+    let view = nalgebra::Matrix4::new_translation(&nalgebra::Vector3::new(0.0, 0.0, -1.0));
+
     let now = Instant::now();
 
     // MAIN LOOP
@@ -80,7 +84,11 @@ pub fn run() -> Result<(), Error> {
 
                 // TODO
                 sdl2::event::Event::MouseMotion { timestamp : _, window_id : _, which : _, mousestate : _, x, y, xrel: _, yrel: _ }
-                => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
+                => {
+
+                    let clicked = Vector4::new((x as f32/ window.data.width as f32) * 2.0 - 1.0, (y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
+
+                    println!("MAIN LOOP: Mouse Moved: {},{}", x, y) },
 
                 // TODO
                 _ => ()
@@ -106,24 +114,24 @@ pub fn run() -> Result<(), Error> {
                     update.opacity_change = -0.1;
                 }}
 
-                sdl2::keyboard::Scancode::W => {if let Some(velocity)
+                sdl2::keyboard::Scancode::W => { if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y + 0.01, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y + 2.0, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::S => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = vec3(velocity.velocity.x, velocity.velocity.y - 0.01, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y - 2.0, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::D => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = vec3(velocity.velocity.x + 0.01, velocity.velocity.y, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x + 2.0, velocity.velocity.y, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::A => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = vec3(velocity.velocity.x - 0.01, velocity.velocity.y, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x - 2.0, velocity.velocity.y, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::Escape => { game_state.remove_component::<RenderComponent>(&GenerationalIndex {index : 1, generation : 0})},
@@ -159,7 +167,9 @@ pub fn run() -> Result<(), Error> {
                 (game_state.get_map::<RenderComponent>(),
                  game_state.get_map::<PositionComponent>(),
                  game_state.get_map::<ColorComponent>(),
-                 game_state.get_map::<TextureMixComponent>()))?;
+                 game_state.get_map::<TextureMixComponent>(),
+                 &ortho,
+                 &view))?;
         }
         // End of rendering code.
         window.on_update();

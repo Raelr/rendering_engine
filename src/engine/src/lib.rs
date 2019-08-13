@@ -4,9 +4,9 @@ extern crate strum;
 extern crate failure;
 extern crate anymap;
 extern crate image;
-extern crate cgmath;
+extern crate nalgebra;
 
-use cgmath::*;
+use nalgebra::*;
 
 ////////////////////////////////////
 //           M A C R O S          //

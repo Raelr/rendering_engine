@@ -7,8 +7,7 @@ use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
-use cgmath;
-use cgmath::{Vector4, Vector3, vec3};
+use nalgebra::Vector3;
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -175,19 +174,19 @@ impl GameState {
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : vec3(0.0, 0.0, 0.0)})
+            .with(PositionComponent {position : Vector3::new(500.0, 0.0, 0.0)})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
             [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
              texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
                 opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
-            .with(VelocityComponent {velocity : vec3(0.0, 0.0, 0.0)})
+            .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
             .build();
 
         let second_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : vec3(0.0, 0.0, 0.0)})
+            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .build();
 

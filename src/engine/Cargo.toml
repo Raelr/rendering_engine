@@ -16,7 +16,7 @@ strum = "0.15.0"
 strum_macros = "0.15.0"
 bitflags = "1.0"
 anymap = "0.12.1"
-cgmath = {version = "0.17.0", features = ["swizzle"]}
+nalgebra = "0.18.0"
 image = "*"
 
 

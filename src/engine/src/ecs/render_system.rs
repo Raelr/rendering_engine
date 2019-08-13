@@ -2,10 +2,7 @@ use crate::ecs::system::System;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::ecs::*;
 use failure::Error;
-use cgmath::{vec3, Matrix, Rad, Deg};
-use cgmath::Vector3;
 use std::ffi::CString;
-use crate::cgmath::InnerSpace;
 use crate::game_state::GameState;
 
 pub struct RenderSystem;
@@ -15,7 +12,9 @@ impl<'a> System<'a> for RenderSystem {
     type SystemInput = (&'a GenerationalIndexArray<RenderComponent>,
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
-                        &'a GenerationalIndexArray<TextureMixComponent>);
+                        &'a GenerationalIndexArray<TextureMixComponent>,
+                        &'a nalgebra::Matrix4<f32>,
+                        &'a nalgebra::Matrix4<f32>);
 
     fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
 
@@ -24,8 +23,6 @@ impl<'a> System<'a> for RenderSystem {
         let mut idx = 0;
 
         shaders.into_iter().try_for_each(|shader| -> Result<(), Error> {
-
-            println!("{}", idx);
 
             if let Some(shader_program) = shader {
 
@@ -41,10 +38,17 @@ impl<'a> System<'a> for RenderSystem {
                     // Set Position of Shader
                     let position = input.1.get(&index).unwrap();
 
-                    let trans = cgmath::Matrix4::from_translation(position.position)
-                    * cgmath::Matrix4::from_nonuniform_scale(0.5, 0.75, 0.5);
+                    let pos = nalgebra::Vector3::new(position.position.x, -position.position.y, position.position.z);
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
+                    let model = nalgebra::Matrix4::new_translation(&pos) * nalgebra::Matrix4::new_scaling(100.0);
+
+                    //println!("{}, {}, {}", pos.x, pos.y, pos.z);
+
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
+
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.clone())?;
+
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.4.clone())?;
 
                     // Set Color of Shader
                     let color = input.2.get(&index).unwrap();
@@ -120,7 +124,7 @@ impl RenderSystem {
         Ok(())
     }
 
-    pub unsafe fn set_mat4(id : gl::types::GLuint, name : &str, mat : cgmath::Matrix4<f32> ) -> Result<(), Error> {
+    pub unsafe fn set_mat4(id : gl::types::GLuint, name : &str, mat : nalgebra::Matrix4<f32> ) -> Result<(), Error> {
 
         gl::UniformMatrix4fv(gl::GetUniformLocation(id, CString::new(name)?.as_ptr()),1, gl::FALSE, mat.as_ptr());
 

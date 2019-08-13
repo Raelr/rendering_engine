@@ -3,7 +3,7 @@ use crate::ecs::{PositionComponent, VelocityComponent};
 use failure::Error;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::game_state::GameState;
-use cgmath::{vec3, Vector3, InnerSpace};
+use nalgebra::Vector3;
 
 pub struct PositionUpdateSystem;
 
@@ -21,7 +21,7 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
             let mut generation = 0;
 
-            let mut velocity_change : Vector3<f32> = vec3(0.0, 0.0, 0.0);
+            let mut velocity_change : Vector3<f32> = Vector3::new(0.0, 0.0, 0.0);
 
             {
                 if let Some(velocity) = input.get_map_mut::<VelocityComponent>().entries[index].as_mut() {
@@ -30,7 +30,7 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
                     let mut current_velocity = velocity.value.velocity;
 
-                        let velocity_length = Vector3::magnitude(current_velocity);
+                        let velocity_length = nalgebra::Vector3::magnitude(&current_velocity);
 
                     if velocity_length > 0.0 {
 
@@ -38,22 +38,21 @@ impl<'a> System<'a> for PositionUpdateSystem {
                         let y = if f32::is_sign_positive(current_velocity.y) { current_velocity.y } else { -current_velocity.y };
                         let z = if f32::is_sign_positive(current_velocity.z) { current_velocity.z } else { -current_velocity.z };
 
-                        velocity_change = Vector3::normalize(current_velocity);
+                        velocity_change = Vector3::normalize(&current_velocity);
 
-                        velocity_change = vec3( velocity_change.x * x, velocity_change.y * y, velocity_change.z * z);
+                        velocity_change = Vector3::new( velocity_change.x * x, velocity_change.y * y, velocity_change.z * z);
                     }
 
-                    velocity.value.velocity -= vec3(current_velocity.x * 0.2, current_velocity.y * 0.2, current_velocity.z * 0.2)
+                    velocity.value.velocity -= Vector3::new(current_velocity.x * 0.2, current_velocity.y * 0.2, current_velocity.z * 0.2);
                 }
             }
 
             let idx = GenerationalIndex {index, generation};
 
             {
-                let positions = &mut input.get_map_mut::<PositionComponent>().get_mut(&idx).unwrap();
+                let positions = &mut input.get_mut::<PositionComponent>(&idx).unwrap();
 
                 positions.position += velocity_change;
-
             }
         }
         Ok(())
