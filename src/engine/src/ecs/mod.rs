@@ -70,6 +70,12 @@ pub struct RotationComponent {
 
 impl Component for RotationComponent {}
 
+pub struct ScaleComponent {
+    pub scale : Vector3<f32>
+}
+
+impl Component for ScaleComponent { }
+
 /// END OF TRANFORM COMPONENTS -------------------------------------------------------------------->
 
 /// COLOR

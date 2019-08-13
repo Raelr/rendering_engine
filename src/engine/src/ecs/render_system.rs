@@ -13,6 +13,7 @@ impl<'a> System<'a> for RenderSystem {
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>,
+                        &'a GenerationalIndexArray<ScaleComponent>,
                         &'a nalgebra::Matrix4<f32>,
                         &'a nalgebra::Matrix4<f32>);
 
@@ -35,20 +36,20 @@ impl<'a> System<'a> for RenderSystem {
                     // Set shader program being used.
                     gl::UseProgram(shader_program.value.shader_program);
 
-                    // Set Position of Shader
+                    // Set Position, scale, and rotation in shader
                     let position = input.1.get(&index).unwrap();
 
-                    let pos = nalgebra::Vector3::new(position.position.x, position.position.y, position.position.z);
+                    let scale = input.4.get(&index).unwrap();
 
-                    let model = nalgebra::Matrix4::new_translation(&pos) * nalgebra::Matrix4::new_scaling(100.0);
+                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale.scale);
 
-                    println!("{}, {}, {}", pos.x, pos.y, pos.z);
+                    //println!("{}, {}, {}", pos.x, pos.y, pos.z);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.6.clone())?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.4.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.clone())?;
 
                     // Set Color of Shader
                     let color = input.2.get(&index).unwrap();

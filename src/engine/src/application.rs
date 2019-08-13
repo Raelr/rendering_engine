@@ -79,26 +79,6 @@ pub fn run() -> Result<(), Error> {
                 sdl2::event::Event::Quit { .. }=> { break 'running },
 
                 // TODO
-                sdl2::event::Event::MouseButtonDown { timestamp : _, window_id, which : _, mouse_btn : _, clicks : _, x, y }
-                => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
-
-                // TODO
-                sdl2::event::Event::MouseMotion { timestamp : _, window_id : _, which : _, mousestate : _, x, y, xrel: _, yrel: _ }
-                => {
-
-                    let clicked = Vector4::new((x as f32/ window.data.width as f32) * 2.0 - 1.0, (y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
-
-                    let projection_view = ortho * view;
-
-                    let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
-
-                    let inversed = inversed * clicked;
-
-                    game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
-
-                    println!("MAIN LOOP: Mouse Moved: {},{}", inversed.x, -inversed.y) },
-
-                // TODO
                 _ => ()
             }
         }
@@ -141,15 +121,34 @@ pub fn run() -> Result<(), Error> {
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
                     velocity.velocity = Vector3::new(velocity.velocity.x - 3.0, velocity.velocity.y, 0.0);
                 }}
-
-                sdl2::keyboard::Scancode::Escape => { game_state.remove_component::<RenderComponent>(&GenerationalIndex {index : 1, generation : 0})},
-
-                sdl2::keyboard::Scancode::Space => { game_state.add_component_to(
-                    RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()}, &GenerationalIndex {index : 1, generation : 0})}
                 _ => ()
             };
 
             println!("MAIN LOOP: Key pressed: {}", scancode);
+        }
+
+        let mouse_state = sdl2::mouse::MouseState::new(&pump);
+
+        for button in mouse_state.pressed_mouse_buttons() {
+
+            match button {
+                sdl2::mouse::MouseButton::Left => {                     // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
+                    // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
+                    let clicked = Vector4::new((mouse_state.x() as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_state.y() as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
+
+                    let projection_view = ortho * view;
+
+                    let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
+
+                    let inversed = inversed * clicked;
+
+                    game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
+
+                    println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);},
+
+                _ => ()
+            }
+
         }
 
         // Cycles through all events stored in this queue and executes them.
@@ -176,6 +175,7 @@ pub fn run() -> Result<(), Error> {
                  game_state.get_map::<PositionComponent>(),
                  game_state.get_map::<ColorComponent>(),
                  game_state.get_map::<TextureMixComponent>(),
+                 game_state.get_map::<ScaleComponent>(),
                  &ortho,
                  &view))?;
         }

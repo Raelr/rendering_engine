@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
@@ -162,6 +162,7 @@ impl GameState {
         let texture_comps : EntityMap<TextureMixComponent> = EntityMap::new();
         let texture_changes : EntityMap<TextureUpdateComponent> = EntityMap::new();
         let velocity_changes : EntityMap<VelocityComponent> = EntityMap::new();
+        let scales_components : EntityMap<ScaleComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -169,12 +170,14 @@ impl GameState {
         state.register_map(texture_comps);
         state.register_map(texture_changes);
         state.register_map(velocity_changes);
+        state.register_map(scales_components);
 
         // RIGHT
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
             .with(PositionComponent {position : Vector3::new(500.0, 0.0, 0.0)})
+            .with(ScaleComponent {scale : Vector3::new(100.0, 100., 100.0)})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
             [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
@@ -183,12 +186,12 @@ impl GameState {
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
             .build();
-
-        let second_comp = GameState::create_entity(state)
-            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
-            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
-            .build();
+//
+//        let second_comp = GameState::create_entity(state)
+//            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
+//            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
+//            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
+//            .build();
 
         Ok(())
     }
