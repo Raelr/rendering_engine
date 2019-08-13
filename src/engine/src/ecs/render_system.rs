@@ -38,7 +38,7 @@ impl<'a> System<'a> for RenderSystem {
                     // Set Position of Shader
                     let position = input.1.get(&index).unwrap();
 
-                    let pos = nalgebra::Vector3::new(position.position.x, -position.position.y, position.position.z);
+                    let pos = nalgebra::Vector3::new(position.position.x, position.position.y, position.position.z);
 
                     let model = nalgebra::Matrix4::new_translation(&pos) * nalgebra::Matrix4::new_scaling(100.0);
 

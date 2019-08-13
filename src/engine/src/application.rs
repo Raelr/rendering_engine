@@ -54,7 +54,7 @@ pub fn run() -> Result<(), Error> {
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
-    let ortho = nalgebra::Matrix4::new_orthographic(0.0, window.data.width as f32 ,window.data.height as f32 , 0.0, -1.0, 1.0);
+    let ortho = nalgebra::Matrix4::new_orthographic(-(window.data.width as f32 / 2.0), window.data.width as f32 / 2.0 ,-(window.data.height as f32 / 2.0), window.data.height as f32 / 2.0, -1.0, 1.0);
 
     let view = nalgebra::Matrix4::new_translation(&nalgebra::Vector3::new(0.0, 0.0, -1.0));
 
@@ -88,7 +88,7 @@ pub fn run() -> Result<(), Error> {
 
                     let clicked = Vector4::new((x as f32/ window.data.width as f32) * 2.0 - 1.0, (y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
 
-                    println!("MAIN LOOP: Mouse Moved: {},{}", x, y) },
+                    println!("MAIN LOOP: Mouse Moved: {},{}", clicked.x, -clicked.y) },
 
                 // TODO
                 _ => ()
@@ -116,22 +116,22 @@ pub fn run() -> Result<(), Error> {
 
                 sdl2::keyboard::Scancode::W => { if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y + 2.0, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y + 3.0, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::S => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y - 2.0, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y - 3.0, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::D => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x + 2.0, velocity.velocity.y, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x + 3.0, velocity.velocity.y, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::A => {if let Some(velocity)
                 = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x - 2.0, velocity.velocity.y, 0.0);
+                    velocity.velocity = Vector3::new(velocity.velocity.x - 3.0, velocity.velocity.y, 0.0);
                 }}
 
                 sdl2::keyboard::Scancode::Escape => { game_state.remove_component::<RenderComponent>(&GenerationalIndex {index : 1, generation : 0})},
