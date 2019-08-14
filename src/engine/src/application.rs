@@ -3,15 +3,7 @@ extern crate sdl2;
 extern crate gl;
 extern crate failure;
 
-// Use
-use failure::Error;
-use crate::platform::windows::windows_window;
-use crate::window::{WindowProperties, WindowTrait};
-use crate::platform::windows::windows_window::{WindowsWindow};
-use std::collections::VecDeque;
-use crate::events::window_event::WindowEvent;
-use crate::game_state::GameState;
-use std::time::{Duration, Instant};
+// Internal crates:
 use crate::ecs::{PositionComponent, ColorComponent, Texture, RenderComponent, TextureMixComponent, TextureUpdateComponent};
 use crate::ecs::*;
 use crate::generational_index::generational_index::GenerationalIndex;
@@ -19,6 +11,16 @@ use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
+use crate::events::window_event::WindowEvent;
+use crate::game_state::GameState;
+use crate::platform::windows::windows_window;
+use crate::window::{WindowProperties, WindowTrait};
+use crate::platform::windows::windows_window::{WindowsWindow};
+
+// Use
+use failure::Error;
+use std::collections::VecDeque;
+use std::time::{Duration, Instant};
 use nalgebra::*;
 
 
@@ -45,18 +47,14 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    // Sets up the entities in the ECS.
-    GameState::init_test_state(&mut game_state)?;
-
     let render_system = RenderSystem;
     let texture_change = TextureUpdateSystem;
     let move_update = PositionUpdateSystem;
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
-    let ortho = nalgebra::Matrix4::new_orthographic(-(window.data.width as f32 / 2.0), window.data.width as f32 / 2.0 ,-(window.data.height as f32 / 2.0), window.data.height as f32 / 2.0, -1.0, 1.0);
-
-    let view = nalgebra::Matrix4::new_translation(&nalgebra::Vector3::new(0.0, 0.0, -1.0));
+    // Sets up the entities in the ECS.
+    let m_camera = GameState::init_test_state(&mut game_state, &window)?;
 
     let now = Instant::now();
 
@@ -89,6 +87,7 @@ pub fn run() -> Result<(), Error> {
 
             match scancode {
 
+                // Change opacity of the second texture
                 sdl2::keyboard::Scancode::Up => {
                     if let Some(update)
                     = game_state.get_mut::<TextureUpdateComponent>(&GenerationalIndex {index : 0, generation : 0}) {
@@ -127,16 +126,22 @@ pub fn run() -> Result<(), Error> {
             println!("MAIN LOOP: Key pressed: {}", scancode);
         }
 
+        // MOUSE INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
+
         let mouse_state = sdl2::mouse::MouseState::new(&pump);
 
         for button in mouse_state.pressed_mouse_buttons() {
 
             match button {
-                sdl2::mouse::MouseButton::Left => {                     // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
+                sdl2::mouse::MouseButton::Left => {
+
+                    // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
                     // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
                     let clicked = Vector4::new((mouse_state.x() as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_state.y() as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
 
-                    let projection_view = ortho * view;
+                    let orthographic_projection = game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap();
+
+                    let projection_view = orthographic_projection.projection * orthographic_projection.view;
 
                     let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
 
@@ -148,7 +153,6 @@ pub fn run() -> Result<(), Error> {
 
                 _ => ()
             }
-
         }
 
         // Cycles through all events stored in this queue and executes them.
@@ -176,8 +180,7 @@ pub fn run() -> Result<(), Error> {
                  game_state.get_map::<ColorComponent>(),
                  game_state.get_map::<TextureMixComponent>(),
                  game_state.get_map::<ScaleComponent>(),
-                 &ortho,
-                 &view))?;
+                 game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
         }
         // End of rendering code.
         window.on_update();

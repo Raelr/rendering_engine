@@ -51,17 +51,20 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
-        if let Some(idx) = self.get_unpacked_index(index){
+        let mut saved_index : (u64, usize) = (0, 0);
+
+        if let Some(idx) = self.get_unpacked_index(index) {
 
             self.entries[idx.1] = Some(ArrayEntry {value, generation : index.generation} );
+            saved_index = idx;
 
         } else {
             self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
+            saved_index = ( index.generation, self.entries.len() - 1);
         }
 
         if index.index < self.unpacked_entries.len() {
-
-            self.unpacked_entries[index.index()] = EntryValue::Full((index.generation.clone(), index.index()));
+            self.unpacked_entries[index.index] = EntryValue::Full((index.generation.clone(), saved_index.1))
         }
     }
 
@@ -71,7 +74,7 @@ impl<T> GenerationalIndexArray<T> {
 
         if index.index() < self.unpacked_entries.len() {
             match self.unpacked_entries[index.index()] {
-                EntryValue::Full(v) => success = Some(v),
+                EntryValue::Full(v) => { success = Some(v) },
                 EntryValue::Empty => ()
             }
         }
@@ -87,7 +90,7 @@ impl<T> GenerationalIndexArray<T> {
         let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
 
             if index.generation == entry.generation {
-                value =  Some(&entry.value);
+                value = Some(&entry.value);
             }
         }
         value

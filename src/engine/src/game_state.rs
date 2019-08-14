@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
@@ -7,7 +7,8 @@ use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Matrix4};
+use crate::platform::windows::windows_window::WindowsWindow;
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -154,7 +155,7 @@ impl GameState {
     /// A sandbox for experimenting with component creation. The goal is to have entity creation be
     /// reduced to one or two lines of code.
 
-    pub fn init_test_state(state : &mut GameState) -> Result<(), Error>{
+    pub fn init_test_state(state : &mut GameState, window : &WindowsWindow) -> Result<(Entity), Error>{
 
         let render_comps : EntityMap<RenderComponent> = EntityMap::new();
         let pos_comps : EntityMap<PositionComponent> = EntityMap::new();
@@ -163,6 +164,7 @@ impl GameState {
         let texture_changes : EntityMap<TextureUpdateComponent> = EntityMap::new();
         let velocity_changes : EntityMap<VelocityComponent> = EntityMap::new();
         let scales_components : EntityMap<ScaleComponent> = EntityMap::new();
+        let orthographic_cameras : EntityMap<OrthographicCameraComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -171,12 +173,13 @@ impl GameState {
         state.register_map(texture_changes);
         state.register_map(velocity_changes);
         state.register_map(scales_components);
+        state.register_map(orthographic_cameras);
 
         // RIGHT
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : Vector3::new(500.0, 0.0, 0.0)})
+            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
             .with(ScaleComponent {scale : Vector3::new(100.0, 100., 100.0)})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
@@ -186,14 +189,20 @@ impl GameState {
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
             .build();
-//
-//        let second_comp = GameState::create_entity(state)
-//            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-//            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
-//            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
-//            .build();
 
-        Ok(())
+        let cam_position = Vector3::new(1.0, 0.0, -1.0);
+
+        let camera = GameState::create_entity(state)
+
+            .with(PositionComponent {position : cam_position})
+            .with(OrthographicCameraComponent {projection : Matrix4::new_orthographic(-(window.data.width as f32 / 2.0),
+                                                        window.data.width as f32 / 2.0 ,-(window.data.height as f32 / 2.0),
+                                                        window.data.height as f32 / 2.0, -1.0, 1.0),
+                view : Matrix4::new_translation(&cam_position)
+            })
+            .build();
+
+        Ok((camera))
     }
 }
 

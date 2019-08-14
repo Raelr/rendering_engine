@@ -14,8 +14,7 @@ impl<'a> System<'a> for RenderSystem {
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>,
                         &'a GenerationalIndexArray<ScaleComponent>,
-                        &'a nalgebra::Matrix4<f32>,
-                        &'a nalgebra::Matrix4<f32>);
+                        &'a OrthographicCameraComponent);
 
     fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
 
@@ -43,13 +42,13 @@ impl<'a> System<'a> for RenderSystem {
 
                     let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale.scale);
 
-                    //println!("{}, {}, {}", pos.x, pos.y, pos.z);
+                    println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.6.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.view.clone())?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.projection.clone())?;
 
                     // Set Color of Shader
                     let color = input.2.get(&index).unwrap();

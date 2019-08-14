@@ -1,7 +1,7 @@
 use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Matrix4};
 
 pub mod system;
 pub mod render_system;
@@ -130,4 +130,13 @@ pub struct TextureUpdateComponent {
 
 impl Component for TextureUpdateComponent {}
 
+
+pub struct OrthographicCameraComponent {
+    pub projection : Matrix4<f32>,
+    pub view : Matrix4<f32>
+}
+
+impl Component for OrthographicCameraComponent {}
+
 pub trait Component: Any + Sized {}
+
