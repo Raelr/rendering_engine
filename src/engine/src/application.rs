@@ -58,6 +58,8 @@ pub fn run() -> Result<(), Error> {
     // Sets up the entities in the ECS.
     let m_camera = GameState::init_test_state(&mut game_state, &window)?;
 
+    //let mouse_state = sdl2::mouse::MouseState::new(&pump);
+
     let now = Instant::now();
 
     // MAIN LOOP
@@ -66,7 +68,6 @@ pub fn run() -> Result<(), Error> {
 
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
         for event in pump.poll_iter() {
-
             // WINDOW EVENTS
 
             match event {
@@ -136,7 +137,6 @@ pub fn run() -> Result<(), Error> {
 
             match button {
                 sdl2::mouse::MouseButton::Left => {
-
                     // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
                     // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
                     let clicked = Vector4::new((mouse_state.x() as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_state.y() as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
@@ -151,7 +151,7 @@ pub fn run() -> Result<(), Error> {
 
                     //game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
 
-                    collider_check.run((game_state.get_map::<BoxCollider2DComponent>(), &Vector2::new(inversed.x, inversed.y)));
+                    collider_check.run((&mut game_state, &Vector2::new(inversed.x, -inversed.y)));
 
                     println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);},
 
