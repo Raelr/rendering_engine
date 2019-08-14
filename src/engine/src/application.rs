@@ -11,6 +11,7 @@ use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
+use crate::ecs::check_box_collider_system::CheckBoxColliderSystem;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use crate::platform::windows::windows_window;
@@ -50,6 +51,7 @@ pub fn run() -> Result<(), Error> {
     let render_system = RenderSystem;
     let texture_change = TextureUpdateSystem;
     let move_update = PositionUpdateSystem;
+    let collider_check = check_box_collider_system::CheckBoxColliderSystem;
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
@@ -147,7 +149,9 @@ pub fn run() -> Result<(), Error> {
 
                     let inversed = inversed * clicked;
 
-                    game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
+                    //game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
+
+                    collider_check.run((game_state.get_map::<BoxCollider2DComponent>(), &Vector2::new(inversed.x, inversed.y)));
 
                     println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);},
 
@@ -185,7 +189,7 @@ pub fn run() -> Result<(), Error> {
         // End of rendering code.
         window.on_update();
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 144));
     }
 
     unsafe {

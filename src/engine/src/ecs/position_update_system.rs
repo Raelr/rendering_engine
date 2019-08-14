@@ -1,9 +1,9 @@
 use crate::ecs::system::System;
-use crate::ecs::{PositionComponent, VelocityComponent};
+use crate::ecs::{PositionComponent, VelocityComponent, BoxCollider2DComponent};
 use failure::Error;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::game_state::GameState;
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Vector2};
 
 pub struct PositionUpdateSystem;
 
@@ -53,6 +53,15 @@ impl<'a> System<'a> for PositionUpdateSystem {
                 let positions = &mut input.get_mut::<PositionComponent>(&idx).unwrap();
 
                 positions.position += velocity_change;
+                //println!("Player position (x: {} y: {})", positions.position.x, positions.position.y);
+            }
+
+            {
+                if let Some(collider) = &mut input.get_mut::<BoxCollider2DComponent>(&idx) {
+
+                    collider.position += Vector2::new(velocity_change.x, velocity_change.y);
+                    //println!("Collider position (x: {} y: {})", collider.position.x, collider.position.y);
+                }
             }
         }
         Ok(())

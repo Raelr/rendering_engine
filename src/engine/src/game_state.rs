@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
@@ -7,7 +7,7 @@ use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
-use nalgebra::{Vector3, Matrix4};
+use nalgebra::{Vector3, Matrix4, Vector2};
 use crate::platform::windows::windows_window::WindowsWindow;
 
 /// Types for the generational indices and arrays.
@@ -165,6 +165,7 @@ impl GameState {
         let velocity_changes : EntityMap<VelocityComponent> = EntityMap::new();
         let scales_components : EntityMap<ScaleComponent> = EntityMap::new();
         let orthographic_cameras : EntityMap<OrthographicCameraComponent> = EntityMap::new();
+        let box_colliders : EntityMap<BoxCollider2DComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -174,13 +175,17 @@ impl GameState {
         state.register_map(velocity_changes);
         state.register_map(scales_components);
         state.register_map(orthographic_cameras);
+        state.register_map(box_colliders);
 
         // RIGHT
 
+        let position = Vector3::new(0.0, 0.0, 0.0);
+        let scale = Vector3::new(100.0, 100.0, 100.0);
+
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : Vector3::new(0.0, 0.0, 0.0)})
-            .with(ScaleComponent {scale : Vector3::new(100.0, 100., 100.0)})
+            .with(PositionComponent {position})
+            .with(ScaleComponent {scale})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
             [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
@@ -188,16 +193,22 @@ impl GameState {
                 opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
             .build();
 
-        let cam_position = Vector3::new(1.0, 0.0, -1.0);
+        let cam_position = Vector3::new(0.0, 0.0, -1.0);
 
         let camera = GameState::create_entity(state)
 
             .with(PositionComponent {position : cam_position})
-            .with(OrthographicCameraComponent {projection : Matrix4::new_orthographic(-(window.data.width as f32 / 2.0),
-                                                        window.data.width as f32 / 2.0 ,-(window.data.height as f32 / 2.0),
-                                                        window.data.height as f32 / 2.0, -1.0, 1.0),
+            .with(OrthographicCameraComponent
+                {projection :
+                Matrix4::new_orthographic(-(window.data.width as f32 / 2.0),
+                                          window.data.width as f32 / 2.0 ,
+                                          -(window.data.height as f32 / 2.0),
+                                          window.data.height as f32 / 2.0,
+                                          -1.0,
+                                          1.0),
                 view : Matrix4::new_translation(&cam_position)
             })
             .build();

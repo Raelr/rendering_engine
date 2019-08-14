@@ -35,14 +35,15 @@ impl<'a> System<'a> for RenderSystem {
                     // Set shader program being used.
                     gl::UseProgram(shader_program.value.shader_program);
 
-                    // Set Position, scale, and rotation in shader
+                    // START POSITION RENDERING VARIABLES ------------------------------------------
+
                     let position = input.1.get(&index).unwrap();
 
                     let scale = input.4.get(&index).unwrap();
 
                     let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale.scale);
 
-                    println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
+                    //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
@@ -50,12 +51,14 @@ impl<'a> System<'a> for RenderSystem {
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.projection.clone())?;
 
-                    // Set Color of Shader
+                    // END OF POSITION RENDERING VARIABLES -----------------------------------------
+
+                    // COLOR RENDERING VARIABLES
                     let color = input.2.get(&index).unwrap();
 
                     RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;
 
-                    // Set texture
+                    // TEXTURE RENDERING VARIABLES
                     let texture_mix = input.3.get(&index);
 
                     if let Some(texture_comp) = texture_mix {
@@ -68,10 +71,10 @@ impl<'a> System<'a> for RenderSystem {
                             RenderSystem::set_float(shader_program.value.shader_program, "opacity", texture_comp.opacity)?;
                             gl::ActiveTexture(texture.active_texture_enum);
                             gl::BindTexture(gl::TEXTURE_2D, texture.texture_id);
-
                         }
                     }
 
+                    // DRAW VERTICES
                     gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
                     RenderSystem::set_bool(shader_program.value.shader_program, false, "usingTextures")?;
 

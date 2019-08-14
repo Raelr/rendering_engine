@@ -1,12 +1,13 @@
 use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
-use nalgebra::{Vector3, Matrix4};
+use nalgebra::{Vector3, Matrix4, Vector2};
 
 pub mod system;
 pub mod render_system;
 pub mod texture_update_system;
 pub mod position_update_system;
+pub mod check_box_collider_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -137,6 +138,14 @@ pub struct OrthographicCameraComponent {
 }
 
 impl Component for OrthographicCameraComponent {}
+
+pub struct BoxCollider2DComponent {
+
+    pub size : Vector2<f32>,
+    pub position : Vector2<f32>
+}
+
+impl Component for BoxCollider2DComponent {}
 
 pub trait Component: Any + Sized {}
 
