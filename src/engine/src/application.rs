@@ -1,5 +1,4 @@
 // Crates
-extern crate sdl2;
 extern crate gl;
 extern crate failure;
 
@@ -17,12 +16,23 @@ use crate::game_state::GameState;
 use crate::platform::windows::windows_window;
 use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow};
+use crate::sdl2::keyboard::Scancode;
+use crate::sdl2::mouse::MouseButton;
+use crate::input::MouseInput;
 
 // Use
 use failure::Error;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 use nalgebra::*;
+use sdl2::controller::Button::A;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::ops::Deref;
+use std::borrow::Borrow;
+use crate::input::*;
+use crate::input::input_handler::*;
+use crate::input;
 
 
 /// This is the code for the current event loop.
@@ -41,6 +51,7 @@ pub fn run() -> Result<(), Error> {
 
     // Get the event pump from sdl.
     let mut pump = sdl.event_pump().unwrap();
+//    let mut pump = sdl.event_pump().unwrap();
 
     // Initialise the one time event queue.
     let mut one_time_events: VecDeque<Box<dyn FnMut()>> = VecDeque::new();
@@ -62,12 +73,13 @@ pub fn run() -> Result<(), Error> {
 
     let now = Instant::now();
 
+    let mut input_handler = InputHandler::new();
+
     // MAIN LOOP
     'running: loop {
 
-
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
-        for event in pump.poll_iter() {
+        for event in pump.poll_iter(){
             // WINDOW EVENTS
 
             match event {
@@ -86,79 +98,31 @@ pub fn run() -> Result<(), Error> {
 
         // KEYBOARD INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
 
-        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes(){
-
-            match scancode {
-
-                // Change opacity of the second texture
-                sdl2::keyboard::Scancode::Up => {
-                    if let Some(update)
-                    = game_state.get_mut::<TextureUpdateComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-
-                        update.opacity_change = 0.1;
-                    }
-                }
-                sdl2::keyboard::Scancode::Down => {if let Some(update)
-                = game_state.get_mut::<TextureUpdateComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-
-                    update.opacity_change = -0.1;
-                }}
-
-                sdl2::keyboard::Scancode::W => { if let Some(velocity)
-                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y + 3.0, 0.0);
-                }}
-
-                sdl2::keyboard::Scancode::S => {if let Some(velocity)
-                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x, velocity.velocity.y - 3.0, 0.0);
-                }}
-
-                sdl2::keyboard::Scancode::D => {if let Some(velocity)
-                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x + 3.0, velocity.velocity.y, 0.0);
-                }}
-
-                sdl2::keyboard::Scancode::A => {if let Some(velocity)
-                = game_state.get_mut::<VelocityComponent>(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = Vector3::new(velocity.velocity.x - 3.0, velocity.velocity.y, 0.0);
-                }}
-                _ => ()
-            };
-
-            println!("MAIN LOOP: Key pressed: {}", scancode);
-        }
+        input_handler.update_input_state(&mut pump);
 
         // MOUSE INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
 
-        let mouse_state = sdl2::mouse::MouseState::new(&pump);
+        // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
+        // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
+        if input_handler.get_mouse_down(&MouseInput::Left) {
 
-        for button in mouse_state.pressed_mouse_buttons() {
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
-            match button {
-                sdl2::mouse::MouseButton::Left => {
-                    // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
-                    // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
-                    let clicked = Vector4::new((mouse_state.x() as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_state.y() as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
+            let clicked = Vector4::new((mouse_coordinates.x as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_coordinates.y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
 
-                    let orthographic_projection = game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap();
+            let orthographic_projection = game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap();
 
-                    let projection_view = orthographic_projection.projection * orthographic_projection.view;
+            let projection_view = orthographic_projection.projection * orthographic_projection.view;
 
-                    let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
+            let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
 
-                    let inversed = inversed * clicked;
+            let inversed = inversed * clicked;
 
-                    //game_state.get_mut::<PositionComponent>(&GenerationalIndex{index : 0, generation:  0}).unwrap().position = Vector3::new(inversed.x, -inversed.y, inversed.z);
+            collider_check.run((&mut game_state, &Vector2::new(inversed.x, -inversed.y)));
 
-                    collider_check.run((&mut game_state, &Vector2::new(inversed.x, -inversed.y)));
-
-                    println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);},
-
-                _ => ()
-            }
+            println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);
         }
-
+        
         // Cycles through all events stored in this queue and executes them.
         while let Some(mut e) = one_time_events.pop_front() {
             e();

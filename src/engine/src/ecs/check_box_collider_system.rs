@@ -1,5 +1,5 @@
 use crate::ecs::system::System;
-use crate::ecs::{BoxCollider2DComponent, PositionComponent};
+use crate::ecs::{BoxCollider2DComponent, PositionComponent, ColorComponent};
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use nalgebra::{Vector2, Vector3};
 use failure::Error;
@@ -42,7 +42,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
                 collided = collision_x && collision_y;
 
-                println!("{}", collided);
+                //println!("{}", collided);
 
                 if collided {
                     collider_entry.value.position = mouse_coordinates.clone();
@@ -55,11 +55,12 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
             if collided {
 
-                let position = input.0.get_mut::<PositionComponent>(&gen_idx).unwrap();
+                {
+                    let position = input.0.get_mut::<PositionComponent>(&gen_idx).unwrap();
 
-                position.position = Vector3::new(input.1.x, input.1.y, 0.0);
+                    position.position = Vector3::new(input.1.x, input.1.y, 0.0);
+                }
             }
-
         }
         Ok(())
     }
