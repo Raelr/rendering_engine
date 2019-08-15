@@ -26,6 +26,7 @@ pub mod platform;
 #[macro_use]pub mod ecs;
 pub mod game_state;
 pub mod input;
+pub mod utilities;
 pub mod application;
 
 

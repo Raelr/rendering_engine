@@ -33,6 +33,7 @@ use std::borrow::Borrow;
 use crate::input::*;
 use crate::input::input_handler::*;
 use crate::input;
+use crate::utilities::camera_utils;
 
 
 /// This is the code for the current event loop.
@@ -96,31 +97,21 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        // KEYBOARD INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
+        // KEYBOARD INPUT MODULE - NEEDS WORK
 
         input_handler.update_input_state(&mut pump);
 
-        // MOUSE INPUT - NEED TO REFACTOR INTO SEPARATE MODULE
+        // MOUSE INPUT MODULE - NEEDS WORK
 
-        // HOLT SHIT THIS TOOK SO LONG TO MAKE. I AM A GOD AMONGST MEN. FEAR ME.
-        // SCREEN COORDINATE CONVERSION - SHOULD BE MOVED TO NEW FUNCTION.
         if input_handler.get_mouse_down(&MouseInput::Left) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
-            let clicked = Vector4::new((mouse_coordinates.x as f32/ window.data.width as f32) * 2.0 - 1.0, (mouse_coordinates.y as f32/ window.data.height as f32) * 2.0 - 1.0, 0.5, 1.0);
+            let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                        mouse_coordinates);
 
-            let orthographic_projection = game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap();
-
-            let projection_view = orthographic_projection.projection * orthographic_projection.view;
-
-            let inversed: Matrix4<f32> = nalgebra::Matrix4::qr(projection_view).try_inverse().unwrap();
-
-            let inversed = inversed * clicked;
-
-            collider_check.run((&mut game_state, &Vector2::new(inversed.x, -inversed.y)));
-
-            println!("Left clicked at position: x: {} y: {} x: {}", inversed.x, inversed.y, inversed.z);
+            collider_check.run((&mut game_state, &screen_coordinates));
         }
         
         // Cycles through all events stored in this queue and executes them.

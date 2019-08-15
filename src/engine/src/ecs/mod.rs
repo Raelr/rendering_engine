@@ -133,8 +133,10 @@ impl Component for TextureUpdateComponent {}
 
 
 pub struct OrthographicCameraComponent {
-    pub projection : Matrix4<f32>,
-    pub view : Matrix4<f32>
+
+    pub dimensions : Vector2<f32>,
+    pub view : Matrix4<f32>,
+    pub projection : Matrix4<f32>
 }
 
 impl Component for OrthographicCameraComponent {}

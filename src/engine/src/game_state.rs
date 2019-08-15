@@ -197,20 +197,19 @@ impl GameState {
             .build();
 
         let cam_position = Vector3::new(0.0, 0.0, -1.0);
+        let cam_dimensions = Vector2::new(window.data.width as f32, window.data.height as f32);
 
         let camera = GameState::create_entity(state)
 
             .with(PositionComponent {position : cam_position})
             .with(OrthographicCameraComponent
-                {projection :
-                Matrix4::new_orthographic(-(window.data.width as f32 / 2.0),
-                                          window.data.width as f32 / 2.0 ,
-                                          -(window.data.height as f32 / 2.0),
-                                          window.data.height as f32 / 2.0,
-                                          -1.0,
-                                          1.0),
-                view : Matrix4::new_translation(&cam_position)
-            })
+                {   dimensions: cam_dimensions,
+                    view: Matrix4::new_translation(&cam_position),
+                    projection : Matrix4::new_orthographic(
+                        -(cam_dimensions.x / 2.0),
+                        cam_dimensions.x / 2.0,
+                        -(cam_dimensions.y / 2.0),
+                        cam_dimensions.y / 2.0, 1.0, -1.0 )})
             .build();
 
         Ok((camera))

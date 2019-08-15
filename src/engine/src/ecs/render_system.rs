@@ -4,6 +4,7 @@ use crate::ecs::*;
 use failure::Error;
 use std::ffi::CString;
 use crate::game_state::GameState;
+use nalgebra::Vector4;
 
 pub struct RenderSystem;
 
@@ -47,9 +48,9 @@ impl<'a> System<'a> for RenderSystem {
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.view.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.view)?;
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.projection.clone())?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.projection)?;
 
                     // END OF POSITION RENDERING VARIABLES -----------------------------------------
 
