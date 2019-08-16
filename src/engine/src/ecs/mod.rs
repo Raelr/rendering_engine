@@ -7,7 +7,7 @@ pub mod system;
 pub mod render_system;
 pub mod texture_update_system;
 pub mod position_update_system;
-pub mod check_box_collider_system;
+pub mod check_mouse_collision_system;
 pub mod selection_system;
 
 #[macro_export]

@@ -10,7 +10,7 @@ use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
-use crate::ecs::check_box_collider_system::CheckBoxColliderSystem;
+use crate::ecs::check_mouse_collision_system::CheckBoxColliderSystem;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use crate::platform::windows::windows_window;
@@ -105,9 +105,19 @@ pub fn run() -> Result<(), Error> {
 
             let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
-                        mouse_coordinates);
+                mouse_coordinates);
 
-            check_box_collider_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
+            check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
+
+        } else if input_handler.get_mouse_down(&MouseInput::Left) {
+
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
+
+            let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                mouse_coordinates);
+
+            selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
         }
         
         // Cycles through all events stored in this queue and executes them.
