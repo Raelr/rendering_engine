@@ -2,20 +2,22 @@ use crate::ecs::system::System;
 use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
 use crate::ecs::*;
 use failure::Error;
-use cgmath::{vec3, Matrix, Rad, Deg};
 use std::ffi::CString;
+use crate::game_state::GameState;
+use nalgebra::Vector4;
 
 pub struct RenderSystem;
 
 impl<'a> System<'a> for RenderSystem {
 
-    type SystemInput = (&'a GenerationalIndexArray<RenderComponentTemp>,
+    type SystemInput = (&'a GenerationalIndexArray<RenderComponent>,
                         &'a GenerationalIndexArray<PositionComponent>,
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>,
-                        &'a f32);
+                        &'a GenerationalIndexArray<ScaleComponent>,
+                        &'a OrthographicCameraComponent);
 
-    fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
+    fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let shaders = &input.0.entries;
 
@@ -34,26 +36,30 @@ impl<'a> System<'a> for RenderSystem {
                     // Set shader program being used.
                     gl::UseProgram(shader_program.value.shader_program);
 
-                    // Set Position of Shader
+                    // START POSITION RENDERING VARIABLES ------------------------------------------
+
                     let position = input.1.get(&index).unwrap();
 
-                    //cgmath stuff.
+                    let scale = input.4.get(&index).unwrap();
 
-//                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
-//                        * cgmath::Matrix4::from_axis_angle(vec3(0.0, 0.0, 1.0), Rad::from(Deg(input.4.clone() * 15.0)))
-//                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
+                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale.scale);
 
-                    let trans = cgmath::Matrix4::from_nonuniform_scale(0.5, 0.5, 0.5)
-                        * cgmath::Matrix4::from_translation(vec3(position.position.0, position.position.1,  position.position.2));
+                    //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 
-                    RenderSystem::set_mat4(shader_program.value.shader_program, "Transform", trans)?;
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
-                    // Set Color of Shader
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "View", input.5.view)?;
+
+                    RenderSystem::set_mat4(shader_program.value.shader_program, "Projection", input.5.projection)?;
+
+                    // END OF POSITION RENDERING VARIABLES -----------------------------------------
+
+                    // COLOR RENDERING VARIABLES
                     let color = input.2.get(&index).unwrap();
 
                     RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;
 
-                    // Set texture
+                    // TEXTURE RENDERING VARIABLES
                     let texture_mix = input.3.get(&index);
 
                     if let Some(texture_comp) = texture_mix {
@@ -66,10 +72,10 @@ impl<'a> System<'a> for RenderSystem {
                             RenderSystem::set_float(shader_program.value.shader_program, "opacity", texture_comp.opacity)?;
                             gl::ActiveTexture(texture.active_texture_enum);
                             gl::BindTexture(gl::TEXTURE_2D, texture.texture_id);
-
                         }
                     }
 
+                    // DRAW VERTICES
                     gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
                     RenderSystem::set_bool(shader_program.value.shader_program, false, "usingTextures")?;
 
@@ -122,7 +128,7 @@ impl RenderSystem {
         Ok(())
     }
 
-    pub unsafe fn set_mat4(id : gl::types::GLuint, name : &str, mat : cgmath::Matrix4<f32> ) -> Result<(), Error> {
+    pub unsafe fn set_mat4(id : gl::types::GLuint, name : &str, mat : nalgebra::Matrix4<f32> ) -> Result<(), Error> {
 
         gl::UniformMatrix4fv(gl::GetUniformLocation(id, CString::new(name)?.as_ptr()),1, gl::FALSE, mat.as_ptr());
 

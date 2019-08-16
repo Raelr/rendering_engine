@@ -1,25 +1,39 @@
 // Crates
-extern crate sdl2;
 extern crate gl;
 extern crate failure;
 
-// Use
-use failure::Error;
-use crate::platform::windows::windows_window;
-use crate::window::{WindowProperties, WindowTrait};
-use crate::platform::windows::windows_window::{WindowsWindow};
-use std::collections::VecDeque;
-use crate::events::window_event::WindowEvent;
-use crate::game_state::GameState;
-use std::time::{Duration, Instant};
-use crate::ecs::{PositionComponent, ColorComponent, RenderComponent, Texture, RenderComponentTemp, TextureMixComponent, TextureUpdateComponent};
-use crate::renderer::shapes::shape::{Triangle, Shape, Quad};
+// Internal crates:
+use crate::ecs::{PositionComponent, ColorComponent, Texture, RenderComponent, TextureMixComponent, TextureUpdateComponent};
 use crate::ecs::*;
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::ecs::render_system::RenderSystem;
 use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
 use crate::ecs::position_update_system::PositionUpdateSystem;
+use crate::ecs::check_mouse_collision_system::CheckBoxColliderSystem;
+use crate::events::window_event::WindowEvent;
+use crate::game_state::GameState;
+use crate::platform::windows::windows_window;
+use crate::window::{WindowProperties, WindowTrait};
+use crate::platform::windows::windows_window::{WindowsWindow};
+use crate::sdl2::keyboard::Scancode;
+use crate::sdl2::mouse::MouseButton;
+use crate::input::MouseInput;
+
+// Use
+use failure::Error;
+use std::collections::VecDeque;
+use std::time::{Duration, Instant};
+use nalgebra::*;
+use sdl2::controller::Button::A;
+use std::cell::RefCell;
+use std::rc::Rc;
+use std::ops::Deref;
+use std::borrow::Borrow;
+use crate::input::*;
+use crate::input::input_handler::*;
+use crate::input;
+use crate::utilities::camera_utils;
 
 
 /// This is the code for the current event loop.
@@ -38,6 +52,7 @@ pub fn run() -> Result<(), Error> {
 
     // Get the event pump from sdl.
     let mut pump = sdl.event_pump().unwrap();
+//    let mut pump = sdl.event_pump().unwrap();
 
     // Initialise the one time event queue.
     let mut one_time_events: VecDeque<Box<dyn FnMut()>> = VecDeque::new();
@@ -45,24 +60,21 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    // Sets up the entities in the ECS.
-    GameState::init_test_state(&mut game_state)?;
-
-    let render_system = RenderSystem;
-
-    let texture_change = TextureUpdateSystem;
-
-    let move_update = PositionUpdateSystem;
-
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
+    // Sets up the entities in the ECS.
+    let m_camera = GameState::init_test_state(&mut game_state, &window)?;
+
     let now = Instant::now();
+
+    let mut input_handler = InputHandler::new();
 
     // MAIN LOOP
     'running: loop {
 
         // Checks for sdl2 events. These are then filtered to appropriate areas to be processed properly.
-        for event in pump.poll_iter() {
+        for event in pump.poll_iter(){
+            // WINDOW EVENTS
 
             match event {
 
@@ -73,64 +85,41 @@ pub fn run() -> Result<(), Error> {
                 // Breaks the loop.
                 sdl2::event::Event::Quit { .. }=> { break 'running },
 
-                // TODO
-                sdl2::event::Event::MouseButtonDown { timestamp : _, window_id, which : _, mouse_btn : _, clicks : _, x, y }
-                => println!("MAIN LOOP: Mouse Clicked: {},{}, {}", x, y, window_id),
-
-                // TODO
-                sdl2::event::Event::MouseMotion { timestamp : _, window_id : _, which : _, mousestate : _, x, y, xrel: _, yrel: _ }
-                => println!("MAIN LOOP: Mouse Moved: {},{}", x, y),
-
-                // TODO
-                sdl2::event::Event::KeyDown { keycode, repeat, .. }
-                => { let key_code = keycode.unwrap();
-                    match key_code {
-                        _ => ()
-                    }},
+                sdl2::event::Event::MouseButtonUp {timestamp: _, window_id: _, which: _ , mouse_btn: MouseButton::Left, .. }
+                    => { println!("left click released") },
 
                 // TODO
                 _ => ()
             }
         }
 
-        for scancode in sdl2::keyboard::KeyboardState::new(&pump).pressed_scancodes() {
+        // KEYBOARD INPUT MODULE - NEEDS WORK
 
-            match scancode {
+        input_handler.update_input_state(&mut pump);
 
-                sdl2::keyboard::Scancode::Up => {
-                    if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+        // MOUSE INPUT MODULE - NEEDS WORK
 
-                        update.opacity_change = 0.1;
-                    }
-                }
+        if input_handler.get_mouse_button(&MouseInput::Left) {
 
-                sdl2::keyboard::Scancode::Down => {if let Some(update) = game_state.get_map_mut::<TextureUpdateComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
-                    update.opacity_change = -0.01;
-                }}
+            let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                mouse_coordinates);
 
-                sdl2::keyboard::Scancode::W => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 + 0.005, 0.0);
-                }}
+            check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
 
-                sdl2::keyboard::Scancode::S => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0, velocity.velocity.1 - 0.005, 0.0);
-                }}
+        } else if input_handler.get_mouse_down(&MouseInput::Left) {
 
-                sdl2::keyboard::Scancode::D => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 + 0.005, velocity.velocity.1, 0.0);
-                }}
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
-                sdl2::keyboard::Scancode::A => {if let Some(velocity) = game_state.get_map_mut::<VelocityComponent>().get_mut(&GenerationalIndex {index : 0, generation : 0}) {
-                    velocity.velocity = (velocity.velocity.0 - 0.005, velocity.velocity.1, 0.0);
-                }}
+            let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                mouse_coordinates);
 
-                _ => ()
-            };
-
-            println!("MAIN LOOP: Key pressed: {}", scancode);
+            selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
         }
-
+        
         // Cycles through all events stored in this queue and executes them.
         while let Some(mut e) = one_time_events.pop_front() {
             e();
@@ -141,27 +130,29 @@ pub fn run() -> Result<(), Error> {
             e(&mut window);
         }
 
-        // DRAW CODE
+        // SYSTEMS
         unsafe {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            texture_change.run(&mut game_state)?;
+            texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
-            move_update.run(&mut game_state);
+            selection_system::SelectionSystem::run((&mut game_state, &input_handler));
 
-            render_system.run(
-                ( game_state.get_map::<RenderComponentTemp>(),
-                        game_state.get_map::<PositionComponent>(),
-                        game_state.get_map::<ColorComponent>(),
-                        game_state.get_map::<TextureMixComponent>(),
-                        &now.elapsed().as_secs_f32()))?;
+            position_update_system::PositionUpdateSystem::run(&mut game_state)?;
+
+            render_system::RenderSystem::run(
+                (game_state.get_map::<RenderComponent>(),
+                 game_state.get_map::<PositionComponent>(),
+                 game_state.get_map::<ColorComponent>(),
+                 game_state.get_map::<TextureMixComponent>(),
+                 game_state.get_map::<ScaleComponent>(),
+                 game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
         }
-
         // End of rendering code.
         window.on_update();
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 144));
     }
 
     unsafe {

@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, RenderComponent, Component, TextureMixComponent, Texture, RenderComponentTemp, TextureUpdateComponent, VelocityComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent};
 use crate::generational_index::generational_index::*;
 use std::time::{Instant};
 use crate::renderer::shaders::shader::Shader;
@@ -7,8 +7,8 @@ use crate::renderer::shapes::shape::*;
 use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
-use cgmath;
-use cgmath::{Vector4, Vector3, vec3};
+use nalgebra::{Vector3, Matrix4, Vector2};
+use crate::platform::windows::windows_window::WindowsWindow;
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -42,7 +42,7 @@ impl GameState {
 
     /// Takes in a generic component and attempts to map it to a type in the component anymap.
 
-    pub fn register_component<T : 'static>(&mut self, component : T, index : &GenerationalIndex) {
+    pub fn register_component<T : Component>(&mut self, component : T, index : &GenerationalIndex) {
 
         if let Some(m) = self.components.get_mut::<EntityMap<T>>() {
 
@@ -55,9 +55,15 @@ impl GameState {
         }
     }
 
+    pub fn add_component_to<T: Component>(&mut self, component : T, index : &Entity) {
+
+        self.register_component(component, index);
+    }
+
     pub fn remove_component<T : Component>(&mut self, index : &Entity) {
 
         if let Some(array) = self.components.get_mut::<EntityMap<T>>() {
+            println!("Removing");
             array.remove(&index);
         } else {
             eprintln!("The component does not exist!");
@@ -107,6 +113,29 @@ impl GameState {
         &*self.components.get::<EntityMap<T>>().unwrap()
     }
 
+    /// Returns a single component
+    pub fn get_mut<T : 'static>(&mut self, index: &Entity) -> Option<&mut T>{
+
+        let mut value = self.get_map_mut::<T>().get_mut(index);
+
+        if let Some(mut val) = value.as_mut() {
+            return value
+        } else {
+            None
+        }
+    }
+
+    /// Returns a single component
+    pub fn get<T : 'static>(&self, index: &Entity) -> Option<&T>{
+
+        let mut value = self.get_map::<T>().get(index);
+
+        match value {
+            Some(component) => value,
+            None => None
+        }
+    }
+
     /// Ensures that the inputted index array is the same size as the number of entities
     /// (Each entity can have ONE of each component)
 
@@ -126,14 +155,18 @@ impl GameState {
     /// A sandbox for experimenting with component creation. The goal is to have entity creation be
     /// reduced to one or two lines of code.
 
-    pub fn init_test_state(state : &mut GameState) -> Result<(), Error>{
+    pub fn init_test_state(state : &mut GameState, window : &WindowsWindow) -> Result<(Entity), Error>{
 
-        let render_comps : EntityMap<RenderComponentTemp> = EntityMap::new();
+        let render_comps : EntityMap<RenderComponent> = EntityMap::new();
         let pos_comps : EntityMap<PositionComponent> = EntityMap::new();
         let color_comps : EntityMap<ColorComponent> = EntityMap::new();
         let texture_comps : EntityMap<TextureMixComponent> = EntityMap::new();
         let texture_changes : EntityMap<TextureUpdateComponent> = EntityMap::new();
         let velocity_changes : EntityMap<VelocityComponent> = EntityMap::new();
+        let scales_components : EntityMap<ScaleComponent> = EntityMap::new();
+        let orthographic_cameras : EntityMap<OrthographicCameraComponent> = EntityMap::new();
+        let box_colliders : EntityMap<BoxCollider2DComponent> = EntityMap::new();
+        let selected_components : EntityMap<SelectedComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -141,28 +174,47 @@ impl GameState {
         state.register_map(texture_comps);
         state.register_map(texture_changes);
         state.register_map(velocity_changes);
+        state.register_map(scales_components);
+        state.register_map(orthographic_cameras);
+        state.register_map(box_colliders);
+        state.register_map(selected_components);
 
         // RIGHT
 
+        let position = Vector3::new(0.0, 0.0, 0.0);
+        let scale = Vector3::new(100.0, 100.0, 100.0);
+
         let _first_comp = GameState::create_entity(state)
-            .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position : (0.0, 0.0, 0.0)})
+            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
+            .with(PositionComponent {position})
+            .with(ScaleComponent {scale})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
-                [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
-                 texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
-                 opacity: 0.0})
+            [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
+             texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
+                opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
-            .with(VelocityComponent {velocity : (0.0, 0.0, 0.0)})
+            .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
             .build();
 
-//        let _second_comp = GameState::create_entity(state)
-//            .with(RenderComponentTemp {shader_program : triangle_render!(), vertex_array_object : quad!()})
-//            .with(PositionComponent {position : (0.5, 0.0, 0.0), reversed : true })
-//            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0), use_vertex_colors : false, use_position : false})
-//            .build();
+        let cam_position = Vector3::new(0.0, 0.0, -1.0);
+        let cam_dimensions = Vector2::new(window.data.width as f32, window.data.height as f32);
 
-        Ok(())
+        let camera = GameState::create_entity(state)
+
+            .with(PositionComponent {position : cam_position})
+            .with(OrthographicCameraComponent
+                {   dimensions: cam_dimensions,
+                    view: Matrix4::new_translation(&cam_position),
+                    projection : Matrix4::new_orthographic(
+                        -(cam_dimensions.x / 2.0),
+                        cam_dimensions.x / 2.0,
+                        -(cam_dimensions.y / 2.0),
+                        cam_dimensions.y / 2.0, 1.0, -1.0 )})
+            .build();
+
+        Ok((camera))
     }
 }
 

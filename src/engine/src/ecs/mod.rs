@@ -1,11 +1,14 @@
 use std::time::Instant;
 use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
+use nalgebra::{Vector3, Matrix4, Vector2};
 
 pub mod system;
 pub mod render_system;
 pub mod texture_update_system;
 pub mod position_update_system;
+pub mod check_mouse_collision_system;
+pub mod selection_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -36,22 +39,49 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
         Texture { uniform_name: $name, texture_id, number: $number, active_texture_enum: $enum }
     }};
 }
-// Test struct. I know bools are bad, however i need to test this somehow.
+
+/// START OF TRANSFORM COMPONENTS ----------------------------------------------------------------->
+
+/// POSITION
+/// PositionComponent - Used to store the Entity's position. Currently represented as a
+/// Vector3
 pub struct PositionComponent {
 
-    pub position : (f32, f32, f32)
+    pub position : Vector3<f32>
 }
 
 impl Component for PositionComponent {}
 
+/// VELOCITY
+/// Used to store the velocity of the entity. Currently adds velocity to position every frame
+/// SEE: position_update_system
 pub struct VelocityComponent {
 
-    pub velocity : (f32, f32, f32)
+    pub velocity : Vector3<f32>
 }
 
 impl Component for VelocityComponent {}
 
-//  Same as above.
+/// ROTATION
+/// Stores current object rotation.
+
+pub struct RotationComponent {
+
+    rotation : Vector3<f32>
+}
+
+impl Component for RotationComponent {}
+
+pub struct ScaleComponent {
+    pub scale : Vector3<f32>
+}
+
+impl Component for ScaleComponent { }
+
+/// END OF TRANFORM COMPONENTS -------------------------------------------------------------------->
+
+/// COLOR
+/// Need to abstract color object.
 pub struct ColorComponent {
 
     pub color : (f32, f32, f32, f32)
@@ -59,20 +89,20 @@ pub struct ColorComponent {
 
 impl Component for ColorComponent {}
 
+/// RENDERER
+/// Stores basic shader and renderer information.
+/// Uses position and velocity to update itself.
+
 pub struct RenderComponent {
-
-    pub shader_program : ShaderProgram,
-}
-
-impl Component for RenderComponent {}
-
-pub struct RenderComponentTemp {
 
     pub shader_program : gl::types::GLuint,
     pub vertex_array_object : gl::types::GLuint
 }
 
-impl Component for RenderComponentTemp {}
+impl Component for RenderComponent {}
+
+/// TEXTURES
+/// Stores a list of textures which can be overlaid on top of each other.
 
 pub struct TextureMixComponent {
 
@@ -82,6 +112,9 @@ pub struct TextureMixComponent {
 
 impl Component for TextureMixComponent {}
 
+/// TEXTURE
+/// A single texture object. Stores all texture data.
+
 pub struct Texture {
 
     pub uniform_name : String,
@@ -90,6 +123,8 @@ pub struct Texture {
     pub active_texture_enum : gl::types::GLenum
 }
 
+/// Stores details of textures which may or may not change each frame.
+
 pub struct TextureUpdateComponent {
 
     pub opacity_change : gl::types::GLfloat
@@ -97,18 +132,33 @@ pub struct TextureUpdateComponent {
 
 impl Component for TextureUpdateComponent {}
 
-pub struct RotationComponent {
+///
 
-    rotation : (f32, f32, f32)
+pub struct OrthographicCameraComponent {
+
+    pub dimensions : Vector2<f32>,
+    pub view : Matrix4<f32>,
+    pub projection : Matrix4<f32>
 }
 
-impl Component for RotationComponent {}
+impl Component for OrthographicCameraComponent {}
 
-pub struct InputResponseComponent {
+///
 
+pub struct BoxCollider2DComponent {
 
+    pub size : Vector2<f32>,
+    pub position : Vector2<f32>
 }
 
-impl Component for InputResponseComponent {}
+impl Component for BoxCollider2DComponent {}
+
+pub struct SelectedComponent {
+
+    pub selected_color : (f32, f32, f32, f32)
+}
+
+impl Component for SelectedComponent {}
 
 pub trait Component: Any + Sized {}
+

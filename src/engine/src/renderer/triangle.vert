@@ -5,7 +5,9 @@ layout (location = 0) in vec3 Position;
 layout (location = 1) in vec2 TexCoordinates;
 
 uniform vec2 Offset;
-uniform mat4 Transform;
+uniform mat4 Model;
+uniform mat4 Projection;
+uniform mat4 View;
 uniform vec4 Color;
 
 out VS_OUTPUT {
@@ -15,7 +17,7 @@ out VS_OUTPUT {
 
 void main() {
 
-    gl_Position = Transform * vec4(Position, 1.0);
+    gl_Position = Projection * View * Model * vec4(Position.xy, 0.0, 1.0);
 
     OUT.Color = Color;
 
