@@ -60,17 +60,10 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-    let render_system = RenderSystem;
-    let texture_change = TextureUpdateSystem;
-    let move_update = PositionUpdateSystem;
-    let collider_check = check_box_collider_system::CheckBoxColliderSystem;
-
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
     // Sets up the entities in the ECS.
     let m_camera = GameState::init_test_state(&mut game_state, &window)?;
-
-    //let mouse_state = sdl2::mouse::MouseState::new(&pump);
 
     let now = Instant::now();
 
@@ -92,6 +85,9 @@ pub fn run() -> Result<(), Error> {
                 // Breaks the loop.
                 sdl2::event::Event::Quit { .. }=> { break 'running },
 
+                sdl2::event::Event::MouseButtonUp {timestamp: _, window_id: _, which: _ , mouse_btn: MouseButton::Left, .. }
+                    => { println!("left click released") },
+
                 // TODO
                 _ => ()
             }
@@ -111,7 +107,7 @@ pub fn run() -> Result<(), Error> {
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
                         mouse_coordinates);
 
-            collider_check.run((&mut game_state, &screen_coordinates));
+            check_box_collider_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
         }
         
         // Cycles through all events stored in this queue and executes them.
@@ -129,11 +125,13 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            texture_change.run(&mut game_state)?;
+            texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
-            move_update.run(&mut game_state)?;
+            selection_system::SelectionSystem::run((&mut game_state, &input_handler));
 
-            render_system.run(
+            position_update_system::PositionUpdateSystem::run(&mut game_state)?;
+
+            render_system::RenderSystem::run(
                 (game_state.get_map::<RenderComponent>(),
                  game_state.get_map::<PositionComponent>(),
                  game_state.get_map::<ColorComponent>(),

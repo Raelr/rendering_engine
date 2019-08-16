@@ -8,6 +8,7 @@ pub mod render_system;
 pub mod texture_update_system;
 pub mod position_update_system;
 pub mod check_box_collider_system;
+pub mod selection_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -131,6 +132,7 @@ pub struct TextureUpdateComponent {
 
 impl Component for TextureUpdateComponent {}
 
+///
 
 pub struct OrthographicCameraComponent {
 
@@ -141,6 +143,8 @@ pub struct OrthographicCameraComponent {
 
 impl Component for OrthographicCameraComponent {}
 
+///
+
 pub struct BoxCollider2DComponent {
 
     pub size : Vector2<f32>,
@@ -148,6 +152,13 @@ pub struct BoxCollider2DComponent {
 }
 
 impl Component for BoxCollider2DComponent {}
+
+pub struct SelectedComponent {
+
+    pub selected_color : (f32, f32, f32, f32)
+}
+
+impl Component for SelectedComponent {}
 
 pub trait Component: Any + Sized {}
 

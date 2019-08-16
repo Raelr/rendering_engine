@@ -9,5 +9,5 @@ pub trait System<'a> {
 
     type SystemInput;
 
-    fn run(&self, input : Self::SystemInput) -> Result<(), Error>;
+    fn run(input : Self::SystemInput) -> Result<(), Error>;
 }

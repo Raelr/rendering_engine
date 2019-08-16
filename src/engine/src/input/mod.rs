@@ -49,18 +49,12 @@ pub fn sdl_mouse_to_mouse(mouse: &sdl2::mouse::MouseButton) -> MouseInput {
 
 pub fn is_registered_input(code : &KeyCode) -> bool {
 
-    match code {
-        KeyCode::NA => false,
-        _ => true
-    }
+    code != &KeyCode::NA
 }
 
 pub fn is_registered_mouse_input(code : &MouseInput) -> bool {
 
-    match code {
-        MouseInput::NA => false,
-        _ => true
-    }
+    code != &MouseInput::NA
 }
 
 pub fn get_mouse_coordinates(pump: &sdl2::EventPump) -> Vector2<f32>{

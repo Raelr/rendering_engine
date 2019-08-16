@@ -17,7 +17,7 @@ impl<'a> System<'a> for RenderSystem {
                         &'a GenerationalIndexArray<ScaleComponent>,
                         &'a OrthographicCameraComponent);
 
-    fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
+    fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let shaders = &input.0.entries;
 

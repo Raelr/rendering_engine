@@ -12,7 +12,7 @@ impl<'a> System<'a> for TextureUpdateSystem {
 
     type SystemInput = (&'a mut GameState);
 
-    fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
+    fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let size = input.get_map::<TextureUpdateComponent>().entries.len();
 

@@ -11,7 +11,7 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
     type SystemInput = &'a mut GameState;
 
-    fn run(&self, input: Self::SystemInput) -> Result<(), Error> {
+    fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let size : usize = input.get_map::<VelocityComponent>().entries.len();
 
@@ -40,10 +40,10 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
                         velocity_change = Vector3::normalize(&current_velocity);
 
-                        velocity_change = Vector3::new( velocity_change.x * x, velocity_change.y * y, velocity_change.z * z);
+                        velocity_change = Vector3::new( velocity_change.x * x, velocity_change.y * y, 0.0);
                     }
 
-                    velocity.value.velocity -= Vector3::new(current_velocity.x * 0.2, current_velocity.y * 0.2, current_velocity.z * 0.2);
+                    velocity.value.velocity -= Vector3::new(current_velocity.x * 0.2, current_velocity.y * 0.2, 0.0);
                 }
             }
 
@@ -60,7 +60,6 @@ impl<'a> System<'a> for PositionUpdateSystem {
                 if let Some(collider) = &mut input.get_mut::<BoxCollider2DComponent>(&idx) {
 
                     collider.position += Vector2::new(velocity_change.x, velocity_change.y);
-                    //println!("Collider position (x: {} y: {})", collider.position.x, collider.position.y);
                 }
             }
         }
