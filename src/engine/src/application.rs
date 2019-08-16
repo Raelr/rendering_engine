@@ -99,7 +99,7 @@ pub fn run() -> Result<(), Error> {
 
         // MOUSE INPUT MODULE - NEEDS WORK
 
-        if input_handler.get_mouse_down(&MouseInput::Left) {
+        if input_handler.get_mouse_button(&MouseInput::Left) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 

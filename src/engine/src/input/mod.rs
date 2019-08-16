@@ -5,14 +5,14 @@ use nalgebra::Vector2;
 
 pub mod input_handler;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq, Hash)]
 pub enum KeyCode {
 
     W, A, S, D,
     Up, Down, Left, Right,
     NA
 }
-#[derive(PartialEq)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum MouseInput {
 
     Left, Right, Middle,

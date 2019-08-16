@@ -60,7 +60,6 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                     }
                 }
             } else {
-
                 selection_system::DeselectSystem::run(input.0);
             }
         }
