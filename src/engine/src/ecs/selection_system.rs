@@ -113,10 +113,11 @@ impl<'a> System<'a> for FollowMouseSystem {
                 let collider = input.0.get_mut::<BoxCollider2DComponent>(&idx).unwrap();
 
                 let collider_pos = cursor_pos + offset;
+
                 let coords = Vector2::new(collider_pos.x, collider_pos.y);
+
                 collider.position = coords;
             }
-
         }
 
         Ok(())

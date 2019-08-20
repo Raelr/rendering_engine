@@ -66,6 +66,8 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                 {
                     if !selected {
                         input.0.add_component_to(SelectedComponent { selected_color: (0.7, 0.7, 0.7, 0.7), cursor_offset: offset}, &gen_idx);
+                    } else {
+                        input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset;
                     }
                 }
             } else {

@@ -108,8 +108,11 @@ pub fn run() -> Result<(), Error> {
                 mouse_coordinates);
 
             if input_handler.get_mouse_button(&MouseInput::Left) {
+
                 check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
+
             } else {
+
                 selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
             }
         }
@@ -137,11 +140,11 @@ pub fn run() -> Result<(), Error> {
 
             render_system::RenderSystem::run(
                 (game_state.get_map::<RenderComponent>(),
-                 game_state.get_map::<PositionComponent>(),
-                 game_state.get_map::<ColorComponent>(),
-                 game_state.get_map::<TextureMixComponent>(),
-                 game_state.get_map::<ScaleComponent>(),
-                 game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
+                         game_state.get_map::<PositionComponent>(),
+                         game_state.get_map::<ColorComponent>(),
+                         game_state.get_map::<TextureMixComponent>(),
+                         game_state.get_map::<ScaleComponent>(),
+                         game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
         }
         // End of rendering code.
         window.on_update();
