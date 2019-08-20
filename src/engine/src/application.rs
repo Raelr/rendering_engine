@@ -99,7 +99,7 @@ pub fn run() -> Result<(), Error> {
 
         // MOUSE INPUT MODULE - NEEDS WORK
 
-        if input_handler.get_mouse_button(&MouseInput::Left) {
+        if input_handler.get_mouse_down(&MouseInput::Left) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
@@ -107,17 +107,11 @@ pub fn run() -> Result<(), Error> {
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
                 mouse_coordinates);
 
-            check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
-
-        } else if input_handler.get_mouse_down(&MouseInput::Left) {
-
-            let mouse_coordinates = input::get_mouse_coordinates(&pump);
-
-            let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
-                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
-                mouse_coordinates);
-
-            selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
+            if input_handler.get_mouse_button(&MouseInput::Left) {
+                check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
+            } else {
+                selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
+            }
         }
         
         // Cycles through all events stored in this queue and executes them.

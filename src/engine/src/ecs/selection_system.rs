@@ -85,6 +85,10 @@ impl<'a> System<'a> for FollowMouseSystem {
 
         let size = input.0.get_map::<SelectedComponent>().entries.len();
 
+        let cursor_pos = Vector3::new(input.1.x, input.1.y, 0.0);
+
+        let mut offset : Vector2<f32>;
+
         for index in 0..size {
 
             let mut generation = 0;
@@ -95,16 +99,22 @@ impl<'a> System<'a> for FollowMouseSystem {
 
             let idx = GenerationalIndex { index, generation};
 
+            offset = input.0.get::<SelectedComponent>(&idx).as_ref().unwrap().cursor_offset;
+
+            let offset = Vector3::new(offset.x, offset.y, 0.0);
+
             {
                 let position = input.0.get_mut::<PositionComponent>(&idx).unwrap();
 
-                position.position = Vector3::new(input.1.x, input.1.y, 0.0);
+                position.position = cursor_pos + offset;
             }
 
             {
                 let collider = input.0.get_mut::<BoxCollider2DComponent>(&idx).unwrap();
 
-                collider.position = Vector2::new(input.1.x, input.1.y);
+                let collider_pos = cursor_pos + offset;
+                let coords = Vector2::new(collider_pos.x, collider_pos.y);
+                collider.position = coords;
             }
 
         }

@@ -27,23 +27,32 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
             let mut collided = false;
 
+            let mut offset : Vector2<f32>;
+
             {
                 let collider_entry = input.0.get_map_mut::<BoxCollider2DComponent>().entries[index].as_mut().unwrap();
 
-                let test_position = collider_entry.value.position;
-                let test_size = collider_entry.value.size;
+                let position = collider_entry.value.position;
+                let size = collider_entry.value.size;
                 let mouse_coordinates = input.1;
 
-                let leftmost_x = test_position.x - (test_size.x * 0.5);
-                let leftmost_y = test_position.y - (test_size.y * 0.5);
+                let leftmost_x = position.x - (size.x * 0.5);
+                let leftmost_y = position.y - (size.y * 0.5);
 
-                let collision_x = leftmost_x + test_size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_x;
+                let collision_x = leftmost_x + size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_x;
 
-                let collision_y = leftmost_y + test_size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_y;
+                let collision_y = leftmost_y + size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_y;
 
                 collided = collision_x && collision_y;
 
                 generation = collider_entry.generation;
+
+                let heading = Vector2::new(mouse_coordinates.x, mouse_coordinates.y);
+                let distance = Vector2::magnitude(&heading);
+                let direction = heading / distance;
+
+                offset = position - direction * distance;
+                println!("x: {}, y: {}", offset.x, offset.y);
             }
 
             gen_idx = GenerationalIndex { index, generation};
@@ -56,7 +65,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
             if collided {
                 {
                     if !selected {
-                        input.0.add_component_to(SelectedComponent { selected_color: (0.9, 0.9, 0.9, 0.9)}, &gen_idx);
+                        input.0.add_component_to(SelectedComponent { selected_color: (0.7, 0.7, 0.7, 0.7), cursor_offset: offset}, &gen_idx);
                     }
                 }
             } else {
