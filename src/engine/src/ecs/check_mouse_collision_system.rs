@@ -52,7 +52,6 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                 let direction = heading / distance;
 
                 offset = position - direction * distance;
-                println!("x: {}, y: {}", offset.x, offset.y);
             }
 
             gen_idx = GenerationalIndex { index, generation};
@@ -64,10 +63,10 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
             if collided {
                 {
-                    if !selected {
-                        input.0.add_component_to(SelectedComponent { selected_color: (0.7, 0.7, 0.7, 0.7), cursor_offset: offset}, &gen_idx);
-                    } else {
-                        input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset;
+                    match selected {
+                        true => input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset,
+                        false => input.0.add_component_to(SelectedComponent {
+                            selected_color: (0.7, 0.7, 0.7, 0.5), cursor_offset: offset}, &gen_idx)
                     }
                 }
             } else {
