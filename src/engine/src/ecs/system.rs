@@ -1,9 +1,8 @@
-use crate::ecs::{RenderComponent, PositionComponent, ColorComponent, TextureMixComponent, TextureUpdateComponent};
 use failure::Error;
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
-use std::ffi::CString;
+use crate::ecs::Component;
+use crate::generational_index::generational_index::GenerationalIndex;
 use crate::game_state::GameState;
-use std::borrow::BorrowMut;
+use crate::ecs::*;
 
 pub trait System<'a> {
 

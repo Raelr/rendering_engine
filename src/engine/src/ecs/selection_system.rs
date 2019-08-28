@@ -1,11 +1,10 @@
 use crate::ecs::system::System;
 use failure::Error;
 use crate::game_state::GameState;
-use crate::ecs::{SelectedComponent, ColorComponent, VelocityComponent, PositionComponent, BoxCollider2DComponent};
+use crate::ecs::{SelectedComponent, ColorComponent, PositionComponent, BoxCollider2DComponent};
 use nalgebra::{Vector3, Vector2};
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::input::input_handler::InputHandler;
-use crate::input::{KeyCode, MouseInput};
 
 pub struct SelectionSystem;
 
@@ -17,22 +16,20 @@ impl<'a> System<'a> for SelectionSystem {
 
         let size  = input.0.get_map::<SelectedComponent>().entries.len();
 
+        //println!("Selected Size: {}", size);
+
         for index in 0..size {
 
-            let mut generation = 0;
+            let gen_index : GenerationalIndex;
 
-            let mut select_color : (f32, f32, f32, f32);
-
-            let direction : Vector3<f32>;
+            let select_color : (f32, f32, f32, f32);
 
             {
                 let selected = input.0.get_map::<SelectedComponent>().entries[0].as_ref().unwrap();
 
-                generation = selected.generation;
+                gen_index = selected.owned_entity;
                 select_color = selected.value.selected_color;
             }
-
-            let gen_index = GenerationalIndex {index, generation};
 
             {
                 let mut color = input.0.get_mut::<ColorComponent>(&gen_index).unwrap();
@@ -55,15 +52,15 @@ impl<'a> System<'a> for DeselectSystem {
 
         let size = input.get_map::<SelectedComponent>().entries.len();
 
+        println!("Size of array to be cleared: {}", size);
+
         for index in 0..size {
 
-            let mut generation = 0;
+            let idx : GenerationalIndex;
 
             {
-                generation = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;
+                idx = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().owned_entity;
             }
-
-            let idx = GenerationalIndex {index, generation};
 
             let color = input.get_mut::<ColorComponent>(&idx).unwrap();
 
@@ -76,6 +73,18 @@ impl<'a> System<'a> for DeselectSystem {
     }
 }
 
+impl DeselectSystem {
+
+    pub fn deselect_single(index : &GenerationalIndex, state : &mut GameState) {
+
+        let color = state.get_mut::<ColorComponent>(index).unwrap();
+
+        color.color = (1.0, 1.0, 1.0, 1.0);
+
+        state.remove_component::<SelectedComponent>(index);
+    }
+}
+
 pub struct FollowMouseSystem;
 
 impl<'a> System<'a> for FollowMouseSystem {
@@ -84,31 +93,43 @@ impl<'a> System<'a> for FollowMouseSystem {
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let size = input.0.get_map::<SelectedComponent>().entries.len();
+        //println!("Selected size: {}", size);
+
+        let cursor_pos = Vector3::new(input.1.x, input.1.y, 0.0);
+
+        let mut offset : Vector2<f32>;
 
         for index in 0..size {
 
-            let mut generation = 0;
+            let idx : GenerationalIndex;
 
             {
-                generation = input.0.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;
+                idx = input.0.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().owned_entity;
             }
+            offset = input.0.get::<SelectedComponent>(&idx).as_ref().unwrap().cursor_offset;
 
-            let idx = GenerationalIndex { index, generation};
+            let offset = Vector3::new(offset.x, offset.y, 0.0);
 
             {
                 let position = input.0.get_mut::<PositionComponent>(&idx).unwrap();
 
-                position.position = Vector3::new(input.1.x, input.1.y, 0.0);
+                position.position = cursor_pos + offset;
             }
 
             {
                 let collider = input.0.get_mut::<BoxCollider2DComponent>(&idx).unwrap();
 
-                collider.position = Vector2::new(input.1.x, input.1.y);
-            }
+                let collider_pos = cursor_pos + offset;
 
+                let coords = Vector2::new(collider_pos.x, collider_pos.y);
+
+                collider.position = coords;
+
+                println!("Moving entity: {} {} to position: {} {}", idx.index, idx.generation, coords.x, coords.y);
+            }
         }
 
         Ok(())
     }
 }
+

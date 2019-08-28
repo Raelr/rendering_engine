@@ -3,8 +3,6 @@ use crate::generational_index::generational_index::{GenerationalIndexArray, Gene
 use crate::ecs::*;
 use failure::Error;
 use std::ffi::CString;
-use crate::game_state::GameState;
-use nalgebra::Vector4;
 
 pub struct RenderSystem;
 
@@ -27,7 +25,7 @@ impl<'a> System<'a> for RenderSystem {
 
             if let Some(shader_program) = shader {
 
-                let index = GenerationalIndex {index: idx, generation : shader_program.generation};
+                let index = shader_program.owned_entity;
 
                 unsafe {
 
@@ -38,11 +36,19 @@ impl<'a> System<'a> for RenderSystem {
 
                     // START POSITION RENDERING VARIABLES ------------------------------------------
 
+                    //println!("Position and scale");
                     let position = input.1.get(&index).unwrap();
 
-                    let scale = input.4.get(&index).unwrap();
+                    let mut scale_vec : Vector3<f32> = Vector3::new(0.0, 0.0, 0.0);
 
-                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale.scale);
+                    if let Some(scale) = input.4.get(&index) {
+                        scale_vec = scale.scale;
+                        //println!("Some")
+                    } else {
+                        //println!("None")
+                    }
+
+                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec);
 
                     //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 
@@ -55,10 +61,12 @@ impl<'a> System<'a> for RenderSystem {
                     // END OF POSITION RENDERING VARIABLES -----------------------------------------
 
                     // COLOR RENDERING VARIABLES
-                    let color = input.2.get(&index).unwrap();
+                    //println!("Color and textures");
+                    if let Some(color) = input.2.get(&index).take() {
 
-                    RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;
+                        RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;
 
+                    }
                     // TEXTURE RENDERING VARIABLES
                     let texture_mix = input.3.get(&index);
 

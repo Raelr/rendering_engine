@@ -1,5 +1,3 @@
-use std::time::Instant;
-use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
 use nalgebra::{Vector3, Matrix4, Vector2};
 
@@ -38,6 +36,15 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
 
         Texture { uniform_name: $name, texture_id, number: $number, active_texture_enum: $enum }
     }};
+}
+
+pub enum Components {
+
+    Position, Velocity, Scale, Rotation,
+    Color, Render, Texture, TextureUpdate, Orthographic,
+    BoxCollider2D,
+    Selected,
+    NA
 }
 
 /// START OF TRANSFORM COMPONENTS ----------------------------------------------------------------->
@@ -155,7 +162,8 @@ impl Component for BoxCollider2DComponent {}
 
 pub struct SelectedComponent {
 
-    pub selected_color : (f32, f32, f32, f32)
+    pub selected_color : (f32, f32, f32, f32),
+    pub cursor_offset : Vector2<f32>
 }
 
 impl Component for SelectedComponent {}

@@ -1,7 +1,7 @@
 use crate::ecs::system::System;
 use crate::ecs::{PositionComponent, VelocityComponent, BoxCollider2DComponent};
 use failure::Error;
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
+use crate::generational_index::generational_index::{GenerationalIndex};
 use crate::game_state::GameState;
 use nalgebra::{Vector3, Vector2};
 
@@ -17,18 +17,18 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
         for index in 0..size {
 
-            let mut idx : GenerationalIndex;
-
             let mut generation = 0;
+
+            let mut idx : GenerationalIndex = GenerationalIndex {index: 0, generation: 0};
 
             let mut velocity_change : Vector3<f32> = Vector3::new(0.0, 0.0, 0.0);
 
             {
                 if let Some(velocity) = input.get_map_mut::<VelocityComponent>().entries[index].as_mut() {
 
-                    generation = velocity.generation;
+                    idx = velocity.owned_entity;
 
-                    let mut current_velocity = velocity.value.velocity;
+                    let current_velocity = velocity.value.velocity;
 
                         let velocity_length = nalgebra::Vector3::magnitude(&current_velocity);
 
@@ -36,7 +36,6 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
                         let x = if f32::is_sign_positive(current_velocity.x) { current_velocity.x } else { -current_velocity.x };
                         let y = if f32::is_sign_positive(current_velocity.y) { current_velocity.y } else { -current_velocity.y };
-                        let z = if f32::is_sign_positive(current_velocity.z) { current_velocity.z } else { -current_velocity.z };
 
                         velocity_change = Vector3::normalize(&current_velocity);
 
@@ -46,8 +45,6 @@ impl<'a> System<'a> for PositionUpdateSystem {
                     velocity.value.velocity -= Vector3::new(current_velocity.x * 0.2, current_velocity.y * 0.2, 0.0);
                 }
             }
-
-            let idx = GenerationalIndex {index, generation};
 
             {
                 let positions = &mut input.get_mut::<PositionComponent>(&idx).unwrap();

@@ -1,7 +1,7 @@
 use crate::ecs::system::System;
-use crate::ecs::{BoxCollider2DComponent, PositionComponent, ColorComponent, SelectedComponent};
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
-use nalgebra::{Vector2, Vector3};
+use crate::ecs::{BoxCollider2DComponent,SelectedComponent};
+use crate::generational_index::generational_index::{GenerationalIndex};
+use nalgebra::{Vector2};
 use failure::Error;
 use crate::game_state::GameState;
 use crate::ecs::selection_system;
@@ -15,52 +15,63 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
-        let idx : usize = 0;
-
         let size = input.0.get_map::<BoxCollider2DComponent>().entries.len();
+
+        println!("size: {}", size);
 
         for index in 0..size {
 
-            let mut gen_idx : GenerationalIndex;
+            let mut gen_idx : GenerationalIndex = GenerationalIndex{index: 0, generation: 0};
 
-            let mut generation = 0;
+            let collided;
 
-            let mut collided = false;
+            let offset : Vector2<f32>;
 
             {
                 let collider_entry = input.0.get_map_mut::<BoxCollider2DComponent>().entries[index].as_mut().unwrap();
 
-                let test_position = collider_entry.value.position;
-                let test_size = collider_entry.value.size;
+                let position = collider_entry.value.position;
+                let size = collider_entry.value.size;
                 let mouse_coordinates = input.1;
 
-                let leftmost_x = test_position.x - (test_size.x * 0.5);
-                let leftmost_y = test_position.y - (test_size.y * 0.5);
+                let leftmost_x = position.x - (size.x * 0.5);
+                let leftmost_y = position.y - (size.y * 0.5);
 
-                let collision_x = leftmost_x + test_size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_x;
+                let collision_x = leftmost_x + size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_x;
 
-                let collision_y = leftmost_y + test_size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_y;
+                let collision_y = leftmost_y + size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_y;
 
                 collided = collision_x && collision_y;
 
-                generation = collider_entry.generation;
+                gen_idx = collider_entry.owned_entity;
+
+                let heading = Vector2::new(mouse_coordinates.x, mouse_coordinates.y);
+                let distance = Vector2::magnitude(&heading);
+                let direction = heading / distance;
+
+                offset = position - direction * distance;
             }
 
-            gen_idx = GenerationalIndex { index, generation};
-
             let selected = match input.0.get::<SelectedComponent>(&gen_idx) {
-                Some(val) => true,
+                Some(_val) => true,
                 None => false
             };
 
+            // TODO: FIX ISSUES WITH DESELECTION SYSTEM - CAUSING INDEXING ERRORS WHEN TRYING TO REMOVE INDIVIDUALLY
+
             if collided {
                 {
-                    if !selected {
-                        input.0.add_component_to(SelectedComponent { selected_color: (0.9, 0.9, 0.9, 0.9)}, &gen_idx);
+                    match selected {
+                        true => input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset,
+                        false => {println!("SELECTED ENTITY: {} {}", gen_idx.index, gen_idx.generation);
+                            selection_system::DeselectSystem::run(input.0);
+                            input.0.add_component_to(SelectedComponent {
+                                selected_color: (0.7, 0.7, 0.7, 0.5),
+                                cursor_offset: offset}, &gen_idx); }
                     }
                 }
             } else {
-                selection_system::DeselectSystem::run(input.0);
+                selection_system::DeselectSystem::deselect_single(&gen_idx, input.0);
             }
         }
         Ok(())
