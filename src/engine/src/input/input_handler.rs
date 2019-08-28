@@ -17,8 +17,6 @@ impl InputHandler {
 
     pub fn update_input_state(&mut self, pump: &mut sdl2::EventPump) {
 
-        self.clean();
-
        self.keyboard_pressed =  pump.keyboard_state().pressed_scancodes()
            .filter(|scancode| {input::is_registered_input(&input::scancode_to_keycode(scancode))})
            .map(|scancode| { input::scancode_to_keycode(&scancode)})
@@ -43,6 +41,13 @@ impl InputHandler {
         }
     }
 
+    pub fn clear_mouse_code(&mut self, button: &MouseInput) {
+
+        if let Some(count) = self.held_keys.get_mut(button) {
+            *count = 0;
+        }
+    }
+
     pub fn get_keycode_down(&self, code :  &KeyCode) -> bool {
 
         self.keyboard_pressed.contains(code)
@@ -51,7 +56,6 @@ impl InputHandler {
     pub fn get_mouse_button(&self, button : &MouseInput) -> bool {
 
         if let Some(count) = self.held_keys.get(button) {
-            //println!("{}", count == &1);
             return count == &1
         } else {
             false

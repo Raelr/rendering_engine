@@ -35,17 +35,18 @@ pub fn run() -> Result<(), Error> {
     // Create the base window for the application.
     let mut window = windows_window::create_new(window_base!(), &sdl);
 
+    // Initialises the game state.
     let mut game_state = GameState::create_initial_state();
 
     // Get the event pump from sdl.
     let mut pump = sdl.event_pump().unwrap();
-//    let mut pump = sdl.event_pump().unwrap();
 
     // Initialise the one time event queue.
     let mut one_time_events: VecDeque<Box<dyn FnMut()>> = VecDeque::new();
 
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
+
 
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
@@ -70,8 +71,11 @@ pub fn run() -> Result<(), Error> {
                 // Breaks the loop.
                 sdl2::event::Event::Quit { .. }=> { break 'running },
 
-                sdl2::event::Event::MouseButtonUp {timestamp: _, window_id: _, which: _ , mouse_btn: MouseButton::Left, .. }
-                    => { println!("left click released") },
+                sdl2::event::Event::MouseButtonUp {timestamp: _, window_id: _, which: _ , mouse_btn: button, .. }
+                    => { input_handler.clear_mouse_code(&input::sdl_mouse_to_mouse(&button))},
+
+                sdl2::event::Event::KeyUp { timestamp: _, window_id: _ , keycode: code, scancode: code, .. }
+                    => { }
 
                 // TODO
                 _ => ()
@@ -91,6 +95,8 @@ pub fn run() -> Result<(), Error> {
             let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
                 mouse_coordinates);
+
+            // CHECK IF MOUSE IS HELD DOWN
 
             if input_handler.get_mouse_button(&MouseInput::Left) {
 
