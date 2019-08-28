@@ -57,14 +57,17 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                 None => false
             };
 
+            // TODO: FIX ISSUES WITH DESELECTION SYSTEM - CAUSING INDEXING ERRORS WHEN TRYING TO REMOVE INDIVIDUALLY
+
             if collided {
                 {
                     match selected {
                         true => input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset,
                         false => {println!("SELECTED ENTITY: {} {}", gen_idx.index, gen_idx.generation);
+                            selection_system::DeselectSystem::run(input.0);
                             input.0.add_component_to(SelectedComponent {
                                 selected_color: (0.7, 0.7, 0.7, 0.5),
-                                cursor_offset: offset}, &gen_idx)}
+                                cursor_offset: offset}, &gen_idx); }
                     }
                 }
             } else {

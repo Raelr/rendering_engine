@@ -19,6 +19,7 @@ pub enum EntryValue {
     Empty
 }
 
+// TODO: FIND WAY TO SORT COMPONENTS INSTEAD OF STORING GENERATIONAL INDEX FOR EACH ONE.
 #[derive(Clone, Copy)]
 pub struct ArrayEntry<T> {
     pub value : T,
@@ -92,6 +93,8 @@ impl<T> GenerationalIndexArray<T> {
 
             //println!("fetching for index: {} generation: {}", index.index, index.generation);
 
+            //println!("{}", index.index);
+
             let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
 
                 if index.generation == entry.owned_entity.generation {
@@ -117,11 +120,35 @@ impl<T> GenerationalIndexArray<T> {
     pub fn remove(&mut self, index : &GenerationalIndex) {
 
         if self.contains(index) {
-
             let unpacked_index = self.get_unpacked_index(index).unwrap().1;
             self.entries.remove(unpacked_index);
             self.unpacked_entries[index.index()] = Empty;
+            self.update_entries();
         }
+    }
+
+    pub fn update_entries(&mut self) {
+
+        let mut idx : usize = 0;
+
+        let mut coordinates : Vec<(GenerationalIndex, usize)> = Vec::new();
+
+        self.entries.iter().for_each(|entry| {
+
+            coordinates.push((entry.as_ref().unwrap().owned_entity.clone(), idx));
+            idx+= 1;
+
+        });
+
+        coordinates.iter().for_each(|coordinate| {
+           let entry = &self.unpacked_entries[coordinate.0.index];
+              match entry {
+                  EntryValue::Full(mut coord) => {
+                      coord.1 = coordinate.1;
+                  },
+                  EntryValue::Empty => ()
+           };
+        });
     }
 
     pub fn get_mut(&mut self, index : &GenerationalIndex) -> Option<&mut T> {
