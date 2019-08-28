@@ -1,7 +1,7 @@
 use crate::ecs::system::System;
-use crate::ecs::{BoxCollider2DComponent, PositionComponent, ColorComponent, SelectedComponent};
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
-use nalgebra::{Vector2, Vector3};
+use crate::ecs::{BoxCollider2DComponent,SelectedComponent};
+use crate::generational_index::generational_index::{GenerationalIndex};
+use nalgebra::{Vector2};
 use failure::Error;
 use crate::game_state::GameState;
 use crate::ecs::selection_system;
@@ -15,19 +15,17 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
-        let idx : usize = 0;
-
         let size = input.0.get_map::<BoxCollider2DComponent>().entries.len();
 
         for index in 0..size {
 
-            let mut gen_idx : GenerationalIndex;
+            let gen_idx : GenerationalIndex;
 
-            let mut generation = 0;
+            let generation;
 
-            let mut collided = false;
+            let collided;
 
-            let mut offset : Vector2<f32>;
+            let offset : Vector2<f32>;
 
             {
                 let collider_entry = input.0.get_map_mut::<BoxCollider2DComponent>().entries[index].as_mut().unwrap();
@@ -57,7 +55,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
             gen_idx = GenerationalIndex { index, generation};
 
             let selected = match input.0.get::<SelectedComponent>(&gen_idx) {
-                Some(val) => true,
+                Some(_val) => true,
                 None => false
             };
 
@@ -70,7 +68,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                     }
                 }
             } else {
-                selection_system::DeselectSystem::run(input.0);
+                selection_system::DeselectSystem::run(input.0)?;
             }
         }
         Ok(())

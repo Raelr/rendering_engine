@@ -1,10 +1,5 @@
 use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent};
 use crate::generational_index::generational_index::*;
-use std::time::{Instant};
-use crate::renderer::shaders::shader::Shader;
-use crate::renderer::shaders::shader_program::ShaderProgram;
-use crate::renderer::shapes::shape::*;
-use std::ffi::{CString};
 use anymap::AnyMap;
 use failure::Error;
 use nalgebra::{Vector3, Matrix4, Vector2};
@@ -118,7 +113,7 @@ impl GameState {
 
         let mut value = self.get_map_mut::<T>().get_mut(index);
 
-        if let Some(mut val) = value.as_mut() {
+        if let Some(_val) = value.as_mut() {
             return value
         } else {
             None
@@ -128,10 +123,10 @@ impl GameState {
     /// Returns a single component
     pub fn get<T : 'static>(&self, index: &Entity) -> Option<&T>{
 
-        let mut value = self.get_map::<T>().get(index);
+        let value = self.get_map::<T>().get(index);
 
         match value {
-            Some(component) => value,
+            Some(_component) => value,
             None => None
         }
     }
@@ -214,7 +209,7 @@ impl GameState {
                         cam_dimensions.y / 2.0, 1.0, -1.0 )})
             .build();
 
-        Ok((camera))
+        Ok(camera)
     }
 }
 

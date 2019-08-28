@@ -1,6 +1,3 @@
-use sdl2::Error;
-use sdl2::keyboard::Keycode;
-use sdl2::event::EventType::MouseButtonDown;
 use nalgebra::Vector2;
 
 pub mod input_handler;
@@ -41,8 +38,8 @@ pub fn sdl_mouse_to_mouse(mouse: &sdl2::mouse::MouseButton) -> MouseInput {
     match mouse {
 
         sdl2::mouse::MouseButton::Left => MouseInput::Left,
-        sdl2::mouse::MouseButton::Left => MouseInput::Right,
-        sdl2::mouse::MouseButton::Left => MouseInput::Middle,
+        sdl2::mouse::MouseButton::Right => MouseInput::Right,
+        sdl2::mouse::MouseButton::Middle => MouseInput::Middle,
         _ => MouseInput::NA
     }
 }

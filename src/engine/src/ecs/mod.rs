@@ -1,5 +1,3 @@
-use std::time::Instant;
-use crate::renderer::shaders::shader_program::ShaderProgram;
 use std::any::Any;
 use nalgebra::{Vector3, Matrix4, Vector2};
 

@@ -3,34 +3,21 @@ extern crate gl;
 extern crate failure;
 
 // Internal crates:
-use crate::ecs::{PositionComponent, ColorComponent, Texture, RenderComponent, TextureMixComponent, TextureUpdateComponent};
+use crate::ecs::{PositionComponent, ColorComponent, RenderComponent, TextureMixComponent};
 use crate::ecs::*;
-use crate::generational_index::generational_index::GenerationalIndex;
-use crate::ecs::render_system::RenderSystem;
-use crate::ecs::texture_update_system::TextureUpdateSystem;
 use crate::ecs::system::System;
-use crate::ecs::position_update_system::PositionUpdateSystem;
-use crate::ecs::check_mouse_collision_system::CheckBoxColliderSystem;
 use crate::events::window_event::WindowEvent;
 use crate::game_state::GameState;
 use crate::platform::windows::windows_window;
 use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow};
-use crate::sdl2::keyboard::Scancode;
 use crate::sdl2::mouse::MouseButton;
 use crate::input::MouseInput;
 
 // Use
 use failure::Error;
 use std::collections::VecDeque;
-use std::time::{Duration, Instant};
-use nalgebra::*;
-use sdl2::controller::Button::A;
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::ops::Deref;
-use std::borrow::Borrow;
-use crate::input::*;
+use std::time::{Duration};
 use crate::input::input_handler::*;
 use crate::input;
 use crate::utilities::camera_utils;
@@ -64,8 +51,6 @@ pub fn run() -> Result<(), Error> {
 
     // Sets up the entities in the ECS.
     let m_camera = GameState::init_test_state(&mut game_state, &window)?;
-
-    let now = Instant::now();
 
     let mut input_handler = InputHandler::new();
 
@@ -109,11 +94,11 @@ pub fn run() -> Result<(), Error> {
 
             if input_handler.get_mouse_button(&MouseInput::Left) {
 
-                check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates));
+                check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates))?;
 
             } else {
 
-                selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates));
+                selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates))?;
             }
         }
         
@@ -134,7 +119,7 @@ pub fn run() -> Result<(), Error> {
 
             texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
-            selection_system::SelectionSystem::run((&mut game_state, &input_handler));
+            selection_system::SelectionSystem::run((&mut game_state, &input_handler))?;
 
             position_update_system::PositionUpdateSystem::run(&mut game_state)?;
 

@@ -1,5 +1,4 @@
 use crate::input;
-use sdl2::keyboard::Keycode;
 use crate::input::{KeyCode, MouseInput};
 use std::collections::hash_map::HashMap;
 
@@ -21,7 +20,7 @@ impl InputHandler {
         self.clean();
 
        self.keyboard_pressed =  pump.keyboard_state().pressed_scancodes()
-           .filter(|scancode| { println!("Adding KeyEvent: {}", scancode); input::is_registered_input(&input::scancode_to_keycode(scancode))})
+           .filter(|scancode| {input::is_registered_input(&input::scancode_to_keycode(scancode))})
            .map(|scancode| { input::scancode_to_keycode(&scancode)})
            .collect::<Vec<KeyCode>>();
 
@@ -36,12 +35,10 @@ impl InputHandler {
 
             let input = &self.mouse_pressed[index].clone();
 
-            if let Some(mut i) = self.held_keys.get_mut(input) {
+            if let Some(i) = self.held_keys.get_mut(input) {
                 *i = *i + 1;
-                println!("Incrementing");
             } else {
                 self.held_keys.insert(*input, 1);
-                println!("Adding");
             }
         }
     }
@@ -54,7 +51,7 @@ impl InputHandler {
     pub fn get_mouse_button(&self, button : &MouseInput) -> bool {
 
         if let Some(count) = self.held_keys.get(button) {
-            println!("{}", count == &1);
+            //println!("{}", count == &1);
             return count == &1
         } else {
             false
@@ -62,13 +59,11 @@ impl InputHandler {
     }
 
     pub fn get_mouse_down(&self, button :  &MouseInput) -> bool {
-
         self.mouse_pressed.contains(button)
     }
 
     pub fn clean(&mut self) {
         if self.mouse_pressed.len() == 0 && self.keyboard_pressed.len() == 0{
-            //println!("Cleaning values");
             self.held_keys.clear();
         }
     }

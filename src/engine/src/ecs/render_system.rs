@@ -3,8 +3,6 @@ use crate::generational_index::generational_index::{GenerationalIndexArray, Gene
 use crate::ecs::*;
 use failure::Error;
 use std::ffi::CString;
-use crate::game_state::GameState;
-use nalgebra::Vector4;
 
 pub struct RenderSystem;
 

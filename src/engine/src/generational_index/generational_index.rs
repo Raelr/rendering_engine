@@ -1,5 +1,4 @@
 use crate::generational_index::generational_index::EntryValue::Empty;
-use anymap::Entry;
 
 #[derive(Clone, Copy)]
 pub struct GenerationalIndex {
@@ -51,7 +50,7 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
-        let mut saved_index : (u64, usize) = (0, 0);
+        let saved_index : (u64, usize);
 
         if let Some(idx) = self.get_unpacked_index(index) {
 
@@ -128,9 +127,9 @@ impl<T> GenerationalIndexArray<T> {
         if self.contains(index) {
 
             let idx = self.get_unpacked_index(index).as_ref().unwrap().1;
-            let mut entry = &mut self.entries[idx];
+            let entry = &mut self.entries[idx];
 
-                if let Some(mut val) = entry.as_mut() {
+                if let Some(val) = entry.as_mut() {
                     if index.generation == val.generation {
                         value = Some(&mut val.value);
                     }

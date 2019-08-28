@@ -1,11 +1,10 @@
 use crate::ecs::system::System;
 use failure::Error;
 use crate::game_state::GameState;
-use crate::ecs::{SelectedComponent, ColorComponent, VelocityComponent, PositionComponent, BoxCollider2DComponent};
+use crate::ecs::{SelectedComponent, ColorComponent, PositionComponent, BoxCollider2DComponent};
 use nalgebra::{Vector3, Vector2};
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::input::input_handler::InputHandler;
-use crate::input::{KeyCode, MouseInput};
 
 pub struct SelectionSystem;
 
@@ -19,11 +18,9 @@ impl<'a> System<'a> for SelectionSystem {
 
         for index in 0..size {
 
-            let mut generation = 0;
+            let generation;
 
-            let mut select_color : (f32, f32, f32, f32);
-
-            let direction : Vector3<f32>;
+            let select_color : (f32, f32, f32, f32);
 
             {
                 let selected = input.0.get_map::<SelectedComponent>().entries[0].as_ref().unwrap();
@@ -57,7 +54,7 @@ impl<'a> System<'a> for DeselectSystem {
 
         for index in 0..size {
 
-            let mut generation = 0;
+            let generation;
 
             {
                 generation = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;
@@ -91,7 +88,7 @@ impl<'a> System<'a> for FollowMouseSystem {
 
         for index in 0..size {
 
-            let mut generation = 0;
+            let generation;
 
             {
                 generation = input.0.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;

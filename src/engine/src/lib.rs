@@ -1,13 +1,9 @@
-#![feature(duration_float)]
-#[macro_use]
 extern crate strum;
 extern crate failure;
 extern crate anymap;
 extern crate image;
 extern crate nalgebra;
 extern crate sdl2;
-
-use nalgebra::*;
 
 ////////////////////////////////////
 //           M A C R O S          //

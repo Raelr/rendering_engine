@@ -1,9 +1,7 @@
-use crate::ecs::{RenderComponent, PositionComponent, ColorComponent, TextureMixComponent, TextureUpdateComponent};
+use crate::ecs::{TextureMixComponent, TextureUpdateComponent};
 use failure::Error;
-use crate::generational_index::generational_index::{GenerationalIndexArray, GenerationalIndex};
-use std::ffi::CString;
+use crate::generational_index::generational_index::{GenerationalIndex};
 use crate::game_state::GameState;
-use std::borrow::BorrowMut;
 use crate::ecs::system::System;
 
 pub struct TextureUpdateSystem;
@@ -16,14 +14,14 @@ impl<'a> System<'a> for TextureUpdateSystem {
 
         let size = input.get_map::<TextureUpdateComponent>().entries.len();
 
-        let mut opacity: gl::types::GLfloat = 0.0;
+        let mut opacity: gl::types::GLfloat;
 
         for index in 0..size {
 
-            let mut generation = 0;
+            let generation;
 
             {
-                let mut updates = &mut input.get_map_mut::<TextureUpdateComponent>();
+                let updates = &mut input.get_map_mut::<TextureUpdateComponent>();
 
                 if let Some(change) = updates.entries[index].as_mut() {
                     opacity = change.value.opacity_change;
