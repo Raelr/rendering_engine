@@ -14,14 +14,15 @@ impl GenerationalIndex {
 }
 
 pub enum EntryValue {
-    Full((u64, usize)),
+    // Generation   // PackedIndex  //EntityIndex
+    Full((u64,      usize,          usize)),
     Empty
 }
 
 #[derive(Clone, Copy)]
 pub struct ArrayEntry<T> {
     pub value : T,
-    pub generation : u64
+    pub owned_entity: GenerationalIndex
 }
 
 pub struct GenerationalIndexArray<T> {
@@ -50,24 +51,27 @@ impl<T> GenerationalIndexArray<T> {
 
     pub fn set(&mut self, index : &GenerationalIndex, value : T) {
 
-        let saved_index : (u64, usize);
+        let saved_index : (u64, usize, usize);
 
         if let Some(idx) = self.get_unpacked_index(index) {
 
-            self.entries[idx.1] = Some(ArrayEntry {value, generation : index.generation} );
+            self.entries[idx.1] = Some(ArrayEntry {value, owned_entity: index.clone()} );
             saved_index = idx;
 
         } else {
-            self.entries.push(Some(ArrayEntry {value, generation : index.generation}));
-            saved_index = ( index.generation, self.entries.len() - 1);
+            //println!("Pushing back value at index: {}", index.index);
+            self.entries.push(Some(ArrayEntry {value, owned_entity: index.clone()}));
+            //println!("length: {}", self.entries.len());
+            saved_index = ( index.generation, self.entries.len() - 1, index.index.clone());
         }
 
         if index.index < self.unpacked_entries.len() {
-            self.unpacked_entries[index.index] = EntryValue::Full((index.generation.clone(), saved_index.1))
+            //println!("Adding to unpacked...");
+            self.unpacked_entries[index.index] = EntryValue::Full((index.generation.clone(), saved_index.1, index.index.clone()))
         }
     }
 
-    pub fn get_unpacked_index(&self, index : &GenerationalIndex) -> Option<(u64, usize)>{
+    pub fn get_unpacked_index(&self, index : &GenerationalIndex) -> Option<(u64, usize, usize)>{
 
         let mut success = None;
 
@@ -86,12 +90,14 @@ impl<T> GenerationalIndexArray<T> {
 
         if self.contains(index) {
 
-        let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
+            //println!("fetching for index: {} generation: {}", index.index, index.generation);
 
-            if index.generation == entry.generation {
-                value = Some(&entry.value);
+            let entry = self.entries[self.get_unpacked_index(index).unwrap().1].as_ref().unwrap();
+
+                if index.generation == entry.owned_entity.generation {
+                    value = Some(&entry.value);
+                }
             }
-        }
         value
     }
 
@@ -105,13 +111,11 @@ impl<T> GenerationalIndexArray<T> {
                 EntryValue::Empty => success = false
             }
         }
-        //println!("Success: {}", success);
         success
     }
 
     pub fn remove(&mut self, index : &GenerationalIndex) {
 
-        println!("Removing from entries...");
         if self.contains(index) {
 
             let unpacked_index = self.get_unpacked_index(index).unwrap().1;
@@ -130,7 +134,7 @@ impl<T> GenerationalIndexArray<T> {
             let entry = &mut self.entries[idx];
 
                 if let Some(val) = entry.as_mut() {
-                    if index.generation == val.generation {
+                    if index.generation == val.owned_entity.generation {
                         value = Some(&mut val.value);
                     }
                 }

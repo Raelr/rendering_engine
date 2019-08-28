@@ -85,7 +85,6 @@ impl GameState {
             state.entities[idx] = entity;
 
         } else {
-
             state.entities.push(entity);
         }
 
@@ -123,6 +122,7 @@ impl GameState {
     /// Returns a single component
     pub fn get<T : 'static>(&self, index: &Entity) -> Option<&T>{
 
+        //println!("Requesting value of index: {} generation: {}", index.index, index.generation);
         let value = self.get_map::<T>().get(index);
 
         match value {
@@ -193,11 +193,27 @@ impl GameState {
             .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
             .build();
 
+        let position = Vector3::new(100.0, 100.0, 0.0);
+        let scale = Vector3::new(100.0, 100.0, 100.0);
+
+        let entity = GameState::create_entity(state)
+            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
+            .with(PositionComponent {position})
+            .with(ScaleComponent {scale})
+            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
+            .with(TextureMixComponent { textures : vec!
+            [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
+             texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
+                opacity: 0.0})
+            .with(TextureUpdateComponent {opacity_change : 0.0 })
+            .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+            .build();
+
         let cam_position = Vector3::new(0.0, 0.0, -1.0);
         let cam_dimensions = Vector2::new(window.data.width as f32, window.data.height as f32);
 
         let camera = GameState::create_entity(state)
-
             .with(PositionComponent {position : cam_position})
             .with(OrthographicCameraComponent
                 {   dimensions: cam_dimensions,

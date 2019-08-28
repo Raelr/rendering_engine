@@ -2,17 +2,18 @@ use nalgebra::Vector2;
 
 pub mod input_handler;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum KeyCode {
 
     W, A, S, D,
     Up, Down, Left, Right,
+    Space,
     NA
 }
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum MouseInput {
-
-    Left, Right, Middle,
+    LeftMouse, RightMouse,
+    MiddleMouse,
     NA
 }
 
@@ -29,6 +30,9 @@ pub fn scancode_to_keycode(scancode: &sdl2::keyboard::Scancode) -> KeyCode {
         sdl2::keyboard::Scancode::Down => KeyCode::Down,
         sdl2::keyboard::Scancode::Left => KeyCode::Left,
         sdl2::keyboard::Scancode::Right => KeyCode::Right,
+
+        sdl2::keyboard::Scancode::Space => KeyCode::Space,
+
         _ => KeyCode::NA
     }
 }
@@ -37,9 +41,9 @@ pub fn sdl_mouse_to_mouse(mouse: &sdl2::mouse::MouseButton) -> MouseInput {
 
     match mouse {
 
-        sdl2::mouse::MouseButton::Left => MouseInput::Left,
-        sdl2::mouse::MouseButton::Right => MouseInput::Right,
-        sdl2::mouse::MouseButton::Middle => MouseInput::Middle,
+        sdl2::mouse::MouseButton::Left => MouseInput::LeftMouse,
+        sdl2::mouse::MouseButton::Right => MouseInput::RightMouse,
+        sdl2::mouse::MouseButton::Middle => MouseInput::MiddleMouse,
         _ => MouseInput::NA
     }
 }

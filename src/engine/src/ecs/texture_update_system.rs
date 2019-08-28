@@ -18,21 +18,22 @@ impl<'a> System<'a> for TextureUpdateSystem {
 
         for index in 0..size {
 
-            let generation;
+
+            let gen_index : GenerationalIndex;
 
             {
                 let updates = &mut input.get_map_mut::<TextureUpdateComponent>();
 
                 if let Some(change) = updates.entries[index].as_mut() {
                     opacity = change.value.opacity_change;
-                    generation = change.generation;
+                    gen_index = change.owned_entity;
                     change.value.opacity_change = 0.0;
                 } else {
                     continue
                 }
             }
 
-            let gen_index = GenerationalIndex { index, generation};
+
 
             let textures = input.get_map_mut::<TextureMixComponent>();
 

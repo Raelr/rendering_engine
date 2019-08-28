@@ -17,11 +17,11 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
         let size = input.0.get_map::<BoxCollider2DComponent>().entries.len();
 
+        println!("size: {}", size);
+
         for index in 0..size {
 
-            let gen_idx : GenerationalIndex;
-
-            let generation;
+            let mut gen_idx : GenerationalIndex = GenerationalIndex{index: 0, generation: 0};
 
             let collided;
 
@@ -43,7 +43,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
                 collided = collision_x && collision_y;
 
-                generation = collider_entry.generation;
+                gen_idx = collider_entry.owned_entity;
 
                 let heading = Vector2::new(mouse_coordinates.x, mouse_coordinates.y);
                 let distance = Vector2::magnitude(&heading);
@@ -51,8 +51,6 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
                 offset = position - direction * distance;
             }
-
-            gen_idx = GenerationalIndex { index, generation};
 
             let selected = match input.0.get::<SelectedComponent>(&gen_idx) {
                 Some(_val) => true,
@@ -63,12 +61,14 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                 {
                     match selected {
                         true => input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset,
-                        false => input.0.add_component_to(SelectedComponent {
-                            selected_color: (0.7, 0.7, 0.7, 0.5), cursor_offset: offset}, &gen_idx)
+                        false => {println!("SELECTED ENTITY: {} {}", gen_idx.index, gen_idx.generation);
+                            input.0.add_component_to(SelectedComponent {
+                                selected_color: (0.7, 0.7, 0.7, 0.5),
+                                cursor_offset: offset}, &gen_idx)}
                     }
                 }
             } else {
-                selection_system::DeselectSystem::run(input.0)?;
+                selection_system::DeselectSystem::deselect_single(&gen_idx, input.0);
             }
         }
         Ok(())

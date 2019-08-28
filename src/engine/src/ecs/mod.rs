@@ -38,6 +38,15 @@ macro_rules! texture { ($path:expr, $number:expr, $enum:expr, $name:expr) => {{
     }};
 }
 
+pub enum Components {
+
+    Position, Velocity, Scale, Rotation,
+    Color, Render, Texture, TextureUpdate, Orthographic,
+    BoxCollider2D,
+    Selected,
+    NA
+}
+
 /// START OF TRANSFORM COMPONENTS ----------------------------------------------------------------->
 
 /// POSITION

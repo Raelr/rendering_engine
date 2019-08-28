@@ -19,12 +19,14 @@ impl<'a> System<'a> for PositionUpdateSystem {
 
             let mut generation = 0;
 
+            let mut idx : GenerationalIndex = GenerationalIndex {index: 0, generation: 0};
+
             let mut velocity_change : Vector3<f32> = Vector3::new(0.0, 0.0, 0.0);
 
             {
                 if let Some(velocity) = input.get_map_mut::<VelocityComponent>().entries[index].as_mut() {
 
-                    generation = velocity.generation;
+                    idx = velocity.owned_entity;
 
                     let current_velocity = velocity.value.velocity;
 
@@ -43,8 +45,6 @@ impl<'a> System<'a> for PositionUpdateSystem {
                     velocity.value.velocity -= Vector3::new(current_velocity.x * 0.2, current_velocity.y * 0.2, 0.0);
                 }
             }
-
-            let idx = GenerationalIndex {index, generation};
 
             {
                 let positions = &mut input.get_mut::<PositionComponent>(&idx).unwrap();

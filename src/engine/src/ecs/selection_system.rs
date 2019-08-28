@@ -16,20 +16,20 @@ impl<'a> System<'a> for SelectionSystem {
 
         let size  = input.0.get_map::<SelectedComponent>().entries.len();
 
+        //println!("Selected Size: {}", size);
+
         for index in 0..size {
 
-            let generation;
+            let gen_index : GenerationalIndex;
 
             let select_color : (f32, f32, f32, f32);
 
             {
                 let selected = input.0.get_map::<SelectedComponent>().entries[0].as_ref().unwrap();
 
-                generation = selected.generation;
+                gen_index = selected.owned_entity;
                 select_color = selected.value.selected_color;
             }
-
-            let gen_index = GenerationalIndex {index, generation};
 
             {
                 let mut color = input.0.get_mut::<ColorComponent>(&gen_index).unwrap();
@@ -52,15 +52,15 @@ impl<'a> System<'a> for DeselectSystem {
 
         let size = input.get_map::<SelectedComponent>().entries.len();
 
+        println!("Size of array to be cleared: {}", size);
+
         for index in 0..size {
 
-            let generation;
+            let idx : GenerationalIndex;
 
             {
-                generation = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;
+                idx = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().owned_entity;
             }
-
-            let idx = GenerationalIndex {index, generation};
 
             let color = input.get_mut::<ColorComponent>(&idx).unwrap();
 
@@ -73,6 +73,18 @@ impl<'a> System<'a> for DeselectSystem {
     }
 }
 
+impl DeselectSystem {
+
+    pub fn deselect_single(index : &GenerationalIndex, state : &mut GameState) {
+
+        let color = state.get_mut::<ColorComponent>(index).unwrap();
+
+        color.color = (1.0, 1.0, 1.0, 1.0);
+
+        state.remove_component::<SelectedComponent>(index);
+    }
+}
+
 pub struct FollowMouseSystem;
 
 impl<'a> System<'a> for FollowMouseSystem {
@@ -81,6 +93,7 @@ impl<'a> System<'a> for FollowMouseSystem {
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
         let size = input.0.get_map::<SelectedComponent>().entries.len();
+        //println!("Selected size: {}", size);
 
         let cursor_pos = Vector3::new(input.1.x, input.1.y, 0.0);
 
@@ -88,14 +101,11 @@ impl<'a> System<'a> for FollowMouseSystem {
 
         for index in 0..size {
 
-            let generation;
+            let idx : GenerationalIndex;
 
             {
-                generation = input.0.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().generation;
+                idx = input.0.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().owned_entity;
             }
-
-            let idx = GenerationalIndex { index, generation};
-
             offset = input.0.get::<SelectedComponent>(&idx).as_ref().unwrap().cursor_offset;
 
             let offset = Vector3::new(offset.x, offset.y, 0.0);
@@ -114,9 +124,12 @@ impl<'a> System<'a> for FollowMouseSystem {
                 let coords = Vector2::new(collider_pos.x, collider_pos.y);
 
                 collider.position = coords;
+
+                println!("Moving entity: {} {} to position: {} {}", idx.index, idx.generation, coords.x, coords.y);
             }
         }
 
         Ok(())
     }
 }
+

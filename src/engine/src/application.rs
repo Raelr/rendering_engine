@@ -12,7 +12,8 @@ use crate::platform::windows::windows_window;
 use crate::window::{WindowProperties, WindowTrait};
 use crate::platform::windows::windows_window::{WindowsWindow};
 use crate::sdl2::mouse::MouseButton;
-use crate::input::MouseInput;
+use crate::input::{MouseInput, KeyCode};
+use crate::nalgebra::{Vector3, Vector2};
 
 // Use
 use failure::Error;
@@ -47,7 +48,6 @@ pub fn run() -> Result<(), Error> {
     // Initialise event queue for the game window.
     let mut one_time_window_events: VecDeque<Box<dyn FnMut(&mut WindowsWindow)>> = VecDeque::new();
 
-
     unsafe { gl::Viewport(0, 0, window.data.width as i32, window.data.height as i32); }
 
     // Sets up the entities in the ECS.
@@ -72,10 +72,10 @@ pub fn run() -> Result<(), Error> {
                 sdl2::event::Event::Quit { .. }=> { break 'running },
 
                 sdl2::event::Event::MouseButtonUp {timestamp: _, window_id: _, which: _ , mouse_btn: button, .. }
-                    => { input_handler.clear_mouse_code(&input::sdl_mouse_to_mouse(&button))},
+                    => { input_handler.clear_mouse_input(&input::sdl_mouse_to_mouse(&button))},
 
-                sdl2::event::Event::KeyUp { timestamp: _, window_id: _ , keycode: code, scancode: code, .. }
-                    => { }
+                sdl2::event::Event::KeyUp { timestamp: _, window_id: _ , keycode: code, scancode: scancode, .. }
+                    => { println!("Key Released: {}", code.unwrap()); input_handler.clear_keyboard_input(&input::scancode_to_keycode(&scancode.unwrap()))}
 
                 // TODO
                 _ => ()
@@ -88,7 +88,7 @@ pub fn run() -> Result<(), Error> {
 
         // MOUSE INPUT MODULE - NEEDS WORK
 
-        if input_handler.get_mouse_down(&MouseInput::Left) {
+        if input_handler.get_mouse_down(&MouseInput::LeftMouse) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
@@ -98,7 +98,7 @@ pub fn run() -> Result<(), Error> {
 
             // CHECK IF MOUSE IS HELD DOWN
 
-            if input_handler.get_mouse_button(&MouseInput::Left) {
+            if input_handler.get_mouse_button(&MouseInput::LeftMouse) {
 
                 check_mouse_collision_system::CheckBoxColliderSystem::run((&mut game_state, &screen_coordinates))?;
 
@@ -106,6 +106,10 @@ pub fn run() -> Result<(), Error> {
 
                 selection_system::FollowMouseSystem::run((&mut game_state, &screen_coordinates))?;
             }
+        }
+
+        if input_handler.get_keycode(&KeyCode::Space) {
+
         }
         
         // Cycles through all events stored in this queue and executes them.
@@ -123,12 +127,16 @@ pub fn run() -> Result<(), Error> {
 
             gl::Clear(gl::COLOR_BUFFER_BIT);
 
+            //println!("Texture");
             texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
+            //println!("Selection");
             selection_system::SelectionSystem::run((&mut game_state, &input_handler))?;
 
+            //println!("Position");
             position_update_system::PositionUpdateSystem::run(&mut game_state)?;
 
+            //println!("Render");
             render_system::RenderSystem::run(
                 (game_state.get_map::<RenderComponent>(),
                          game_state.get_map::<PositionComponent>(),
