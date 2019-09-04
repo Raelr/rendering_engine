@@ -108,7 +108,31 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        if input_handler.get_keycode_down(&KeyCode::Space) {
+        if input_handler.get_mouse_down(&MouseInput::RightMouse) {
+
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
+
+             let screen_coords = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                mouse_coordinates);
+
+            if input_handler.get_mouse_button(&MouseInput::RightMouse) {
+
+                let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
+                let scale = Vector3::new(100.0, 100.0, 0.0);
+
+                let entity = GameState::create_entity(&mut game_state)
+                    .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
+                    .with(PositionComponent {position})
+                    .with(ScaleComponent {scale})
+                    .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
+                    .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
+                    .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+                    .build();
+            }
+        }
+
+        if input_handler.get_keycode(&KeyCode::Space) {
 
             let position = Vector3::new(0.0, 0.0, 0.0);
             let scale = Vector3::new(100.0, 100.0, 100.0);
@@ -159,7 +183,10 @@ pub fn run() -> Result<(), Error> {
                          game_state.get_map::<ColorComponent>(),
                          game_state.get_map::<TextureMixComponent>(),
                          game_state.get_map::<ScaleComponent>(),
-                         game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
+                         game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                         camera_utils::ortho_screen_to_world_coordinates(
+                    &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                    input::get_mouse_coordinates(&pump))))?;
         }
         // End of rendering code.
         window.on_update();

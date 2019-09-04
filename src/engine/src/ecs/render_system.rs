@@ -13,7 +13,8 @@ impl<'a> System<'a> for RenderSystem {
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>,
                         &'a GenerationalIndexArray<ScaleComponent>,
-                        &'a OrthographicCameraComponent);
+                        &'a OrthographicCameraComponent,
+                        Vector2<f32>);
 
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
@@ -48,7 +49,13 @@ impl<'a> System<'a> for RenderSystem {
                         //println!("None")
                     }
 
-                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec);
+                    let angle_between = f32::atan2(input.6.y - position.position.y, input.6.x - position.position.x);
+
+                    //println!("Angle: {}", f32::to_degrees(angle_between));
+                    let rotation = nalgebra::Matrix4::from_scaled_axis(&Vector3::new(0.0, 0.0, 1.0) * angle_between);
+
+                    let model = nalgebra::Matrix4::new_translation(&position.position) *
+                        nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec) * rotation;
 
                     //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 

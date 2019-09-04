@@ -52,7 +52,7 @@ impl<'a> System<'a> for DeselectSystem {
 
         let size = input.get_map::<SelectedComponent>().entries.len();
 
-        println!("Size of array to be cleared: {}", size);
+        //println!("Size of array to be cleared: {}", size);
 
         for index in 0..size {
 
@@ -125,7 +125,7 @@ impl<'a> System<'a> for FollowMouseSystem {
 
                 collider.position = coords;
 
-                println!("Moving entity: {} {} to position: {} {}", idx.index, idx.generation, coords.x, coords.y);
+                //println!("Moving entity: {} {} to position: {} {}", idx.index, idx.generation, coords.x, coords.y);
             }
         }
 

@@ -17,7 +17,7 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
         let size = input.0.get_map::<BoxCollider2DComponent>().entries.len();
 
-        println!("size: {}", size);
+        //println!("size: {}", size);
 
         for index in 0..size {
 
