@@ -74,10 +74,18 @@ impl Component for VelocityComponent {}
 
 pub struct RotationComponent {
 
-    rotation : Vector3<f32>
+    pub rotation : Vector3<f32>
 }
 
 impl Component for RotationComponent {}
+
+pub struct RotationUpdateComponent {
+
+    pub axis : nalgebra::Vector3<f32>,
+    pub angle : f32
+}
+
+impl Component for RotationUpdateComponent {}
 
 pub struct ScaleComponent {
     pub scale : Vector3<f32>

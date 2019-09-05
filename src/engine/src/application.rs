@@ -14,6 +14,7 @@ use crate::platform::windows::windows_window::{WindowsWindow};
 use crate::sdl2::mouse::MouseButton;
 use crate::input::{MouseInput, KeyCode};
 use crate::nalgebra::{Vector3, Vector2};
+use crate::utilities::vector_utils::*;
 
 // Use
 use failure::Error;
@@ -88,6 +89,7 @@ pub fn run() -> Result<(), Error> {
 
         // MOUSE INPUT MODULE - NEEDS WORK
 
+        // LEFT CLICK
         if input_handler.get_mouse_down(&MouseInput::LeftMouse) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
@@ -108,6 +110,7 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
+        // RIGHT CLICK
         if input_handler.get_mouse_down(&MouseInput::RightMouse) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
@@ -128,6 +131,8 @@ pub fn run() -> Result<(), Error> {
                     .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
                     .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
                     .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+                    .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
+                    .with(RotationUpdateComponent { axis: Vector3::new(0.0, 0.0, 1.0), angle: get_rotation_angle_2(Vector2::new(screen_coords.x, screen_coords.y), screen_coords) })
                     .build();
             }
         }
@@ -140,6 +145,7 @@ pub fn run() -> Result<(), Error> {
             let entity = GameState::create_entity(&mut game_state)
                 .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
                 .with(PositionComponent {position})
+                .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
                 .with(ScaleComponent {scale})
                 .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
                 .with(TextureMixComponent { textures : vec!
@@ -176,6 +182,8 @@ pub fn run() -> Result<(), Error> {
             //println!("Position");
             position_update_system::PositionUpdateSystem::run(&mut game_state)?;
 
+            position_update_system::RotationUpdateSystem::run((&mut game_state))?;
+
             //println!("Render");
             render_system::RenderSystem::run(
                 (game_state.get_map::<RenderComponent>(),
@@ -184,9 +192,7 @@ pub fn run() -> Result<(), Error> {
                          game_state.get_map::<TextureMixComponent>(),
                          game_state.get_map::<ScaleComponent>(),
                          game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
-                         camera_utils::ortho_screen_to_world_coordinates(
-                    &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
-                    input::get_mouse_coordinates(&pump))))?;
+                         game_state.get_map::<RotationComponent>()))?;
         }
         // End of rendering code.
         window.on_update();

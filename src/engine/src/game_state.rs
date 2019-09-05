@@ -1,4 +1,4 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent, RotationComponent, RotationUpdateComponent};
 use crate::generational_index::generational_index::*;
 use anymap::AnyMap;
 use failure::Error;
@@ -162,6 +162,8 @@ impl GameState {
         let orthographic_cameras : EntityMap<OrthographicCameraComponent> = EntityMap::new();
         let box_colliders : EntityMap<BoxCollider2DComponent> = EntityMap::new();
         let selected_components : EntityMap<SelectedComponent> = EntityMap::new();
+        let rotation_components : EntityMap<RotationComponent> = EntityMap::new();
+        let rotation_update_components : EntityMap<RotationUpdateComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -173,6 +175,8 @@ impl GameState {
         state.register_map(orthographic_cameras);
         state.register_map(box_colliders);
         state.register_map(selected_components);
+        state.register_map(rotation_components);
+        state.register_map(rotation_update_components);
 
         // RIGHT
 
@@ -182,6 +186,7 @@ impl GameState {
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
             .with(PositionComponent {position})
+            .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0)})
             .with(ScaleComponent {scale})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
