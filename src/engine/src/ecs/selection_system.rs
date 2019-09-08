@@ -10,11 +10,11 @@ pub struct SelectionSystem;
 
 impl<'a> System<'a> for SelectionSystem {
 
-    type SystemInput = (&'a mut GameState, &'a InputHandler);
+    type SystemInput = &'a mut GameState;
 
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
-        let size  = input.0.get_map::<SelectedComponent>().entries.len();
+        let size  = input.get_map::<SelectedComponent>().entries.len();
 
         //println!("Selected Size: {}", size);
 
@@ -25,14 +25,14 @@ impl<'a> System<'a> for SelectionSystem {
             let select_color : (f32, f32, f32, f32);
 
             {
-                let selected = input.0.get_map::<SelectedComponent>().entries[0].as_ref().unwrap();
+                let selected = input.get_map::<SelectedComponent>().entries[0].as_ref().unwrap();
 
                 gen_index = selected.owned_entity;
                 select_color = selected.value.selected_color;
             }
 
             {
-                let mut color = input.0.get_mut::<ColorComponent>(&gen_index).unwrap();
+                let mut color = input.get_mut::<ColorComponent>(&gen_index).unwrap();
 
                 color.color = select_color;
             }

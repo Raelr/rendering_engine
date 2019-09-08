@@ -7,6 +7,7 @@ pub mod texture_update_system;
 pub mod position_update_system;
 pub mod check_mouse_collision_system;
 pub mod selection_system;
+pub mod look_at_position_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -177,5 +178,14 @@ pub struct SelectedComponent {
 
 impl Component for SelectedComponent {}
 
+pub struct LookAtPositionComponent {
+
+    pub focus_point: Vector2<f32>
+}
+
+impl Component for LookAtPositionComponent {}
+
 pub trait Component: Any + Sized {}
+
+
 

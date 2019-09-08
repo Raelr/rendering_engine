@@ -23,6 +23,7 @@ use std::time::{Duration};
 use crate::input::input_handler::*;
 use crate::input;
 use crate::utilities::camera_utils;
+use crate::ecs::look_at_position_system::{LookAtPositionSystem, UpdateFocusPointSystem};
 
 
 /// This is the code for the current event loop.
@@ -123,7 +124,9 @@ pub fn run() -> Result<(), Error> {
             if input_handler.get_mouse_button(&MouseInput::RightMouse) {
 
                 let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
-                let scale = Vector3::new(100.0, 100.0, 0.0);
+                let scale = Vector3::new(10.0, 100.0, 10.0);
+
+                selection_system::DeselectSystem::run(&mut game_state);
 
                 let entity = GameState::create_entity(&mut game_state)
                     .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
@@ -134,8 +137,17 @@ pub fn run() -> Result<(), Error> {
                     .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
                     .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
                     .with(RotationUpdateComponent { axis: Vector3::new(0.0, 0.0, 1.0), angle: get_rotation_angle_2(Vector2::new(screen_coords.x, screen_coords.y), screen_coords) })
+                    .with(LookAtPositionComponent{ focus_point: screen_coords})
+                    .with(SelectedComponent {
+                        selected_color: (0.5, 0.5, 0.5, 0.5),
+                        origin_color: (0.0, 0.0, 0.0, 0.0),
+                        cursor_offset: Vector2::new(0.0, 0.0)
+                    })
                     .build();
             }
+
+            UpdateFocusPointSystem::run((&mut game_state, screen_coords));
+            LookAtPositionSystem::run((&mut game_state));
         }
 
         if input_handler.get_keycode(&KeyCode::Space) {
@@ -178,12 +190,10 @@ pub fn run() -> Result<(), Error> {
             texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
             //println!("Selection");
-            selection_system::SelectionSystem::run((&mut game_state, &input_handler))?;
+            selection_system::SelectionSystem::run((&mut game_state))?;
 
             //println!("Position");
             position_update_system::PositionUpdateSystem::run(&mut game_state)?;
-
-            position_update_system::RotationUpdateSystem::run((&mut game_state))?;
 
             //println!("Render");
             render_system::RenderSystem::run(

@@ -1,4 +1,7 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent, RotationComponent, RotationUpdateComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture,
+                 RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent,
+                 OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent,
+                 RotationComponent, RotationUpdateComponent, LookAtPositionComponent};
 use crate::generational_index::generational_index::*;
 use anymap::AnyMap;
 use failure::Error;
@@ -164,6 +167,7 @@ impl GameState {
         let selected_components : EntityMap<SelectedComponent> = EntityMap::new();
         let rotation_components : EntityMap<RotationComponent> = EntityMap::new();
         let rotation_update_components : EntityMap<RotationUpdateComponent> = EntityMap::new();
+        let look_at_components : EntityMap<LookAtPositionComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -177,6 +181,7 @@ impl GameState {
         state.register_map(selected_components);
         state.register_map(rotation_components);
         state.register_map(rotation_update_components);
+        state.register_map(look_at_components);
 
         // RIGHT
 
