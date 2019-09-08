@@ -123,8 +123,8 @@ pub fn run() -> Result<(), Error> {
 
             if input_handler.get_mouse_button(&MouseInput::RightMouse) {
 
+                let scale = Vector3::new(100.0, 10.0, 0.0);
                 let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
-                let scale = Vector3::new(10.0, 100.0, 10.0);
 
                 selection_system::DeselectSystem::run(&mut game_state);
 

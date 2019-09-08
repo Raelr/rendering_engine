@@ -35,11 +35,10 @@ impl<'a> System<'a> for LookAtPositionSystem {
                 }
 
                 let angle_change = vector_utils::get_rotation_angle_2(component_position, focus_position);
-                println!("Angle: {}", angle_change);
 
                 {
                     let rotation = input.get_mut::<RotationComponent>(&gen_idx).unwrap();
-                    rotation.rotation = Vector3::new(0.0,0.0, angle_change);
+                    rotation.rotation = Vector3::new(0.0, 0.0, angle_change);
                 }
             }
         }

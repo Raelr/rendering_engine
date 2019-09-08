@@ -14,10 +14,10 @@ macro_rules! quad { () => {{
 
             let vertices : Vec<gl::types::GLfloat> = vec![
              // Position      //Texture
-             0.5,  0.5, 0.0,  1.0, 1.0, // top right
-             0.5, -0.5, 0.0,  1.0, 0.0, // bottom right
-            -0.5, -0.5, 0.0,  0.0, 0.0, // bottom left
-            -0.5,  0.5, 0.0,  0.0, 1.0  // top left
+             1.0,  1.0, 0.0,  1.0, 1.0, // top right
+             1.0, -1.0, 0.0,  1.0, 0.0, // bottom right
+            -1.0, -1.0, 0.0,  0.0, 0.0, // bottom left
+            -1.0,  1.0, 0.0,  0.0, 1.0  // top left
             ];
 
             let indices : Vec<gl::types::GLuint> = vec! [
