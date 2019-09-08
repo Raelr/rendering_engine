@@ -1,5 +1,5 @@
 use crate::ecs::system::System;
-use crate::ecs::{BoxCollider2DComponent,SelectedComponent};
+use crate::ecs::{BoxCollider2DComponent, SelectedComponent, ColorComponent};
 use crate::generational_index::generational_index::{GenerationalIndex};
 use nalgebra::{Vector2};
 use failure::Error;
@@ -59,19 +59,13 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
 
             // TODO: FIX ISSUES WITH DESELECTION SYSTEM - CAUSING INDEXING ERRORS WHEN TRYING TO REMOVE INDIVIDUALLY
 
+            selection_system::DeselectSystem::run(input.0);
             if collided {
                 {
-                    match selected {
-                        true => input.0.get_mut::<SelectedComponent>(&gen_idx).unwrap().cursor_offset = offset,
-                        false => {println!("SELECTED ENTITY: {} {}", gen_idx.index, gen_idx.generation);
-                            selection_system::DeselectSystem::run(input.0);
-                            input.0.add_component_to(SelectedComponent {
-                                selected_color: (0.7, 0.7, 0.7, 0.5),
-                                cursor_offset: offset}, &gen_idx); }
-                    }
+                    let origin_color = input.0.get::<ColorComponent>(&gen_idx).unwrap().color.clone();
+                    input.0.add_component_to(SelectedComponent { selected_color: (0.7, 0.7, 0.7, 0.5), origin_color, cursor_offset: offset}, &gen_idx);
+                    break;
                 }
-            } else {
-                selection_system::DeselectSystem::deselect_single(&gen_idx, input.0);
             }
         }
         Ok(())

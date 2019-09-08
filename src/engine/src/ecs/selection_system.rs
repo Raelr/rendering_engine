@@ -52,19 +52,23 @@ impl<'a> System<'a> for DeselectSystem {
 
         let size = input.get_map::<SelectedComponent>().entries.len();
 
-        //println!("Size of array to be cleared: {}", size);
-
         for index in 0..size {
 
             let idx : GenerationalIndex;
 
+            let origin_color : (f32, f32, f32, f32);
+
             {
-                idx = input.get_map::<SelectedComponent>().entries[index].as_ref().unwrap().owned_entity;
+                let map = input.get_map::<SelectedComponent>();
+                idx = map.entries[index].as_ref().unwrap().owned_entity;
+                origin_color = map.get(&idx).unwrap().origin_color;
             }
 
             let color = input.get_mut::<ColorComponent>(&idx).unwrap();
 
-            color.color = (1.0, 1.0, 1.0, 1.0);
+            // TODO: ADD A METHOD OF REVERTING OBJECT TO ORIGINAL COLOR
+            println!("{:?}", origin_color);
+            color.color = origin_color;
 
             input.remove_component::<SelectedComponent>(&idx);
         }
@@ -77,9 +81,19 @@ impl DeselectSystem {
 
     pub fn deselect_single(index : &GenerationalIndex, state : &mut GameState) {
 
+        let origin_color : (f32, f32, f32, f32);
+
+        {
+            if let Some(c) = state.get::<SelectedComponent>(index) {
+                origin_color = c.origin_color.clone();
+            } else {
+                origin_color = (0.0, 0.0, 0.0, 0.0);
+            }
+        }
+
         let color = state.get_mut::<ColorComponent>(index).unwrap();
 
-        color.color = (1.0, 1.0, 1.0, 1.0);
+        color.color = origin_color;
 
         state.remove_component::<SelectedComponent>(index);
     }

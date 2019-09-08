@@ -54,7 +54,7 @@ impl<'a> System<'a> for RenderSystem {
                     let rotation = nalgebra::Matrix4::from_scaled_axis(rotation_comp.rotation);
 
                     let model = nalgebra::Matrix4::new_translation(&position.position) *
-                        nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec);
+                        nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec) * rotation;
 
                     //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
 

@@ -94,6 +94,7 @@ pub fn run() -> Result<(), Error> {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
+            // TODO: UPDATE ORTHOGRAPHIC CAMERA WHEN SCREEN IS RESIZED.
             let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
                 mouse_coordinates);
@@ -128,7 +129,7 @@ pub fn run() -> Result<(), Error> {
                     .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
                     .with(PositionComponent {position})
                     .with(ScaleComponent {scale})
-                    .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
+                    .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0) })
                     .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
                     .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
                     .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })

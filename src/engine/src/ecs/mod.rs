@@ -171,6 +171,7 @@ impl Component for BoxCollider2DComponent {}
 pub struct SelectedComponent {
 
     pub selected_color : (f32, f32, f32, f32),
+    pub origin_color : (f32, f32, f32, f32),
     pub cursor_offset : Vector2<f32>
 }
 
