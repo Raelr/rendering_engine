@@ -164,7 +164,7 @@ impl Component for OrthographicCameraComponent {}
 pub struct BoxCollider2DComponent {
 
     pub size : Vector2<f32>,
-    pub position : Vector2<f32>
+    pub position : Vector2<f32>,
 }
 
 impl Component for BoxCollider2DComponent {}

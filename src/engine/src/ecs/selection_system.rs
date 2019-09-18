@@ -1,7 +1,7 @@
 use crate::ecs::system::System;
 use failure::Error;
 use crate::game_state::GameState;
-use crate::ecs::{SelectedComponent, ColorComponent, PositionComponent, BoxCollider2DComponent};
+use crate::ecs::{SelectedComponent, ColorComponent, PositionComponent, BoxCollider2DComponent, RotationComponent};
 use nalgebra::{Vector3, Vector2};
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::input::input_handler::InputHandler;
@@ -123,11 +123,18 @@ impl<'a> System<'a> for FollowMouseSystem {
             offset = input.0.get::<SelectedComponent>(&idx).as_ref().unwrap().cursor_offset;
 
             let offset = Vector3::new(offset.x, offset.y, 0.0);
+            let rotation_comp : Vector3<f32>;
 
             {
                 let position = input.0.get_mut::<PositionComponent>(&idx).unwrap();
 
                 position.position = cursor_pos + offset;
+            }
+
+            {
+                let rotation = input.0.get_mut::<RotationComponent>(&idx).unwrap();
+
+                rotation_comp = rotation.rotation;
             }
 
             {

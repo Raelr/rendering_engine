@@ -40,6 +40,24 @@ impl<'a> System<'a> for LookAtPositionSystem {
                     let rotation = input.get_mut::<RotationComponent>(&gen_idx).unwrap();
                     rotation.rotation = Vector3::new(0.0, 0.0, angle_change);
                 }
+
+                {
+                    let collider = input.get_mut::<BoxCollider2DComponent>(&gen_idx).unwrap();
+
+                    let mut x_max = collider.position.x + (collider.size.x / 2.0);
+                    let mut y_max = collider.position.y + (collider.size.y / 2.0);
+
+                    let mut x_min = collider.position.x - (collider.size.x / 2.0);
+                    let mut y_min = collider.position.y - (collider.size.y / 2.0);
+
+                    let max = vector_utils::get_point_after_rotation(Vector2::new(x_max, y_max), angle_change);
+                    let min = vector_utils::get_point_after_rotation(Vector2::new(x_min, y_min), angle_change);
+
+                    println!("Max: x: {} y: {} Min: x: {} y: {}", max.x, max.y, min.x, min.y);
+
+                    
+
+                }
             }
         }
         Ok(())

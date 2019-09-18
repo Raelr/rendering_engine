@@ -186,7 +186,7 @@ impl GameState {
         // RIGHT
 
         let position = Vector3::new(0.0, 0.0, 0.0);
-        let scale = Vector3::new(100.0, 100.0, 100.0);
+        let scale = Vector3::new(50.0, 50.0, 50.0);
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
@@ -200,7 +200,7 @@ impl GameState {
                 opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0)})
             .build();
 
         let cam_position = Vector3::new(0.0, 0.0, -1.0);
