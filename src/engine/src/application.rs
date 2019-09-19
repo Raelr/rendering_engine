@@ -125,7 +125,7 @@ pub fn run() -> Result<(), Error> {
 
                 let scale = Vector3::new(50.0, 50.0, 0.0);
                 let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
-                let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x * 2.0, scale.y * 2.0));
+                let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x, scale.y));
 
                 selection_system::DeselectSystem::run(&mut game_state);
 
