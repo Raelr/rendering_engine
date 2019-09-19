@@ -7,6 +7,7 @@ use anymap::AnyMap;
 use failure::Error;
 use nalgebra::{Vector3, Matrix4, Vector2};
 use crate::platform::windows::windows_window::WindowsWindow;
+use crate::utilities::vector_utils;
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -187,6 +188,7 @@ impl GameState {
 
         let position = Vector3::new(0.0, 0.0, 0.0);
         let scale = Vector3::new(50.0, 50.0, 50.0);
+        let corners = vector_utils::get_box_corners(Vector2::new(position.x, position.y), Vector2::new(scale.x, scale.y));
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
@@ -200,7 +202,8 @@ impl GameState {
                 opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y),
+                size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
             .build();
 
         let cam_position = Vector3::new(0.0, 0.0, -1.0);

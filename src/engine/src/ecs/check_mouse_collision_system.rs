@@ -33,13 +33,19 @@ impl<'a> System<'a> for CheckBoxColliderSystem {
                 let position = collider_entry.value.position;
                 let size = collider_entry.value.size;
                 let mouse_coordinates = input.1;
+                let corners = &collider_entry.value.corners;
 
-                let leftmost_x = position.x - (size.x * 0.5);
-                let leftmost_y = position.y - (size.y * 0.5);
+                let x_max: Vector2<f32>;
+                let y_max: Vector2<f32>;
 
-                let collision_x = leftmost_x + size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_x;
+                let x_min: Vector2<f32>;
+                let y_min: Vector2<f32>;
 
-                let collision_y = leftmost_y + size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_y;
+                let leftmost_corner = corners[3];
+
+                let collision_x = leftmost_corner.x + size.x >= mouse_coordinates.x && mouse_coordinates.x >= leftmost_corner.x;
+
+                let collision_y = leftmost_corner.y + size.y >= mouse_coordinates.y && mouse_coordinates.y >= leftmost_corner.y;
 
                 collided = collision_x && collision_y;
 

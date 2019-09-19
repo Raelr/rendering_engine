@@ -5,6 +5,7 @@ use crate::generational_index::generational_index::{GenerationalIndex, Generatio
 use crate::game_state::GameState;
 use crate::utilities::vector_utils;
 use nalgebra::{Vector3, Vector2};
+use crate::utilities::vector_utils::get_box_corners;
 
 pub struct LookAtPositionSystem;
 
@@ -20,10 +21,7 @@ impl<'a> System<'a> for LookAtPositionSystem {
             let component = input.get_map::<LookAtPositionComponent>().entries[index].as_ref().unwrap();
             let gen_idx = component.owned_entity.clone();
 
-            let selected = match input.get::<SelectedComponent>(&gen_idx) {
-                Some(c) => true,
-                None => false
-            };
+            let selected : bool = input.get::<SelectedComponent>(&gen_idx).is_some();
 
             if selected {
 
@@ -42,36 +40,57 @@ impl<'a> System<'a> for LookAtPositionSystem {
                     rotation.rotation = Vector3::new(0.0, 0.0, angle_change);
                 }
 
-                let newPosition : Vector3<f32>;
+                let new_position: Vector2<f32>;
 
                 {
                     let collider = input.get_mut::<BoxCollider2DComponent>(&gen_idx).unwrap();
 
-                    let mut x_max = collider.position.x + (collider.size.x * 0.5);
-                    let mut y_max = collider.position.y + (collider.size.y * 0.5);
+                    let mut corners = collider.corners.clone();
+                    let mut rotated_corners : Vec<Vector2<f32>> = Vec::new();
 
-                    let mut x_min = collider.position.x - (collider.size.x * 0.5);
-                    let mut y_min = collider.position.y - (collider.size.y * 0.5);
+                    for corner in corners {
+                        let coords =  vector_utils::get_point_after_rotation(
+                            Vector2::new(corner.x, corner.y), collider.position, angle_change);
+                        rotated_corners.push(coords);
+                    }
 
-                    let max = vector_utils::get_point_after_rotation(Vector2::new(x_max, y_max), angle_change);
-                    let min = vector_utils::get_point_after_rotation(Vector2::new(x_min, y_min), angle_change);
+                    use std::f32::MIN;
 
-                    println!("Max: x: {} y: {} Min: x: {} y: {}", max.x, max.y, min.x, min.y);
+                    let mut max_x = MIN;
 
-                    newPosition = Vector3::new(max.x - collider.size.x, max.y - collider.size.y, 0.0);
+                    let max_corner = {
 
+                        let mut chosen : Vector2<f32> = Vector2::new(0.0,0.0);
+                        for corner in &rotated_corners {
+
+                            if corner.x > max_x {
+                                chosen = corner.clone_owned();
+                                max_x = corner.x;
+                            }
+                        }
+
+                        chosen
+                    };
+
+                    new_position = max_corner;
+
+                    println!("Max: {}:{}", new_position.x, new_position.y);
+
+                    collider.corners = rotated_corners;
                 }
 
+
                 let scale = Vector3::new(10.0, 10.0, 10.0);
+                let corners = get_box_corners(new_position, Vector2::new(scale.x, scale.y));
 
                 let entity = GameState::create_entity(input)
                     .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-                    .with(PositionComponent {position: newPosition})
+                    .with(PositionComponent {position: Vector3::new(new_position.x, new_position.y, 0.0)})
                     .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
                     .with(ScaleComponent {scale})
                     .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
                     .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-                    .with(BoxCollider2DComponent {position: Vector2::new(newPosition.x - scale.x, newPosition.y - scale.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0)})
+                    .with(BoxCollider2DComponent {position: Vector2::new(new_position.x - scale.x, new_position.y - scale.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
                     .build();
             }
         }

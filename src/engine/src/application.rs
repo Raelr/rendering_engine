@@ -123,8 +123,9 @@ pub fn run() -> Result<(), Error> {
 
             if input_handler.get_mouse_button(&MouseInput::RightMouse) {
 
-                let scale = Vector3::new(100.0, 100.0, 0.0);
+                let scale = Vector3::new(50.0, 50.0, 0.0);
                 let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
+                let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x * 2.0, scale.y * 2.0));
 
                 selection_system::DeselectSystem::run(&mut game_state);
 
@@ -134,7 +135,7 @@ pub fn run() -> Result<(), Error> {
                     .with(ScaleComponent {scale})
                     .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0) })
                     .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-                    .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0)})
+                    .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
                     .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
                     .with(RotationUpdateComponent { axis: Vector3::new(0.0, 0.0, 1.0), angle: get_rotation_angle_2(Vector2::new(screen_coords.x, screen_coords.y), screen_coords) })
                     .with(LookAtPositionComponent{ focus_point: screen_coords})
@@ -154,6 +155,7 @@ pub fn run() -> Result<(), Error> {
 
             let position = Vector3::new(0.0, 0.0, 0.0);
             let scale = Vector3::new(50.0, 50.0, 50.0);
+            let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x, scale.y));
 
             let entity = GameState::create_entity(&mut game_state)
                 .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
@@ -167,7 +169,7 @@ pub fn run() -> Result<(), Error> {
                     opacity: 0.0})
                 .with(TextureUpdateComponent {opacity_change : 0.0 })
                 .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-                .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0)})
+                .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
                 .build();
         }
         

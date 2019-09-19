@@ -5,6 +5,7 @@ use crate::ecs::{SelectedComponent, ColorComponent, PositionComponent, BoxCollid
 use nalgebra::{Vector3, Vector2};
 use crate::generational_index::generational_index::GenerationalIndex;
 use crate::input::input_handler::InputHandler;
+use crate::utilities::vector_utils::get_box_corners;
 
 pub struct SelectionSystem;
 
@@ -144,7 +145,12 @@ impl<'a> System<'a> for FollowMouseSystem {
 
                 let coords = Vector2::new(collider_pos.x, collider_pos.y);
 
+                let corners = get_box_corners(coords, collider.size);
+
                 collider.position = coords;
+                collider.corners = corners;
+
+                println!("leftmost corner: {},{}", collider.corners[3].x, collider.corners[3].y);
 
                 //println!("Moving entity: {} {} to position: {} {}", idx.index, idx.generation, coords.x, coords.y);
             }
