@@ -188,7 +188,7 @@ impl GameState {
 
         let position = Vector3::new(0.0, 0.0, 0.0);
         let scale = Vector3::new(50.0, 50.0, 50.0);
-        let corners = vector_utils::get_box_corners(Vector2::new(position.x, position.y), Vector2::new(scale.x, scale.y));
+        let corners = vector_utils::get_box_corners(Vector2::new(position.x, position.y), Vector2::new(scale.x * 2.0, scale.y * 2.0));
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
