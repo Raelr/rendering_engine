@@ -15,10 +15,10 @@ macro_rules! triangle_render {
     use std::ffi::{CString};
 
         let program = ShaderProgram::from_shaders(&[Shader::from_vert_source(
-            &CString::new(include_str!("renderer/triangle.vert"))
+            &CString::new(include_str!("/Users/aryehzinn/Desktop/Development/scrapyard_engine/src/engine/src/renderer/triangle.vert"))
                     .unwrap()).unwrap(),
                     Shader::from_frag_source(&CString::new(
-                    include_str!("renderer/triangle.frag"))
+                    include_str!("/Users/aryehzinn/Desktop/Development/scrapyard_engine/src/engine/src/renderer/triangle.frag"))
                     .unwrap()).unwrap()]).unwrap();
         program
     }};

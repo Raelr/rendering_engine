@@ -14,6 +14,7 @@ use crate::platform::windows::windows_window::{WindowsWindow};
 use crate::sdl2::mouse::MouseButton;
 use crate::input::{MouseInput, KeyCode};
 use crate::nalgebra::{Vector3, Vector2};
+use crate::utilities::vector_utils::*;
 
 // Use
 use failure::Error;
@@ -22,6 +23,7 @@ use std::time::{Duration};
 use crate::input::input_handler::*;
 use crate::input;
 use crate::utilities::camera_utils;
+use crate::ecs::look_at_position_system::{LookAtPositionSystem, UpdateFocusPointSystem};
 
 
 /// This is the code for the current event loop.
@@ -88,10 +90,12 @@ pub fn run() -> Result<(), Error> {
 
         // MOUSE INPUT MODULE - NEEDS WORK
 
+        // LEFT CLICK
         if input_handler.get_mouse_down(&MouseInput::LeftMouse) {
 
             let mouse_coordinates = input::get_mouse_coordinates(&pump);
 
+            // TODO: UPDATE ORTHOGRAPHIC CAMERA WHEN SCREEN IS RESIZED.
             let screen_coordinates = camera_utils::ortho_screen_to_world_coordinates(
                 &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
                 mouse_coordinates);
@@ -108,14 +112,55 @@ pub fn run() -> Result<(), Error> {
             }
         }
 
-        if input_handler.get_keycode_down(&KeyCode::Space) {
+        // RIGHT CLICK
+        if input_handler.get_mouse_down(&MouseInput::RightMouse) {
+
+            let mouse_coordinates = input::get_mouse_coordinates(&pump);
+
+             let screen_coords = camera_utils::ortho_screen_to_world_coordinates(
+                &game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                mouse_coordinates);
+
+            if input_handler.get_mouse_button(&MouseInput::RightMouse) {
+
+                let scale = Vector3::new(50.0, 50.0, 0.0);
+                let position = Vector3::new(screen_coords.x, screen_coords.y, 0.0);
+                let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x, scale.y));
+
+                selection_system::DeselectSystem::run(&mut game_state);
+
+                let entity = GameState::create_entity(&mut game_state)
+                    .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
+                    .with(PositionComponent {position})
+                    .with(ScaleComponent {scale})
+                    .with(ColorComponent {color : (0.0, 0.0, 0.0, 0.0) })
+                    .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
+                    .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
+                    .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
+                    .with(RotationUpdateComponent { axis: Vector3::new(0.0, 0.0, 1.0), angle: get_rotation_angle_2(Vector2::new(screen_coords.x, screen_coords.y), screen_coords) })
+                    .with(LookAtPositionComponent{ focus_point: screen_coords})
+                    .with(SelectedComponent {
+                        selected_color: (0.5, 0.5, 0.5, 0.5),
+                        origin_color: (0.0, 0.0, 0.0, 0.0),
+                        cursor_offset: Vector2::new(0.0, 0.0)
+                    })
+                    .build();
+            }
+
+            UpdateFocusPointSystem::run((&mut game_state, screen_coords));
+            LookAtPositionSystem::run((&mut game_state));
+        }
+
+        if input_handler.get_keycode(&KeyCode::Space) {
 
             let position = Vector3::new(0.0, 0.0, 0.0);
-            let scale = Vector3::new(100.0, 100.0, 100.0);
+            let scale = Vector3::new(50.0, 50.0, 50.0);
+            let corners = get_box_corners(Vector2::new(position.x,position.y), Vector2::new(scale.x, scale.y));
 
             let entity = GameState::create_entity(&mut game_state)
                 .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
                 .with(PositionComponent {position})
+                .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0) })
                 .with(ScaleComponent {scale})
                 .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
                 .with(TextureMixComponent { textures : vec!
@@ -124,7 +169,7 @@ pub fn run() -> Result<(), Error> {
                     opacity: 0.0})
                 .with(TextureUpdateComponent {opacity_change : 0.0 })
                 .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-                .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+                .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
                 .build();
         }
         
@@ -147,7 +192,7 @@ pub fn run() -> Result<(), Error> {
             texture_update_system::TextureUpdateSystem::run(&mut game_state)?;
 
             //println!("Selection");
-            selection_system::SelectionSystem::run((&mut game_state, &input_handler))?;
+            selection_system::SelectionSystem::run((&mut game_state))?;
 
             //println!("Position");
             position_update_system::PositionUpdateSystem::run(&mut game_state)?;
@@ -159,7 +204,8 @@ pub fn run() -> Result<(), Error> {
                          game_state.get_map::<ColorComponent>(),
                          game_state.get_map::<TextureMixComponent>(),
                          game_state.get_map::<ScaleComponent>(),
-                         game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap()))?;
+                         game_state.get::<OrthographicCameraComponent>(&m_camera).unwrap(),
+                         game_state.get_map::<RotationComponent>()))?;
         }
         // End of rendering code.
         window.on_update();

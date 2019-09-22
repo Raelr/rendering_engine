@@ -1,7 +1,7 @@
 use crate::ecs::system::System;
-use crate::ecs::{PositionComponent, VelocityComponent, BoxCollider2DComponent};
+use crate::ecs::{PositionComponent, VelocityComponent, BoxCollider2DComponent, RotationComponent, RotationUpdateComponent};
 use failure::Error;
-use crate::generational_index::generational_index::{GenerationalIndex};
+use crate::generational_index::generational_index::{GenerationalIndex, GenerationalIndexArray};
 use crate::game_state::GameState;
 use nalgebra::{Vector3, Vector2};
 
@@ -60,6 +60,19 @@ impl<'a> System<'a> for PositionUpdateSystem {
                 }
             }
         }
+        Ok(())
+    }
+}
+
+pub struct RotationUpdateSystem();
+
+impl<'a> System<'a> for RotationUpdateSystem {
+
+    type SystemInput = (&'a mut GameState);
+
+    fn run(input: Self::SystemInput) -> Result<(), Error> {
+
+
         Ok(())
     }
 }

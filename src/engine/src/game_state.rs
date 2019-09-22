@@ -1,9 +1,13 @@
-use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture, RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent, OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent};
+use crate::ecs::{ColorComponent, PositionComponent, Component, TextureMixComponent, Texture,
+                 RenderComponent, TextureUpdateComponent, VelocityComponent, ScaleComponent,
+                 OrthographicCameraComponent, BoxCollider2DComponent, SelectedComponent,
+                 RotationComponent, RotationUpdateComponent, LookAtPositionComponent};
 use crate::generational_index::generational_index::*;
 use anymap::AnyMap;
 use failure::Error;
 use nalgebra::{Vector3, Matrix4, Vector2};
 use crate::platform::windows::windows_window::WindowsWindow;
+use crate::utilities::vector_utils;
 
 /// Types for the generational indices and arrays.
 type Entity = GenerationalIndex;
@@ -58,7 +62,7 @@ impl GameState {
     pub fn remove_component<T : Component>(&mut self, index : &Entity) {
 
         if let Some(array) = self.components.get_mut::<EntityMap<T>>() {
-            println!("Removing");
+            //println!("Removing");
             array.remove(&index);
         } else {
             eprintln!("The component does not exist!");
@@ -162,6 +166,9 @@ impl GameState {
         let orthographic_cameras : EntityMap<OrthographicCameraComponent> = EntityMap::new();
         let box_colliders : EntityMap<BoxCollider2DComponent> = EntityMap::new();
         let selected_components : EntityMap<SelectedComponent> = EntityMap::new();
+        let rotation_components : EntityMap<RotationComponent> = EntityMap::new();
+        let rotation_update_components : EntityMap<RotationUpdateComponent> = EntityMap::new();
+        let look_at_components : EntityMap<LookAtPositionComponent> = EntityMap::new();
 
         state.register_map(render_comps);
         state.register_map(pos_comps);
@@ -173,15 +180,20 @@ impl GameState {
         state.register_map(orthographic_cameras);
         state.register_map(box_colliders);
         state.register_map(selected_components);
+        state.register_map(rotation_components);
+        state.register_map(rotation_update_components);
+        state.register_map(look_at_components);
 
         // RIGHT
 
         let position = Vector3::new(0.0, 0.0, 0.0);
-        let scale = Vector3::new(100.0, 100.0, 100.0);
+        let scale = Vector3::new(50.0, 50.0, 50.0);
+        let corners = vector_utils::get_box_corners(Vector2::new(position.x, position.y), Vector2::new(scale.x * 2.0, scale.y * 2.0));
 
         let _first_comp = GameState::create_entity(state)
             .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
             .with(PositionComponent {position})
+            .with(RotationComponent { rotation: Vector3::new(0.0, 0.0, 0.0)})
             .with(ScaleComponent {scale})
             .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
             .with(TextureMixComponent { textures : vec!
@@ -190,24 +202,8 @@ impl GameState {
                 opacity: 0.0})
             .with(TextureUpdateComponent {opacity_change : 0.0 })
             .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
-            .build();
-
-        let position = Vector3::new(100.0, 100.0, 0.0);
-        let scale = Vector3::new(100.0, 100.0, 100.0);
-
-        let entity = GameState::create_entity(state)
-            .with(RenderComponent {shader_program : triangle_render!(), vertex_array_object : quad!()})
-            .with(PositionComponent {position})
-            .with(ScaleComponent {scale})
-            .with(ColorComponent {color : (1.0, 1.0, 1.0, 0.0) })
-            .with(TextureMixComponent { textures : vec!
-            [texture!("src/engine/src/renderer/textures/container.jpg",0, gl::TEXTURE0, String::from("Texture1")),
-             texture!("src/engine/src/renderer/textures/awesomeface.png",1, gl::TEXTURE1, String::from("Texture2"))],
-                opacity: 0.0})
-            .with(TextureUpdateComponent {opacity_change : 0.0 })
-            .with(VelocityComponent {velocity : Vector3::new(0.0, 0.0, 0.0)})
-            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y), size : Vector2::new(scale.x, scale.y)})
+            .with(BoxCollider2DComponent {position: Vector2::new(position.x, position.y),
+                size : Vector2::new(scale.x * 2.0, scale.y * 2.0), corners})
             .build();
 
         let cam_position = Vector3::new(0.0, 0.0, -1.0);

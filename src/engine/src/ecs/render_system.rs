@@ -13,7 +13,8 @@ impl<'a> System<'a> for RenderSystem {
                         &'a GenerationalIndexArray<ColorComponent>,
                         &'a GenerationalIndexArray<TextureMixComponent>,
                         &'a GenerationalIndexArray<ScaleComponent>,
-                        &'a OrthographicCameraComponent);
+                        &'a OrthographicCameraComponent,
+                        &'a GenerationalIndexArray<RotationComponent>);
 
     fn run(input: Self::SystemInput) -> Result<(), Error> {
 
@@ -48,9 +49,13 @@ impl<'a> System<'a> for RenderSystem {
                         //println!("None")
                     }
 
-                    let model = nalgebra::Matrix4::new_translation(&position.position) * nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec);
+                    let rotation_comp = input.6.get(&index).unwrap();
 
-                    //println!("{}, {}, {}", position.position.x, position.position.y, position.position.z);
+                    let rotation = nalgebra::Matrix4::from_scaled_axis(rotation_comp.rotation);
+
+                    let translation = nalgebra::Matrix4::new_translation(&position.position) * rotation;
+
+                    let model = translation * nalgebra::Matrix4::new_nonuniform_scaling(&scale_vec);
 
                     RenderSystem::set_mat4(shader_program.value.shader_program, "Model", model)?;
 
@@ -61,7 +66,6 @@ impl<'a> System<'a> for RenderSystem {
                     // END OF POSITION RENDERING VARIABLES -----------------------------------------
 
                     // COLOR RENDERING VARIABLES
-                    //println!("Color and textures");
                     if let Some(color) = input.2.get(&index).take() {
 
                         RenderSystem::set_vector4(shader_program.value.shader_program, "Color", (color.color.0, color.color.1, color.color.2, color.color.3))?;

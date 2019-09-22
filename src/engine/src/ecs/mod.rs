@@ -7,6 +7,7 @@ pub mod texture_update_system;
 pub mod position_update_system;
 pub mod check_mouse_collision_system;
 pub mod selection_system;
+pub mod look_at_position_system;
 
 #[macro_export]
 // Macro for creating a key typed event.
@@ -74,10 +75,18 @@ impl Component for VelocityComponent {}
 
 pub struct RotationComponent {
 
-    rotation : Vector3<f32>
+    pub rotation : Vector3<f32>
 }
 
 impl Component for RotationComponent {}
+
+pub struct RotationUpdateComponent {
+
+    pub axis : nalgebra::Vector3<f32>,
+    pub angle : f32
+}
+
+impl Component for RotationUpdateComponent {}
 
 pub struct ScaleComponent {
     pub scale : Vector3<f32>
@@ -155,7 +164,8 @@ impl Component for OrthographicCameraComponent {}
 pub struct BoxCollider2DComponent {
 
     pub size : Vector2<f32>,
-    pub position : Vector2<f32>
+    pub position : Vector2<f32>,
+    pub corners : Vec<Vector2<f32>>
 }
 
 impl Component for BoxCollider2DComponent {}
@@ -163,10 +173,20 @@ impl Component for BoxCollider2DComponent {}
 pub struct SelectedComponent {
 
     pub selected_color : (f32, f32, f32, f32),
+    pub origin_color : (f32, f32, f32, f32),
     pub cursor_offset : Vector2<f32>
 }
 
 impl Component for SelectedComponent {}
 
+pub struct LookAtPositionComponent {
+
+    pub focus_point: Vector2<f32>
+}
+
+impl Component for LookAtPositionComponent {}
+
 pub trait Component: Any + Sized {}
+
+
 
