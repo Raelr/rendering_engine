@@ -42,16 +42,18 @@ pub fn get_direction_2d(origin: Vector2<f32>, destination: Vector2<f32>) -> Vect
     direction
 }
 
-pub fn get_projection_2d(vec: Vector2<f32>, axis: Vector2<f32>) {
+pub fn get_projection_2d(vec: &Vector2<f32>, axis: &Vector2<f32>) -> Vector2<f32> {
 
-    //println!("Initial vec: x: {} y: {}", vec.x, vec.y);
-    //println!("Axis: x: {} y: {}", axis.x, axis.y);
+//    println!("Initial vec: x: {} y: {}", vec.x, vec.y);
+//    println!("Axis: x: {} y: {}", axis.x, axis.y);
     let left = vec.dot(&axis);
-    //println!("left: {}", left);
+//    println!("left: {}", left);
     let right = axis.dot(&axis);
-    //println!("right: {}", right);
+//    println!("right: {}", right);
     let scalar = left / right;
 
     let projection = Vector2::new(scalar * axis.x, scalar * axis.y);
-    println!("Projection = x: {} y: {}", projection.x, projection.y);
+//    println!("Projection = x: {} y: {}", projection.x, projection.y);
+
+    projection
 }
